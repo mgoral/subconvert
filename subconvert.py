@@ -78,9 +78,8 @@ class GenericSubParser:
 							yield { 'sub_no': i, 'sub': self.atom }
 							self.atom = self.atom_t.copy()
 					except IndexError:
-						# TODO: It seems that this exception isn't catched!
 						log.error(_('End of sub catching not specified. Aborting.'))
-						#raise
+						raise
 
 class MicroDVD(GenericSubParser):
 	time_pattern = r'''
