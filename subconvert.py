@@ -80,10 +80,7 @@ class GenericSubParser:
 							if not fmt:
 								# if there are any not-alphanumeric characters,
 								# suppose it's time format
-								if re.search(r'[^A-Za-z0-9]', atom['time_from']):
-									fmt = 'time'
-								else:
-									fmt = 'frame'
+								fmt = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
 							yield { 'sub_no': i, 'fmt': fmt, 'sub': atom }
 							atom = self.atom_t.copy()
 					except IndexError:
