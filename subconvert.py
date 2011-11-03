@@ -60,14 +60,12 @@ class GenericSubParser:
 							if not atom['time_from']:
 								atom['time_from'] = m.group('time_from')
 							else:
-								pass
-								#raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, self.atom['time_from'], m.group('time_from'))
+								raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, self.atom['time_from'], m.group('time_from'))
 						if m.group('time_to'):
 							if not atom['time_to']:
 								atom['time_to'] = m.group('time_to')
 							else:
-								pass
-								#raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, self.atom['time_to'], m.group('time_to'))
+								raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, self.atom['time_to'], m.group('time_to'))
 						if m.group('text'):
 							atom['text'] += m.group('text')
 					except IndexError, msg:
