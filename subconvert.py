@@ -40,14 +40,14 @@ class GenericSubParser:
 
 		assert os.path.isfile(f), "File %s doesn't exist." % f
 		self.atom_t = {'time_from': '', 'time_to': '', 'text': '',}
-		self.atom = self.atom_t.copy()
 		self.filename = f
 		pattern = r'(?:%s)|(?:%s)|(?:%s)' % (self.time_pattern, self.text_pattern, self.end_pattern)
 		self.pattern = re.compile(pattern, re.X)
 
 	def parse(self):
 		'''Actual parser.'''
-
+		atom = self.atom_t.copy()
+		fmt = ''
 		with open(self.filename, 'r') as f:
 			i = 0
 			line_no = 0
@@ -57,26 +57,35 @@ class GenericSubParser:
 				for m in it:
 					try:
 						if m.group('time_from'):
-							if not self.atom['time_from']:
-								self.atom['time_from'] = m.group('time_from')
+							if not atom['time_from']:
+								atom['time_from'] = m.group('time_from')
 							else:
 								pass
 								#raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, self.atom['time_from'], m.group('time_from'))
 						if m.group('time_to'):
-							if not self.atom['time_to']:
-								self.atom['time_to'] = m.group('time_to')
+							if not atom['time_to']:
+								atom['time_to'] = m.group('time_to')
 							else:
 								pass
 								#raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, self.atom['time_to'], m.group('time_to'))
 						if m.group('text'):
-							self.atom['text'] += m.group('text')
+							atom['text'] += m.group('text')
 					except IndexError, msg:
 						log.debug(msg)
 					try:
 						if m.group('end'):
 							i += 1
-							yield { 'sub_no': i, 'sub': self.atom }
-							self.atom = self.atom_t.copy()
+							if not atom['time_from']:
+								return
+							if not fmt:
+								# if there are any not-alphanumeric characters,
+								# suppose it's time format
+								if re.search(r'[^A-Za-z0-9]', atom['time_from']):
+									fmt = 'time'
+								else:
+									fmt = 'frame'
+							yield { 'sub_no': i, 'fmt': fmt, 'sub': atom }
+							atom = self.atom_t.copy()
 					except IndexError:
 						log.error(_('End of sub catching not specified. Aborting.'))
 						raise
