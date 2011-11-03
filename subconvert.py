@@ -1,16 +1,29 @@
 #!/usr/bin/python
+#-*- coding: utf-8 -*-
 
 import os
+import sys
 import re
 import logging
+from optparse import OptionParser
+import gettext
+
+__VERSION__ = '0.0.1'
+__AUTHOR__ = u'Michał Góral'
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+log.addHandler(ch)
+
+gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
+gettext.textdomain('subconvert')
+_ = gettext.gettext
 
 class SubError(Exception):
 	pass
 
-class GenericParser:
+class GenericSubParser:
 	'''Generic class that should be inherited
 	and polymorphed by the other, specialized
 	classes. Usually only __init__ and patterns
@@ -19,7 +32,7 @@ class GenericParser:
 	# Overwrite these in inherited classes
 	time_pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)'
 	text_pattern = r'(?P<text>.+)'
-	end_pattern = r'(?P<end>/n)'
+	end_pattern = r'(?P<end>\n)'
 
 	def __init__(self, f):
 		'''Usually you will only need to call super.__init__(f)
@@ -29,15 +42,17 @@ class GenericParser:
 		self.atom_t = {'time_from': '', 'time_to': '', 'text': '',}
 		self.atom = self.atom_t.copy()
 		self.filename = f
-		pattern = r'(?:%s)|(?:%s)|(?:%s)' % (time_pattern, text_pattern, end_pattern)
-		self.pattern = re.compile(pattern)
+		pattern = r'(?:%s)|(?:%s)|(?:%s)' % (self.time_pattern, self.text_pattern, self.end_pattern)
+		self.pattern = re.compile(pattern, re.X)
 
-	def parse():
+	def parse(self):
 		'''Actual parser.'''
 
-		with open(filename, 'r') as f:
+		with open(self.filename, 'r') as f:
 			i = 0
+			line_no = 0
 			for line in f:
+				line_no += 1
 				it = self.pattern.finditer(line)
 				for m in it:
 					try:
@@ -45,12 +60,14 @@ class GenericParser:
 							if not self.atom['time_from']:
 								self.atom['time_from'] = m.group('time_from')
 							else:
-								raise SubError
+								pass
+								#raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, self.atom['time_from'], m.group('time_from'))
 						if m.group('time_to'):
 							if not self.atom['time_to']:
 								self.atom['time_to'] = m.group('time_to')
 							else:
-								raise SubError
+								pass
+								#raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, self.atom['time_to'], m.group('time_to'))
 						if m.group('text'):
 							self.atom['text'] += m.group('text')
 					except IndexError, msg:
@@ -61,4 +78,46 @@ class GenericParser:
 							yield { 'sub_no': i, 'sub': self.atom }
 							self.atom = self.atom_t.copy()
 					except IndexError:
-						log.error('End of sub catching not specified. Aborting.')
+						# TODO: It seems that this exception isn't catched!
+						log.error(_('End of sub catching not specified. Aborting.'))
+						#raise
+
+class MicroDVD(GenericSubParser):
+	time_pattern = r'''
+		^
+		\{(?P<time_from>\d+)\}	# {digits} 
+		\{(?P<time_to>\d+)\}	# {digits}
+		'''
+	text_pattern = r'''
+		(?P<text>
+		[^\r\n]+
+		)		# End of asignment
+		'''
+	end_pattern = r'(?P<end>\r?\n$)'
+	def __init__(self, f):
+		GenericSubParser.__init__(self, f)
+
+def main():
+	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
+		version = '%s' % __VERSION__ )
+	optp.add_option('-f', '--fps',
+		action='store', type='int', dest='fps', default = 25,
+		help=_("select movie/subtitles frames per second"))
+	optp.add_option('-F', '--format',
+		action='store', type='string', dest='format', default = 'subrip',
+		help=_("output file format"))
+	
+	(options, args) = optp.parse_args()
+
+	if len(args) not in (1, 2,):
+		log.error(_("Incorrect number of arguments."))
+		return
+	
+	c = MicroDVD(args[0])
+	for p in c.parse():
+		print p
+	
+
+if __name__ == '__main__':
+	main()
+
