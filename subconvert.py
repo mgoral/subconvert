@@ -32,7 +32,7 @@ class GenericSubParser:
 	# Overwrite these in inherited classes
 	time_pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)'
 	text_pattern = r'(?P<text>.+)'
-	end_pattern = r'(?P<end>\n)'
+	start_pattern = r'(?P<start>\n)'
 
 	def __init__(self, f):
 		'''Usually you will only need to call super.__init__(f)
@@ -41,8 +41,9 @@ class GenericSubParser:
 		assert os.path.isfile(f), "File %s doesn't exist." % f
 		self.atom_t = {'time_from': '', 'time_to': '', 'text': '',}
 		self.filename = f
-		pattern = r'(?:%s)|(?:%s)|(?:%s)' % (self.time_pattern, self.text_pattern, self.end_pattern)
+		pattern = r'(?:%s)|(?:%s)' % (self.time_pattern, self.text_pattern)
 		self.pattern = re.compile(pattern, re.X)
+		self.start_pattern = re.compile(self.start_pattern)
 
 	def parse(self):
 		'''Actual parser.'''
@@ -51,39 +52,44 @@ class GenericSubParser:
 		with open(self.filename, 'r') as f:
 			i = 0
 			line_no = 0
+			inside = False
 			for line in f:
 				line_no += 1
 				it = self.pattern.finditer(line)
+				st = self.start_pattern.search(line)
+				try:
+					if st:
+						i+=1
+						inside = True
+						atom = self.atom_t.copy()
+				except IndexError:
+					log.error(_('Start of sub catching not specified. Aborting.'))
+					raise
 				for m in it:
 					try:
 						if m.group('time_from'):
 							if not atom['time_from']:
 								atom['time_from'] = m.group('time_from')
+								if not fmt:
+									# if there are any not-alphanumeric characters,
+									# suppose it's time format
+									fmt = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
 							else:
-								raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, self.atom['time_from'], m.group('time_from'))
+								raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, atom['time_from'], m.group('time_from'))
 						if m.group('time_to'):
 							if not atom['time_to']:
 								atom['time_to'] = m.group('time_to')
 							else:
-								raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, self.atom['time_to'], m.group('time_to'))
+								raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, atom['time_to'], m.group('time_to'))
 						if m.group('text'):
 							atom['text'] += m.group('text')
+						if st and atom['time_from'] and atom['text']:
+							inside = False
+							yield { 'sub_no': i, 'fmt': fmt, 'sub': atom }
+						elif (atom['time_from'] or atom['time_to'] or atom['text']) and not inside:
+							return
 					except IndexError, msg:
 						log.debug(msg)
-					try:
-						if m.group('end'):
-							i += 1
-							if not atom['time_from']:
-								return
-							if not fmt:
-								# if there are any not-alphanumeric characters,
-								# suppose it's time format
-								fmt = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
-							yield { 'sub_no': i, 'fmt': fmt, 'sub': atom }
-							atom = self.atom_t.copy()
-					except IndexError:
-						log.error(_('End of sub catching not specified. Aborting.'))
-						raise
 
 class MicroDVD(GenericSubParser):
 	time_pattern = r'''
@@ -96,9 +102,26 @@ class MicroDVD(GenericSubParser):
 		[^\r\n]+
 		)		# End of asignment
 		'''
-	end_pattern = r'(?P<end>\r?\n$)'
+	start_pattern = r'^(?P<start>\{\d+\})'
+	
 	def __init__(self, f):
 		GenericSubParser.__init__(self, f)
+
+class SubRip(GenericSubParser):
+	time_pattern = r'''
+	^
+	(?P<time_from>\d+:\d{2}:\d{2},\d+)	# 00:00:00,000
+	[ \t]*-->[ \t]*
+	(?P<time_to>\d+:\d{2}:\d{2},\d+)
+	$
+	'''
+	text_pattern = r'''^[^\r\n\v]+'''
+	start_pattern = r'^\d$'
+	
+	def __init__(self, f):
+		GenericSubParser.__init__(self, f)
+	
+	
 
 def main():
 	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
@@ -119,7 +142,6 @@ def main():
 	c = MicroDVD(args[0])
 	for p in c.parse():
 		print p
-	
 
 if __name__ == '__main__':
 	main()
