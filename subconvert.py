@@ -34,6 +34,7 @@ class GenericSubParser:
 	# Note that start_pattern is checked independently to 
 	# time_pattern and text_pattern (which are OR-ed)
 	__SUB_TYPE__ = 'Generic'
+	__FMT__ = 'Unknown' 	# time/frame
 	time_pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)'
 	text_pattern = r'(?P<text>.+)'
 	start_pattern = r'(?P<start>\n)'
@@ -49,14 +50,13 @@ class GenericSubParser:
 		self.pattern = re.compile(pattern, re.X)
 		self.start_pattern = re.compile(self.start_pattern)
 		self.encoding = encoding
-
+	
 	def parse(self):
 		'''Actual parser.
 		Please note that time_to is not required 
 		to process as not all subtitles provide it.'''
 
 		atom = self.atom_t.copy()
-		fmt = ''
 		i = 0
 		line_no = 0
 		with codecs.open(self.filename, mode='r', encoding=self.encoding) as f:
@@ -68,7 +68,7 @@ class GenericSubParser:
 					if st:
 						# yield parsing result if new start marker occurred, then clear results
 						if atom['time_from'] and atom['text']:
-							yield { 'sub_no': i, 'fmt': fmt, 'sub': atom }
+							yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }
 						i+=1
 						atom = self.atom_t.copy()
 				except IndexError:
@@ -79,15 +79,15 @@ class GenericSubParser:
 						if m.group('time_from'):
 							if not atom['time_from']:
 								atom['time_from'] = m.group('time_from')
-								if not fmt:
-									# if there are any not-alphanumeric characters,
-									# suppose it's time format
-									fmt = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
+								if self.__FMT__ not in ('frame', 'time'):
+									self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
 							else:
 								raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, atom['time_from'], m.group('time_from'))
 						if m.group('time_to'):
 							if not atom['time_to']:
 								atom['time_to'] = m.group('time_to')
+								if self.__FMT__ not in ('frame', 'time'):
+									self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
 							else:
 								raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, atom['time_to'], m.group('time_to'))
 						if m.group('text'):
@@ -98,10 +98,17 @@ class GenericSubParser:
 							return
 					except IndexError, msg:
 						log.debug(msg)
-		yield { 'sub_no': i, 'fmt': fmt, 'sub': atom }	# One last goodbye - no new start markers after the last one.
+		yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }	# One last goodbye - no new start markers after the last one.
+
+	def convert(self, subs):
+		'''A function which gets dictionary containing single 
+		sub info and returns appropriately formated string
+		according to sub format specification.'''
+		return ''
 
 class MicroDVD(GenericSubParser):
 	__SUB_TYPE__ = 'Micro DVD'
+	__FMT__ = 'frame'
 	time_pattern = r'''
 		^
 		\{(?P<time_from>\d+)\}	# {digits} 
@@ -119,6 +126,7 @@ class MicroDVD(GenericSubParser):
 
 class SubRip(GenericSubParser):
 	__SUB_TYPE__ = 'Sub Rip'
+	__FMT__ = 'time'
 	time_pattern = r'''
 	^
 	(?P<time_from>\d+:\d{2}:\d{2},\d+)	# 00:00:00,000
@@ -129,9 +137,14 @@ class SubRip(GenericSubParser):
 	'''
 	text_pattern = r'''^(?P<text>[^\r\v\n]+\s*)$'''
 	start_pattern = r'^\d+\s*$'
+	time_fmt = r'^(?P<h>\d+):(?P<m>\d{2}):(?P<s>\d{2}),(?P<ms>\d+)$'
 	
 	def __init__(self, f, encoding):
+		self.time_fmt = re.compile(self.time_fmt)
 		GenericSubParser.__init__(self, f, encoding)
+	
+	def convert(self, subs):
+		pass
 	
 def main():
 	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
