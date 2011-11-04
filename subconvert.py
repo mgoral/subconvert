@@ -4,6 +4,7 @@
 import os
 import sys
 import re
+import codecs
 import logging
 from optparse import OptionParser
 import gettext
@@ -37,8 +38,8 @@ class GenericSubParser:
 	text_pattern = r'(?P<text>.+)'
 	start_pattern = r'(?P<start>\n)'
 
-	def __init__(self, f):
-		'''Usually you will only need to call super __init__()
+	def __init__(self, f, encoding):
+		'''Usually you will only need to call super __init__(filename, encoding)
 		from a specialized class.'''
 
 		assert os.path.isfile(f), "File %s doesn't exist." % f
@@ -47,6 +48,7 @@ class GenericSubParser:
 		pattern = r'(?:%s)|(?:%s)' % (self.time_pattern, self.text_pattern)
 		self.pattern = re.compile(pattern, re.X)
 		self.start_pattern = re.compile(self.start_pattern)
+		self.encoding = encoding
 
 	def parse(self):
 		'''Actual parser.
@@ -57,7 +59,7 @@ class GenericSubParser:
 		fmt = ''
 		i = 0
 		line_no = 0
-		with open(self.filename, 'r') as f:
+		with codecs.open(self.filename, mode='r', encoding=self.encoding) as f:
 			for line in f:
 				line_no += 1
 				it = self.pattern.finditer(line)
@@ -112,8 +114,8 @@ class MicroDVD(GenericSubParser):
 		'''
 	start_pattern = r'^(?P<start>\{\d+\})'
 	
-	def __init__(self, f):
-		GenericSubParser.__init__(self, f)
+	def __init__(self, f, encoding):
+		GenericSubParser.__init__(self, f, encoding)
 
 class SubRip(GenericSubParser):
 	__SUB_TYPE__ = 'Sub Rip'
@@ -128,8 +130,8 @@ class SubRip(GenericSubParser):
 	text_pattern = r'''^(?P<text>[^\r\v\n]+\s*)$'''
 	start_pattern = r'^\d+\s*$'
 	
-	def __init__(self, f):
-		GenericSubParser.__init__(self, f)
+	def __init__(self, f, encoding):
+		GenericSubParser.__init__(self, f, encoding)
 	
 def main():
 	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
@@ -140,21 +142,24 @@ def main():
 	optp.add_option('-F', '--format',
 		action='store', type='string', dest='format', default = 'subrip',
 		help=_("output file format"))
+	optp.add_option('-e', '--encoding',
+		action='store', type='string', dest='encoding', default='ascii',
+		help=_("input file encoding. Default is 'ascii'. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
 	
 	(options, args) = optp.parse_args()
 
 	if len(args) not in (1, 2,):
 		log.error(_("Incorrect number of arguments."))
 		return
-	
-	c = MicroDVD(args[0])
-	for p in c.parse():
-		print '1'
-		print p
-	c = SubRip(args[0])
-	for p in c.parse():
-		print '2'
-		print p
+	try:
+		c = MicroDVD(args[0], options.encoding)
+		for p in c.parse():
+			print p
+		c = SubRip(args[0], options.encoding)
+		for p in c.parse():
+			print p
+	except UnicodeDecodeError:
+		log.error(_("I'm terribly sorry but it seems that I couldn't handle %s given %s encoding. Maybe try defferent encoding?" % (args[0], options.encoding)))
 
 if __name__ == '__main__':
 	main()
