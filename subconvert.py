@@ -30,12 +30,15 @@ class GenericSubParser:
 	should be rewritten in successors.'''
 
 	# Overwrite these in inherited classes
+	# Note that start_pattern is checked independently to 
+	# time_pattern and text_pattern (which are OR-ed)
+	__SUB_TYPE__ = 'Generic'
 	time_pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)'
 	text_pattern = r'(?P<text>.+)'
 	start_pattern = r'(?P<start>\n)'
 
 	def __init__(self, f):
-		'''Usually you will only need to call super.__init__(f)
+		'''Usually you will only need to call super __init__()
 		from a specialized class.'''
 
 		assert os.path.isfile(f), "File %s doesn't exist." % f
@@ -44,23 +47,28 @@ class GenericSubParser:
 		pattern = r'(?:%s)|(?:%s)' % (self.time_pattern, self.text_pattern)
 		self.pattern = re.compile(pattern, re.X)
 		self.start_pattern = re.compile(self.start_pattern)
+		self.encoding = encoding
 
 	def parse(self):
-		'''Actual parser.'''
+		'''Actual parser.
+		Please note that time_to is not required 
+		to process as not all subtitles provide it.'''
+
 		atom = self.atom_t.copy()
 		fmt = ''
+		i = 0
+		line_no = 0
 		with open(self.filename, 'r') as f:
-			i = 0
-			line_no = 0
-			inside = False
 			for line in f:
 				line_no += 1
 				it = self.pattern.finditer(line)
 				st = self.start_pattern.search(line)
 				try:
 					if st:
+						# yield parsing result if new start marker occurred, then clear results
+						if atom['time_from'] and atom['text']:
+							yield { 'sub_no': i, 'fmt': fmt, 'sub': atom }
 						i+=1
-						inside = True
 						atom = self.atom_t.copy()
 				except IndexError:
 					log.error(_('Start of sub catching not specified. Aborting.'))
@@ -83,15 +91,16 @@ class GenericSubParser:
 								raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, atom['time_to'], m.group('time_to'))
 						if m.group('text'):
 							atom['text'] += m.group('text')
-						if st and atom['time_from'] and atom['text']:
-							inside = False
-							yield { 'sub_no': i, 'fmt': fmt, 'sub': atom }
-						elif (atom['time_from'] or atom['time_to'] or atom['text']) and not inside:
+						if not i and (atom['time_from'] or atom['time_to'] or atom['text']):
+							# return if we gathered something before start marker occurrence
+							log.debug(_("Not a %s file." % self.__SUB_TYPE__))
 							return
 					except IndexError, msg:
 						log.debug(msg)
+		yield { 'sub_no': i, 'fmt': fmt, 'sub': atom }	# One last goodbye - no new start markers after the last one.
 
 class MicroDVD(GenericSubParser):
+	__SUB_TYPE__ = 'Micro DVD'
 	time_pattern = r'''
 		^
 		\{(?P<time_from>\d+)\}	# {digits} 
@@ -108,21 +117,21 @@ class MicroDVD(GenericSubParser):
 		GenericSubParser.__init__(self, f)
 
 class SubRip(GenericSubParser):
+	__SUB_TYPE__ = 'Sub Rip'
 	time_pattern = r'''
 	^
 	(?P<time_from>\d+:\d{2}:\d{2},\d+)	# 00:00:00,000
 	[ \t]*-->[ \t]*
 	(?P<time_to>\d+:\d{2}:\d{2},\d+)
+	\s*
 	$
 	'''
-	text_pattern = r'''^[^\r\n\v]+'''
-	start_pattern = r'^\d$'
+	text_pattern = r'''^(?P<text>[^\r\v\n]+\s*)$'''
+	start_pattern = r'^\d+\s*$'
 	
 	def __init__(self, f):
 		GenericSubParser.__init__(self, f)
 	
-	
-
 def main():
 	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
 		version = '%s' % __VERSION__ )
@@ -141,6 +150,11 @@ def main():
 	
 	c = MicroDVD(args[0])
 	for p in c.parse():
+		print '1'
+		print p
+	c = SubRip(args[0])
+	for p in c.parse():
+		print '2'
 		print p
 
 if __name__ == '__main__':
