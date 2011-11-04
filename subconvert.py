@@ -47,7 +47,6 @@ class GenericSubParser:
 		pattern = r'(?:%s)|(?:%s)' % (self.time_pattern, self.text_pattern)
 		self.pattern = re.compile(pattern, re.X)
 		self.start_pattern = re.compile(self.start_pattern)
-		self.encoding = encoding
 
 	def parse(self):
 		'''Actual parser.
