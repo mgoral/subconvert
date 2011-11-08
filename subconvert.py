@@ -31,10 +31,9 @@ class FrameTime:
 	miliseconds = 0
 	frame = 0
 
-	def __init__(h=0, m=0, s=0, ms=0, frame=0):
-		if int(h) < 0 or int(m) > 59 or int(m) < 0 \
-		or int(s) > 59 or int(s) < 0 or int(ms) > 999 or int(ms) < 0:
-			raise ValueError, "Arguments not in ranges."
+	def __init__(self, h=0, m=0, s=0, ms=0, frame=0):
+		if int(h) < 0 or int(m) > 59 or int(m) < 0 or int(s) > 59 or int(s) < 0 or int(ms) > 999 or int(ms) < 0:
+			raise ValueError, "Arguments not in allowed ranges."
 		frame = int(frame)
 		self.frame = frame
 		self.hours = h
@@ -42,7 +41,7 @@ class FrameTime:
 		self.seconds = s
 		self.miliseconds = ms
 
-	def to_time(fps):
+	def to_time(self, fps):
 		fps = float(fps)
 		tmp = self.frame * fps
 		seconds = int(tmp)
@@ -53,7 +52,7 @@ class FrameTime:
 		self.seconds = seconds - 60 * self.minutes
 		return (self.hours, self.minutes, self.seconds, self.miliseconds)
 	
-	def to_frame(fps):
+	def to_frame(self, fps):
 		fps = float(fps)
 		self.frame = int(fps / (3600*int(self.hours) + 60*int(self.minutes) + int(self.seconds) + float(self.miliseconds)/1000))
 		return self.frame
@@ -115,6 +114,7 @@ class GenericSubParser:
 								atom['time_from'] = m.group('time_from')
 								if self.__FMT__ not in ('frame', 'time'):
 									self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
+								atom['time_from'] = self.str_to_frametime(atom['time_from'])
 							else:
 								raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, atom['time_from'], m.group('time_from'))
 						if m.group('time_to'):
@@ -122,6 +122,7 @@ class GenericSubParser:
 								atom['time_to'] = m.group('time_to')
 								if self.__FMT__ not in ('frame', 'time'):
 									self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
+								atom['time_to'] = self.str_to_frametime(atom['time_to'])
 							else:
 								raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, atom['time_to'], m.group('time_to'))
 						if m.group('text'):
@@ -133,6 +134,10 @@ class GenericSubParser:
 					except IndexError, msg:
 						log.debug(msg)
 		yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }	# One last goodbye - no new start markers after the last one.
+	
+	def str_to_frametime(self, s):
+		'''Convert string to frametime objects.'''
+		return s
 
 	def convert(self, subs):
 		'''A function which gets dictionary containing single 
@@ -157,7 +162,10 @@ class MicroDVD(GenericSubParser):
 	
 	def __init__(self, f, encoding):
 		GenericSubParser.__init__(self, f, encoding)
-
+	
+	def str_to_frametime(self, s):
+		return FrameTime(frame=s)
+	
 class SubRip(GenericSubParser):
 	__SUB_TYPE__ = 'Sub Rip'
 	__FMT__ = 'time'
@@ -176,6 +184,10 @@ class SubRip(GenericSubParser):
 	def __init__(self, f, encoding):
 		self.time_fmt = re.compile(self.time_fmt)
 		GenericSubParser.__init__(self, f, encoding)
+	
+	def str_to_frametime(self, s):
+		time = self.time_fmt.search(s)
+		return FrameTime(h=time.group('h'), m=time.group('m'), s=time.group('s'), ms=time.group('ms'))
 	
 	def convert(self, subs):
 		pass
