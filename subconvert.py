@@ -24,6 +24,40 @@ _ = gettext.gettext
 class SubError(Exception):
 	pass
 
+class FrameTime:
+	hours = 0
+	minutes = 0
+	seconds = 0
+	miliseconds = 0
+	frame = 0
+
+	def __init__(h=0, m=0, s=0, ms=0, frame=0):
+		if int(h) < 0 or int(m) > 59 or int(m) < 0 \
+		or int(s) > 59 or int(s) < 0 or int(ms) > 999 or int(ms) < 0:
+			raise ValueError, "Arguments not in ranges."
+		frame = int(frame)
+		self.frame = frame
+		self.hours = h
+		self.minutes = m
+		self.seconds = s
+		self.miliseconds = ms
+
+	def to_time(fps):
+		fps = float(fps)
+		tmp = self.frame * fps
+		seconds = int(tmp)
+		self.miliseconds = int((tmp - seconds)*1000)
+		self.hours = seconds / 3600
+		seconds -= 3600 * self.hours
+		self.minutes = seconds / 60
+		self.seconds = seconds - 60 * self.minutes
+		return (self.hours, self.minutes, self.seconds, self.miliseconds)
+	
+	def to_frame(fps):
+		fps = float(fps)
+		self.frame = int(fps / (3600*int(self.hours) + 60*int(self.minutes) + int(self.seconds) + float(self.miliseconds)/1000))
+		return self.frame
+
 class GenericSubParser:
 	'''Generic class that should be inherited
 	and polymorphed by the other, specialized
