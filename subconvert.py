@@ -57,7 +57,7 @@ class FrameTime:
 		self.frame = int(fps / (3600*int(self.hours) + 60*int(self.minutes) + int(self.seconds) + float(self.miliseconds)/1000))
 		return self.frame
 
-class GenericSubParser:
+class GenericSubParser(object):
 	'''Generic class that should be inherited
 	and polymorphed by the other, specialized
 	classes. Usually only __init__ and patterns
@@ -206,17 +206,16 @@ def main():
 		help=_("input file encoding. Default is 'ascii'. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
 	
 	(options, args) = optp.parse_args()
-
+	
 	if len(args) not in (1, 2,):
 		log.error(_("Incorrect number of arguments."))
 		return
 	try:
-		c = MicroDVD(args[0], options.encoding)
-		for p in c.parse():
-			print p
-		c = SubRip(args[0], options.encoding)
-		for p in c.parse():
-			print p
+		cls = GenericSubParser.__subclasses__()
+		for cl in cls:
+			c = cl(args[0], options.encoding)
+			for p in c.parse():
+				print p
 	except UnicodeDecodeError:
 		log.error(_("I'm terribly sorry but it seems that I couldn't handle %s given %s encoding. Maybe try defferent encoding?" % (args[0], options.encoding)))
 
