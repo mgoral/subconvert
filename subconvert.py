@@ -9,7 +9,7 @@ import logging
 from optparse import OptionParser
 import gettext
 
-__VERSION__ = '0.0.1'
+__VERSION__ = '0.5.0'
 __AUTHOR__ = u'Michał Góral'
 
 log = logging.getLogger(__name__)
@@ -252,7 +252,7 @@ class SubRip(GenericSubParser):
 	text_pattern = r'''^(?:\d+\r?\n)|(?P<text>[^\r\v\n]+\s*)$'''
 	start_pattern = r'^\d+\s*$'
 	time_fmt = r'^(?P<h>\d+):(?P<m>\d{2}):(?P<s>\d{2}),(?P<ms>\d+)$'
-	sub_fmt = "{gsp_no}"+ os.linesep + "{gsp_from} --> {gsp_to}" + os.linesep + "{gsp_text}" + os.linesep
+	sub_fmt = "{gsp_no}"+ os.linesep + "{gsp_from} --> {gsp_to}" + os.linesep + "{gsp_text}" + os.linesep + os.linesep
 	sub_formatting = {
 		'gsp_b_':	r'<b>', '_gsp_b': 	r'</b>',
 		'gsp_i_': 	r'<i>', '_gsp_i': 	r'</i>',
