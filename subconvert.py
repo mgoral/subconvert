@@ -67,6 +67,8 @@ class GenericSubParser(object):
 	# Note that start_pattern is checked independently to 
 	# time_pattern and text_pattern (which are OR-ed)
 	__SUB_TYPE__ = 'Generic'
+	__OPT__ = 'none'
+	__EXT__ = 'sub'
 	__FMT__ = 'Unknown' 	# time/frame
 	time_pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)'
 	text_pattern = r'(?P<text>.+)'
@@ -134,8 +136,30 @@ class GenericSubParser(object):
 							return
 					except IndexError, msg:
 						log.debug(msg)
-		yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }	# One last goodbye - no new start markers after the last one.
-	
+		yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }	# One last goodbye - no new start markers after the last one.	
+
+	def convert(self, sub, sub_fmt=None, formatting=None):
+		'''A function which gets dictionary containing single 
+		sub info and returns appropriately formated string
+		according to the passed sub format specification.'''
+		if not sub_fmt:
+			fmt = r"{gsp_no}:\r\n{gsp_from} : {gsp_to}\r\n{gsp_text}"
+		if not formatting:
+			formatting = {
+				'gsp_b':	r'', '_gsp_b': 	r'',
+				'gsp_i': 	r'', '_gsp_i': 	r'',
+				'gsp_u': 	r'', '_gsp_u': 	r'',
+				'gsp_nl': 	r'\r\n',
+			}
+
+		try:
+			sub_text = sub['sub']['text'].format(formatting)
+		except KeyError:
+			log.warning(_("Key exception occured when trying to format sub: %s" %sub['sub']['text']))
+			sub_text = sub['sub']['text']
+		return fmt.format(gsp_no = sub['sub_no'], gsp_from = sub['sub']['time_from'],\
+		gsp_to = sub['sub']['time_to'], gsp_text = sub_text.encode(self.encoding))
+
 	def str_to_frametime(self, s):
 		'''Convert string to frametime objects.'''
 		return s
@@ -149,30 +173,9 @@ class GenericSubParser(object):
 		{gsp_nl} -- new line'''
 		return s
 
-	def convert(self, sub, sub_fmt=None, formatting=None):
-		'''A function which gets dictionary containing single 
-		sub info and returns appropriately formated string
-		according to the passed sub format specification.'''
-		if not fmt:
-			fmt = r"{gsp_no}:\r\n{gsp_from} : {gsp_to}\r\n{gsp_text}"
-		if not formatting:
-			formatting = {
-				'gsp_b':	r'', '_gsp_b': 	r'',
-				'gsp_i': 	r'', '_gsp_i': 	r'',
-				'gsp_u': 	r'', '_gsp_u': 	r'',
-				'gsp_nl': 	r'\r\n',
-			}
-
-		try:
-			sub_text = sub['sub']['text'].format(formatting)
-		except KeyError:
-			log.warning(_("Key exception occured when trying to format sub: %s" %sub['text']))
-			sub_text = sub['text']
-		return fmt.format(gsp_no = sub['sub_no'], gsp_from = sub['sub']['time_from'],\
-			gsp_to = sub['sub']['time_to'], gsp_text = sub_text)
-
 class MicroDVD(GenericSubParser):
 	__SUB_TYPE__ = 'Micro DVD'
+	__OPT__ = 'microdvd'
 	__FMT__ = 'frame'
 	time_pattern = r'''
 		^
@@ -194,6 +197,7 @@ class MicroDVD(GenericSubParser):
 	
 class SubRip(GenericSubParser):
 	__SUB_TYPE__ = 'Sub Rip'
+	__OPT__ = 'subrip'
 	__FMT__ = 'time'
 	time_pattern = r'''
 	^
@@ -214,31 +218,45 @@ class SubRip(GenericSubParser):
 	def str_to_frametime(self, s):
 		time = self.time_fmt.search(s)
 		return FrameTime(h=time.group('h'), m=time.group('m'), s=time.group('s'), ms=time.group('ms'))
-	
+
 def main():
 	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
 		version = '%s' % __VERSION__ )
 	optp.add_option('-f', '--fps',
 		action='store', type='int', dest='fps', default = 25,
-		help=_("select movie/subtitles frames per second"))
+		help=_("select movie/subtitles frames per second. Default: 25"))
 	optp.add_option('-F', '--format',
 		action='store', type='string', dest='format', default = 'subrip',
-		help=_("output file format"))
+		help=_("output file format. Default: subrip"))
 	optp.add_option('-e', '--encoding',
 		action='store', type='string', dest='encoding', default='ascii',
-		help=_("input file encoding. Default is 'ascii'. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
+		help=_("input file encoding. Default: 'ascii'. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
 	
 	(options, args) = optp.parse_args()
 	
 	if len(args) not in (1, 2,):
 		log.error(_("Incorrect number of arguments."))
 		return
+	
+	cls = GenericSubParser.__subclasses__()
+	convert_to = None
+	for c in cls:
+		if c.__OPT__ == options.format:
+			try:
+				conv = c(args[1], options.encoding)
+			except IndexError:
+				filename, extension = os.path.splitext(args[0])
+				conv = c(filename + '.' + c.__EXT__, options.encoding)
+			break
+	if not conv:
+		log.error(_("%s not supported or mistyped." % options.format))
+		return -1
 	try:
-		cls = GenericSubParser.__subclasses__()
 		for cl in cls:
 			c = cl(args[0], options.encoding)
 			for p in c.parse():
-				print p
+				s = conv.convert(p)
+				print s
 	except UnicodeDecodeError:
 		log.error(_("I'm terribly sorry but it seems that I couldn't handle %s given %s encoding. Maybe try defferent encoding?" % (args[0], options.encoding)))
 
