@@ -44,8 +44,6 @@ class FrameTime:
 	def to_time(self, fps):
 		fps = float(fps)
 		tmp = self.frame / fps
-		print tmp
-		print fps
 		seconds = int(tmp)
 		self.miliseconds = int((tmp - seconds)*1000)
 		self.hours = seconds / 3600
