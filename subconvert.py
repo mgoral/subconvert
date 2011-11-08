@@ -43,7 +43,9 @@ class FrameTime:
 
 	def to_time(self, fps):
 		fps = float(fps)
-		tmp = self.frame * fps
+		tmp = self.frame / fps
+		print tmp
+		print fps
 		seconds = int(tmp)
 		self.miliseconds = int((tmp - seconds)*1000)
 		self.hours = seconds / 3600
@@ -54,7 +56,7 @@ class FrameTime:
 	
 	def to_frame(self, fps):
 		fps = float(fps)
-		self.frame = int(fps / (3600*int(self.hours) + 60*int(self.minutes) + int(self.seconds) + float(self.miliseconds)/1000))
+		self.frame = int(fps * (3600*int(self.hours) + 60*int(self.minutes) + int(self.seconds) + float(self.miliseconds)/1000))
 		return self.frame
 
 class GenericSubParser(object):
