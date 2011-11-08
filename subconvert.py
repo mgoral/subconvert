@@ -143,18 +143,33 @@ class GenericSubParser(object):
 	def format_text(self, s):
 		'''Convert sub-type specific formatting to the one known
 		to GenericSubParser. Supported tags:
-		[gsp:b]text[/b] -- bold
-		[gsp:i]text[/i] -- italics
-		[gsp:u]text[/u] -- underline
-		[gsp:col:#rrggbb]text[/col] -- color
-		[/gsp:nl] -- new line'''
+		{gsp_b}text{_gsp_b} -- bold
+		{gsp_i}text{gsp_i} -- italics
+		{gsp_u}text{_gsp_u} -- underline
+		{gsp_nl} -- new line'''
 		return s
 
-	def convert(self, subs):
+	def convert(self, sub, sub_fmt=None, formatting=None):
 		'''A function which gets dictionary containing single 
 		sub info and returns appropriately formated string
-		according to sub format specification.'''
-		return ''
+		according to the passed sub format specification.'''
+		if not fmt:
+			fmt = r"{gsp_no}:\r\n{gsp_from} : {gsp_to}\r\n{gsp_text}"
+		if not formatting:
+			formatting = {
+				'gsp_b':	r'', '_gsp_b': 	r'',
+				'gsp_i': 	r'', '_gsp_i': 	r'',
+				'gsp_u': 	r'', '_gsp_u': 	r'',
+				'gsp_nl': 	r'\r\n',
+			}
+
+		try:
+			sub_text = sub['sub']['text'].format(formatting)
+		except KeyError:
+			log.warning(_("Key exception occured when trying to format sub: %s" %sub['text']))
+			sub_text = sub['text']
+		return fmt.format(gsp_no = sub['sub_no'], gsp_from = sub['sub']['time_from'],\
+			gsp_to = sub['sub']['time_to'], gsp_text = sub_text)
 
 class MicroDVD(GenericSubParser):
 	__SUB_TYPE__ = 'Micro DVD'
@@ -199,9 +214,6 @@ class SubRip(GenericSubParser):
 	def str_to_frametime(self, s):
 		time = self.time_fmt.search(s)
 		return FrameTime(h=time.group('h'), m=time.group('m'), s=time.group('s'), ms=time.group('ms'))
-	
-	def convert(self, subs):
-		pass
 	
 def main():
 	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
