@@ -101,6 +101,7 @@ class GenericSubParser(object):
 					if st:
 						# yield parsing result if new start marker occurred, then clear results
 						if atom['time_from'] and atom['text']:
+							atom['text'] = self.format_text(atom['text'])
 							yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }
 						i+=1
 						atom = self.atom_t.copy()
@@ -137,6 +138,16 @@ class GenericSubParser(object):
 	
 	def str_to_frametime(self, s):
 		'''Convert string to frametime objects.'''
+		return s
+	
+	def format_text(self, s):
+		'''Convert sub-type specific formatting to the one known
+		to GenericSubParser. Supported tags:
+		[gsp:b]text[/b] -- bold
+		[gsp:i]text[/i] -- italics
+		[gsp:u]text[/u] -- underline
+		[gsp:col:#rrggbb]text[/col] -- color
+		[/gsp:nl] -- new line'''
 		return s
 
 	def convert(self, subs):
