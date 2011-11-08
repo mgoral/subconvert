@@ -85,7 +85,6 @@ class GenericSubParser(object):
 		'''Usually you will only need to call super __init__(filename, encoding)
 		from a specialized class.'''
 
-		assert os.path.isfile(f), "File %s doesn't exist." % f
 		self.atom_t = {'time_from': '', 'time_to': '', 'text': '',}
 		self.filename = f
 		pattern = r'(?:%s)|(?:%s)' % (self.time_pattern, self.text_pattern)
@@ -101,51 +100,55 @@ class GenericSubParser(object):
 		atom = self.atom_t.copy()
 		i = 0
 		line_no = 0
-		with codecs.open(self.filename, mode='r', encoding=self.encoding) as f:
-			for line in f:
-				line_no += 1
-				it = self.pattern.finditer(line)
-				st = self.start_pattern.search(line)
-				try:
-					if st:
-						# yield parsing result if new start marker occurred, then clear results
-						if atom['time_from'] and atom['text']:
-							atom['text'] = self.format_text(atom['text'])
-							yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }
-						i+=1
-						atom = self.atom_t.copy()
-				except IndexError:
-					log.error(_('Start of sub catching not specified. Aborting.'))
-					raise
-				for m in it:
+		try:
+			with codecs.open(self.filename, mode='r', encoding=self.encoding) as f:
+				for line in f:
+					line_no += 1
+					it = self.pattern.finditer(line)
+					st = self.start_pattern.search(line)
 					try:
-						if m.group('time_from'):
-							if not atom['time_from']:
-								atom['time_from'] = m.group('time_from')
-								if self.__FMT__ not in ('frame', 'time'):
-									self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
-								atom['time_from'] = self.str_to_frametime(atom['time_from'])
-							else:
-								raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, atom['time_from'], m.group('time_from'))
-						if m.group('time_to'):
-							if not atom['time_to']:
-								atom['time_to'] = m.group('time_to')
-								if self.__FMT__ not in ('frame', 'time'):
-									self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
-								atom['time_to'] = self.str_to_frametime(atom['time_to'])
-							else:
-								raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, atom['time_to'], m.group('time_to'))
-						if m.group('text'):
-							atom['text'] += m.group('text')
-						if not i and (atom['time_from'] or atom['time_to'] or atom['text']):
-							# return if we gathered something before start marker occurrence
-							log.debug(_("Not a %s file." % self.__SUB_TYPE__))
-							return
-					except IndexError, msg:
-						log.debug(msg)
-		# One last goodbye - no new start markers after the last one.	
-		atom['text'] = self.format_text(atom['text'])
-		yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }	
+						if st:
+							# yield parsing result if new start marker occurred, then clear results
+							if atom['time_from'] and atom['text']:
+								atom['text'] = self.format_text(atom['text'])
+								yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }
+							i+=1
+							atom = self.atom_t.copy()
+					except IndexError:
+						log.error(_('Start of sub catching not specified. Aborting.'))
+						raise
+					for m in it:
+						try:
+							if m.group('time_from'):
+								if not atom['time_from']:
+									atom['time_from'] = m.group('time_from')
+									if self.__FMT__ not in ('frame', 'time'):
+										self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
+									atom['time_from'] = self.str_to_frametime(atom['time_from'])
+								else:
+									raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, atom['time_from'], m.group('time_from'))
+							if m.group('time_to'):
+								if not atom['time_to']:
+									atom['time_to'] = m.group('time_to')
+									if self.__FMT__ not in ('frame', 'time'):
+										self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
+									atom['time_to'] = self.str_to_frametime(atom['time_to'])
+								else:
+									raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, atom['time_to'], m.group('time_to'))
+							if m.group('text'):
+								atom['text'] += m.group('text')
+							if not i and (atom['time_from'] or atom['time_to'] or atom['text']):
+								# return if we gathered something before start marker occurrence
+								log.debug(_("Not a %s file." % self.__SUB_TYPE__))
+								return
+						except IndexError, msg:
+							log.debug(msg)
+			# One last goodbye - no new start markers after the last one.	
+			atom['text'] = self.format_text(atom['text'])
+			yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }	
+		except IOError:
+			log.error(_("No such file: '%s'" % self.filename))
+
 
 	def convert(self, sub):
 		'''A function which gets dictionary containing single 
@@ -200,7 +203,7 @@ class MicroDVD(GenericSubParser):
 		)		# End of asignment
 		'''
 	start_pattern = r'^(?P<start>\{\d+\})'
-	sub_fmt = "{{{gsp_from}}}{{{gsp_to}}}{gsp_text}"	# Looks weird but escaping '{}' curly braces requires to double them
+	sub_fmt = "{{{gsp_from}}}{{{gsp_to}}}{gsp_text}" + os.linesep	# Looks weird but escaping '{}' curly braces requires to double them
 	sub_formatting = {
 		'gsp_b_':	r'{y:b}', '_gsp_b': 	r'',
 		'gsp_i_': 	r'{y:i}', '_gsp_i': 	r'',
@@ -237,6 +240,7 @@ class SubRip(GenericSubParser):
 	__SUB_TYPE__ = 'Sub Rip'
 	__OPT__ = 'subrip'
 	__FMT__ = 'time'
+	__EXT__ = 'srt'
 	time_pattern = r'''
 	^
 	(?P<time_from>\d+:\d{2}:\d{2},\d+)	# 00:00:00,000
@@ -285,7 +289,7 @@ def main():
 	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
 		version = '%s' % __VERSION__ )
 	optp.add_option('-f', '--fps',
-		action='store', type='int', dest='fps', default = 25,
+		action='store', type='float', dest='fps', default = 25,
 		help=_("select movie/subtitles frames per second. Default: 25"))
 	optp.add_option('-F', '--format',
 		action='store', type='string', dest='format', default = 'subrip',
@@ -313,26 +317,30 @@ def main():
 	if not conv:
 		log.error(_("%s not supported or mistyped." % options.format))
 		return -1
+	print conv.filename
 	try:
 		for cl in cls:
 			c = cl(args[0], options.encoding)
 			if c.__FMT__ != conv.__FMT__:
 				if conv.__FMT__ == 'time':
-					with codecs.open(conv.filename, mode='w', encoding=conv.encoding) as f:
+					with codecs.open(conv.filename, mode='r+', encoding=conv.encoding) as cf:
 						for p in c.parse():
 							p['sub']['time_from'].to_time(options.fps)
 							p['sub']['time_to'].to_time(options.fps)
 							s = conv.convert(p)
+							cf.write(s.decode(conv.encoding))
 				elif conv.__FMT__ == 'frame':
-					with codecs.open(conv.filename, mode='w', encoding=conv.encoding) as f:
+					with codecs.open(conv.filename, mode='r+', encoding=conv.encoding) as cf:
 						for p in c.parse():
 							p['sub']['time_from'].to_frame(options.fps)
 							p['sub']['time_to'].to_frame(options.fps)
 							s = conv.convert(p)
+							cf.write(s.decode(conv.encoding))
 			else:
-				with codecs.open(conv.filename, mode='w', encoding=conv.encoding) as f:
+				with codecs.open(conv.filename, mode='r+', encoding=conv.encoding) as cf:
 					for p in c.parse():
 						s = conv.convert(p)
+						cf.write(s.decode(conv.encoding))
 	except UnicodeDecodeError:
 		log.error(_("I'm terribly sorry but it seems that I couldn't handle %s given %s encoding. Maybe try defferent encoding?" % (args[0], options.encoding)))
 
