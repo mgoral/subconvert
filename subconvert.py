@@ -60,8 +60,8 @@ class FrameTime:
 class GenericSubParser(object):
 	'''Generic class that should be inherited
 	and polymorphed by the other, specialized
-	classes. Usually only __init__ and patterns
-	should be rewritten in successors.'''
+	classes. Don't forget to change patterns
+	in subclasses.'''
 
 	# Overwrite these in inherited classes
 	# Note that start_pattern is checked independently to 
@@ -73,6 +73,8 @@ class GenericSubParser(object):
 	time_pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)'
 	text_pattern = r'(?P<text>.+)'
 	start_pattern = r'(?P<start>\n)'
+	sub_fmt = ''			# output subtitle format
+	sub_formatting = {}
 
 	def __init__(self, f, encoding):
 		'''Usually you will only need to call super __init__(filename, encoding)
@@ -142,23 +144,35 @@ class GenericSubParser(object):
 		'''A function which gets dictionary containing single 
 		sub info and returns appropriately formated string
 		according to the passed sub format specification.'''
+		# Switch to self.x values or default if none provided
 		if not sub_fmt:
-			fmt = r"{gsp_no}:\r\n{gsp_from} : {gsp_to}\r\n{gsp_text}"
+			sub_fmt = self.sub_fmt
+			if not sub_fmt:
+				fmt = r"{gsp_no}:\r\n{gsp_from} : {gsp_to}\r\n{gsp_text}"
 		if not formatting:
-			formatting = {
-				'gsp_b':	r'', '_gsp_b': 	r'',
-				'gsp_i': 	r'', '_gsp_i': 	r'',
-				'gsp_u': 	r'', '_gsp_u': 	r'',
-				'gsp_nl': 	r'\r\n',
-			}
+			formatting = self.sub_formatting
+			if not formatting:
+				formatting = {
+					'gsp_b':	r'', '_gsp_b': 	r'',
+					'gsp_i': 	r'', '_gsp_i': 	r'',
+					'gsp_u': 	r'', '_gsp_u': 	r'',
+					'gsp_nl': 	r'/r/n',
+				}
 
 		try:
 			sub_text = sub['sub']['text'].format(formatting)
 		except KeyError:
 			log.warning(_("Key exception occured when trying to format sub: %s" %sub['sub']['text']))
 			sub_text = sub['sub']['text']
-		return fmt.format(gsp_no = sub['sub_no'], gsp_from = sub['sub']['time_from'],\
-		gsp_to = sub['sub']['time_to'], gsp_text = sub_text.encode(self.encoding))
+		return sub_fmt.format(gsp_no = sub['sub_no'],\
+			gsp_from = self.get_time(sub['sub']['time_from'], 'time_from'),\
+			gsp_to = self.get_time(sub['sub']['time_to'], 'time_to'),\
+			gsp_text = sub_text.encode(self.encoding))
+	
+	# Following methods should probably be polymorphed
+	def get_time(self, ft, which):
+		'''Extract time (time_from or time_to) from FrameTime.'''
+		return ft.frame
 
 	def str_to_frametime(self, s):
 		'''Convert string to frametime objects.'''
@@ -195,6 +209,9 @@ class MicroDVD(GenericSubParser):
 	def str_to_frametime(self, s):
 		return FrameTime(frame=s)
 	
+	def get_time(self, ft, which):
+		return ft.frame
+	
 class SubRip(GenericSubParser):
 	__SUB_TYPE__ = 'Sub Rip'
 	__OPT__ = 'subrip'
@@ -207,9 +224,11 @@ class SubRip(GenericSubParser):
 	\s*
 	$
 	'''
-	text_pattern = r'''^(?P<text>[^\r\v\n]+\s*)$'''
+	text_pattern = r'''^(?:\d+\r?\n)|(?P<text>[^\r\v\n]+\s*)$'''
 	start_pattern = r'^\d+\s*$'
 	time_fmt = r'^(?P<h>\d+):(?P<m>\d{2}):(?P<s>\d{2}),(?P<ms>\d+)$'
+	sub_fmt = "{gsp_no}\r\n{gsp_from} --> {gsp_to}\r\n{gsp_text}\r\n"
+	sub_formatting = {}
 	
 	def __init__(self, f, encoding):
 		self.time_fmt = re.compile(self.time_fmt)
@@ -218,6 +237,9 @@ class SubRip(GenericSubParser):
 	def str_to_frametime(self, s):
 		time = self.time_fmt.search(s)
 		return FrameTime(h=time.group('h'), m=time.group('m'), s=time.group('s'), ms=time.group('ms'))
+	
+	def get_time(self, ft, which):
+		return '%02d:%02d:%02d,%03d' % (int(ft.hours), int(ft.minutes), int(ft.seconds), int(ft.miliseconds))
 
 def main():
 	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
@@ -254,9 +276,23 @@ def main():
 	try:
 		for cl in cls:
 			c = cl(args[0], options.encoding)
-			for p in c.parse():
-				s = conv.convert(p)
-				print s
+			if c.__FMT__ != conv.__FMT__:
+				if conv.__FMT__ == 'time':
+					for p in c.parse():
+						p['sub']['time_from'].to_time(options.fps)
+						p['sub']['time_to'].to_time(options.fps)
+						s = conv.convert(p)
+						print s
+				elif conv.__FMT__ == 'frame':
+					for p in c.parse():
+						p['sub']['time_from'].to_frame(options.fps)
+						p['sub']['time_to'].to_frame(options.fps)
+						s = conv.convert(p)
+						print s
+			else:
+				for p in c.parse():
+					s = conv.convert(p)
+					print s
 	except UnicodeDecodeError:
 		log.error(_("I'm terribly sorry but it seems that I couldn't handle %s given %s encoding. Maybe try defferent encoding?" % (args[0], options.encoding)))
 
