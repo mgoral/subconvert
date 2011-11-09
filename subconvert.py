@@ -103,49 +103,53 @@ class GenericSubParser(object):
 		atom = self.atom_t.copy()
 		i = 0
 		line_no = 0
+		with codecs.open(self.filename, mode='r', encoding=self.encoding) as f:
+			lines = f.readlines()
 		try:
-			with codecs.open(self.filename, mode='r', encoding=self.encoding) as f:
-				for line in f:
-					line_no += 1
-					it = self.pattern.finditer(line)
-					st = self.start_pattern.search(line)
+			for line_no, line in enumerate(lines):
+				if not self.__PARSED__ and line_no > 35:
+					log.debug(_("%s waited too long. Skipping.") % self.__SUB_TYPE__)
+					return
+				it = self.pattern.finditer(line)
+				st = self.start_pattern.search(line)
+				try:
+					if st:
+						# yield parsing result if new start marker occurred, then clear results
+						if atom['time_from'] and atom['text']:
+							atom['text'] = self.format_text(atom['text'])
+							self.__PARSED__ = True
+							yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }
+						i+=1
+						atom = self.atom_t.copy()
+				except IndexError:
+					log.error(_('Start of sub catching not specified. Aborting.'))
+					raise
+				for m in it:
 					try:
-						if st:
-							# yield parsing result if new start marker occurred, then clear results
-							if atom['time_from'] and atom['text']:
-								atom['text'] = self.format_text(atom['text'])
-								yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }
-							i+=1
-							atom = self.atom_t.copy()
-					except IndexError:
-						log.error(_('Start of sub catching not specified. Aborting.'))
-						raise
-					for m in it:
-						try:
-							if m.group('time_from'):
-								if not atom['time_from']:
-									atom['time_from'] = m.group('time_from')
-									if self.__FMT__ not in ('frame', 'time'):
-										self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
-									atom['time_from'] = self.str_to_frametime(atom['time_from'])
-								else:
-									raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, atom['time_from'], m.group('time_from'))
-							if m.group('time_to'):
-								if not atom['time_to']:
-									atom['time_to'] = m.group('time_to')
-									if self.__FMT__ not in ('frame', 'time'):
-										self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
-									atom['time_to'] = self.str_to_frametime(atom['time_to'])
-								else:
-									raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, atom['time_to'], m.group('time_to'))
-							if m.group('text'):
-								atom['text'] += m.group('text')
-							if not i and (atom['time_from'] or atom['time_to'] or atom['text']):
-								# return if we gathered something before start marker occurrence
-								log.debug(_("Not a %s file." % self.__SUB_TYPE__))
-								return
-						except IndexError, msg:
-							log.debug(msg)
+						if m.group('time_from'):
+							if not atom['time_from']:
+								atom['time_from'] = m.group('time_from')
+								if self.__FMT__ not in ('frame', 'time'):
+									self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
+								atom['time_from'] = self.str_to_frametime(atom['time_from'])
+							else:
+								raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, atom['time_from'], m.group('time_from'))
+						if m.group('time_to'):
+							if not atom['time_to']:
+								atom['time_to'] = m.group('time_to')
+								if self.__FMT__ not in ('frame', 'time'):
+									self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
+								atom['time_to'] = self.str_to_frametime(atom['time_to'])
+							else:
+								raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, atom['time_to'], m.group('time_to'))
+						if m.group('text'):
+							atom['text'] += m.group('text')
+						if not i and (atom['time_from'] or atom['time_to'] or atom['text']):
+							# return if we gathered something before start marker occurrence
+							log.debug(_("Not a %s file.") % self.__SUB_TYPE__)
+							return
+					except IndexError, msg:
+						log.debug(msg)
 			if atom['time_from'] and atom['text']:
 				# One last goodbye - no new start markers after the last one.	
 				atom['text'] = self.format_text(atom['text'])
@@ -375,30 +379,31 @@ def main():
 	else:
 		log.info("Writing to %s" % conv.filename)
 	try:
-		with codecs.open(conv.filename, 'w', encoding=conv.encoding) as cf:
-			for cl in cls:
-				c = cl(args[0], options.encoding)
-				if c.__FMT__ != conv.__FMT__:
-					if conv.__FMT__ == 'time':
-						for p in c.parse():
-							p['sub']['time_from'].to_time(options.fps)
-							p['sub']['time_to'].to_time(options.fps)
-							s = conv.convert(p)
-							cf.write(s.decode(conv.encoding))
-					elif conv.__FMT__ == 'frame':
-						for p in c.parse():
-							p['sub']['time_from'].to_frame(options.fps)
-							p['sub']['time_to'].to_frame(options.fps)
-							s = conv.convert(p)
-							cf.write(s.decode(conv.encoding))
-				else:
+		lines = []
+		for cl in cls:
+			c = cl(args[0], options.encoding)
+			if not lines and c.__FMT__ != conv.__FMT__:
+				if conv.__FMT__ == 'time':
 					for p in c.parse():
+						p['sub']['time_from'].to_time(options.fps)
+						p['sub']['time_to'].to_time(options.fps)
 						s = conv.convert(p)
-						cf.write(s.decode(conv.encoding))
-				if c.__PARSED__:
-					break
+						lines.append(s.decode(conv.encoding))
+				elif conv.__FMT__ == 'frame':
+					for p in c.parse():
+						p['sub']['time_from'].to_frame(options.fps)
+						p['sub']['time_to'].to_frame(options.fps)
+						s = conv.convert(p)
+						lines.append(s.decode(conv.encoding))
+			elif not lines and c.__FMT__ == conv.__FMT__ :
+				for p in c.parse():
+					s = conv.convert(p)
+					lines.append(s.decode(conv.encoding))
 	except UnicodeDecodeError:
 		log.error(_("I'm terribly sorry but it seems that I couldn't handle %s given %s encoding. Maybe try different encoding?") % (args[0], options.encoding))
+	if lines:
+		with codecs.open(conv.filename, 'w', encoding=conv.encoding) as cf:
+			cf.writelines(lines)
 
 if __name__ == '__main__':
 	main()
