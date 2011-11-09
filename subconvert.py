@@ -291,12 +291,15 @@ def main():
 	optp.add_option('-f', '--fps',
 		action='store', type='float', dest='fps', default = 25,
 		help=_("select movie/subtitles frames per second. Default: 25"))
-	optp.add_option('-F', '--format',
+	optp.add_option('-m', '--format',
 		action='store', type='string', dest='format', default = 'subrip',
 		help=_("output file format. Default: subrip"))
-	optp.add_option('-e', '--encoding',
+	optp.add_option('-c', '--encoding',
 		action='store', type='string', dest='encoding', default='ascii',
 		help=_("input file encoding. Default: 'ascii'. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
+	optp.add_option('-v', '--verbose',
+		action='store_true', dest='verbose', default=False,
+		help=_("verbose output"))
 	
 	(options, args) = optp.parse_args()
 	
@@ -317,7 +320,8 @@ def main():
 	if not conv:
 		log.error(_("%s not supported or mistyped." % options.format))
 		return -1
-	print conv.filename
+	if options.verbose:
+		print "Writing to %s" % conv.filename
 	try:
 		for cl in cls:
 			c = cl(args[0], options.encoding)
@@ -329,6 +333,8 @@ def main():
 							p['sub']['time_to'].to_time(options.fps)
 							s = conv.convert(p)
 							cf.write(s.decode(conv.encoding))
+							if options.verbose:
+								print s
 				elif conv.__FMT__ == 'frame':
 					with codecs.open(conv.filename, mode='r+', encoding=conv.encoding) as cf:
 						for p in c.parse():
@@ -336,11 +342,15 @@ def main():
 							p['sub']['time_to'].to_frame(options.fps)
 							s = conv.convert(p)
 							cf.write(s.decode(conv.encoding))
+							if options.verbose:
+								print s
 			else:
 				with codecs.open(conv.filename, mode='r+', encoding=conv.encoding) as cf:
 					for p in c.parse():
 						s = conv.convert(p)
 						cf.write(s.decode(conv.encoding))
+						if options.verbose:
+							print s
 	except UnicodeDecodeError:
 		log.error(_("I'm terribly sorry but it seems that I couldn't handle %s given %s encoding. Maybe try defferent encoding?" % (args[0], options.encoding)))
 
