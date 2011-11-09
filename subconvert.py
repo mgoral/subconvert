@@ -3,11 +3,13 @@
 
 import os
 import sys
+import shutil
 import re
 import codecs
 import logging
 from optparse import OptionParser, OptionGroup
 import gettext
+from datetime import datetime
 
 __VERSION__ = '0.5.2'
 __AUTHOR__ = u'Michał Góral'
@@ -151,7 +153,6 @@ class GenericSubParser(object):
 		except IOError:
 			log.error(_("No such file: '%s'" % self.filename))
 
-
 	def convert(self, sub):
 		'''A function which gets dictionary containing single 
 		sub info and returns appropriately formated string
@@ -285,7 +286,6 @@ class SubRip(GenericSubParser):
 		if s.endswith('{gsp_nl}'):
 			s = s[:-8]
 		return s
-
 	
 	def get_time(self, ft, which):
 		return '%02d:%02d:%02d,%03d' % (int(ft.hours), int(ft.minutes), int(ft.seconds), int(ft.miliseconds))
@@ -327,6 +327,10 @@ def main():
 		log.error(_("Incorrect number of arguments."))
 		return
 	
+	if not os.path.isfile(args[0]):
+		log.error(_("No such file: %s") % args[0])
+		return -1
+	
 	cls = GenericSubParser.__subclasses__()
 	convert_to = None
 	for c in cls:
@@ -340,6 +344,15 @@ def main():
 	if not conv:
 		log.error(_("%s not supported or mistyped.") % options.format)
 		return -1
+	elif conv.filename == args[0]:
+		new_arg = args[0] + datetime.now().strftime('_%y%m%d%H%M%S')
+		log.warning(_("Trying to overwrite input file which is, generally speaking, not wise. Backing up %s as %s") % (args[0], new_arg))
+		try:
+			os.remove(new_arg)
+		except OSError:
+			log.debug(_("No '%s' to remove before backuping.") % new_arg)
+		shutil.move(args[0], new_arg)
+		args[0] = new_arg
 	elif os.path.isfile(conv.filename):
 		choice = ''
 		if options.force:
