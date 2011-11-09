@@ -76,7 +76,7 @@ class GenericSubParser(object):
 		'gsp_b_':	r'', '_gsp_b': 	r'',
 		'gsp_i_': 	r'', '_gsp_i': 	r'',
 		'gsp_u_': 	r'', '_gsp_u': 	r'',
-		'gsp_nl': 	r'/r/n',
+		'gsp_nl': 	os.linesep,
 		}
 	
 	# Do not overwrite further
