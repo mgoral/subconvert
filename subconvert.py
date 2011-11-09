@@ -146,10 +146,11 @@ class GenericSubParser(object):
 								return
 						except IndexError, msg:
 							log.debug(msg)
-			# One last goodbye - no new start markers after the last one.	
-			atom['text'] = self.format_text(atom['text'])
-			self.__PARSED__ = True
-			yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }	
+			if atom['time_from'] and atom['text']:
+				# One last goodbye - no new start markers after the last one.	
+				atom['text'] = self.format_text(atom['text'])
+				self.__PARSED__ = True
+				yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }	
 		except IOError:
 			log.error(_("No such file: '%s'" % self.filename))
 
