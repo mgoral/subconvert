@@ -73,7 +73,7 @@ class GenericSubParser(object):
 	time_pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)'
 	text_pattern = r'(?P<text>.+)'
 	start_pattern = r'(?P<start>\n)'
-	sub_fmt = "{gsp_no}:%s{gsp_from} : {gsp_to} %s {gsp_text}%s" % (os.linesep, os.linesep, os.linesep)	# output subtitle format
+	sub_fmt = "{gsp_no}:" + os.linesep + "{gsp_from} : {gsp_to}" + os.linesep + "{gsp_text}"	# output subtitle format
 	sub_formatting = {
 		'gsp_b_':	r'', '_gsp_b': 	r'',
 		'gsp_i_': 	r'', '_gsp_i': 	r'',
@@ -143,7 +143,7 @@ class GenericSubParser(object):
 							else:
 								raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, atom['time_to'], m.group('time_to'))
 						if m.group('text'):
-							atom['text'] = ''.join([atom['text'], m.group('text')])
+							atom['text'] += m.group('text')
 						if not i and (atom['time_from'] or atom['time_to'] or atom['text']):
 							# return if we gathered something before start marker occurrence
 							log.debug(_("Not a %s file.") % self.__SUB_TYPE__)
@@ -212,7 +212,7 @@ class MicroDVD(GenericSubParser):
 		)		# End of asignment
 		'''
 	start_pattern = r'^(?P<start>\{\d+\})'
-	sub_fmt = "{{{gsp_from}}}{{{gsp_to}}}{gsp_text}%s" % os.linesep	# Looks weird but escaping '{}' curly braces requires to double them
+	sub_fmt = "{{{gsp_from}}}{{{gsp_to}}}{gsp_text}" + os.linesep	# Looks weird but escaping '{}' curly braces requires to double them
 	sub_formatting = {
 		'gsp_b_':	r'{y:b}', '_gsp_b': 	r'',
 		'gsp_i_': 	r'{y:i}', '_gsp_i': 	r'',
@@ -232,13 +232,13 @@ class MicroDVD(GenericSubParser):
 		for i, l in enumerate(lines):
 			if '{{y:b}}' in l:
 				l = l.replace('{{y:b}}', '{gsp_b_}')
-				l = ''.join([l, '{_gsp_b}'])
+				l += '{_gsp_b}'
 			if '{{y:i}}' in l:
 				l = l.replace('{{y:i}}', '{gsp_i_}')
-				l = ''.join([l, '{_gsp_i}'])
+				l += '{_gsp_i}'
 			if '{{y:u}}' in l:
 				l = l.replace('{{y:u}}', '{gsp_u_}')
-				l = ''.join([l, '{_gsp_u}'])
+				l += '{_gsp_u}'
 			lines[i] = l
 		s = '{gsp_nl}'.join(lines)
 		return s
@@ -262,7 +262,7 @@ class SubRip(GenericSubParser):
 	text_pattern = r'''^(?:\d+\r?\n)|(?P<text>[^\r\v\n]+\s*)$'''
 	start_pattern = r'^\d+\s*$'
 	time_fmt = r'^(?P<h>\d+):(?P<m>\d{2}):(?P<s>\d{2}),(?P<ms>\d+)$'
-	sub_fmt = "{gsp_no}%s{gsp_from} --> {gsp_to}%s{gsp_text}%s%s" % (os.linesep, os.linesep, os.linesep, os.linesep)
+	sub_fmt = "{gsp_no}"+ os.linesep + "{gsp_from} --> {gsp_to}" + os.linesep + "{gsp_text}" + os.linesep + os.linesep
 	sub_formatting = {
 		'gsp_b_':	r'<b>', '_gsp_b': 	r'</b>',
 		'gsp_i_': 	r'<i>', '_gsp_i': 	r'</i>',
@@ -406,5 +406,5 @@ def main():
 			cf.writelines(lines)
 
 if __name__ == '__main__':
-	import profile
-	profile.run('main()')
+	main()
+
