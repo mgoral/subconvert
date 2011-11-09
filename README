@@ -1,0 +1,194 @@
+SUBCONVERT - a simple Python application which converts various subtitle
+formats to each others.
+
+====================
+
+Table of contents:
+0 Capabilities
+1 User manual
+	1.1 Installation
+		1.1.1 Dependencies
+	1.2 Usage
+		1.2.1 Available options
+		1.2.2 Available formats
+2 Programmer manual
+
+====================
+
+[ 0 Capabilities ]
+	* easy to use: at minimum select sub file and you're done.
+	* fast and lightweight
+	* supports multiple sub formats (more to come)
+	* converts betweeen frame and time formats
+	* supports many sub files encodings (from ascii through "iso's" to utf16)
+
+[ 1 User manual ]
+This section describes installation and usage of subconvert.
+
+[ 1.1 Installation ]
+For a convenience subconvert can be moved to any directory located in $PATH and
+renamed from subconvert.py to subconvert, for example:
+	cd /subconvert/downloaad/dir
+	mv subconvert.py $HOME/bin/subconvert
+	chmod +x $HOME/bin/subconvert
+
+The last step is to ensure that the application can be executed.
+
+[ 1.1.1 Dependencies ]
+	+ Python 2.6+
+
+Although subconvert should also work on earlier 2.x versions (like 2.5), it was
+created using Python 2.6 so I do not guarantee full compatibility with earlier 
+versions.
+
+[ 1.2 Usage ]
+Subconvert is a Python application and as such can be run by following command:
+	python subconvert.py
+
+For a convenience it is also written as a Bash script that can be run directly
+from prompt (assuming that it has execution rights).
+	./subconvert.py
+
+If it was installed using the commands from [1.1 Installation] section, you can
+also run it this way:
+	subconvert
+
+Subconvert has plenty available options and can take at most 2 arguments and at 
+least 1:
+	subconvert [options] input_file [output_file]
+
+[ 1.2.1 Available options ]
+Usage: subconvert.py [options] input_file [output_file]
+
+General options:
+	--version
+		Show program's version number and exit.
+	-h, --help
+		Show help message and exit.
+	-f, --force
+		Force all operations without asking (assuming yes).	
+		Example: don't ask to overwrite existing file, just do it.
+	-v, --verbose
+		Verbose output. 
+
+	Convert options:
+		Options which can be used to properly convert sub files.
+
+    -s FPS, --fps=FPS   
+		Select movie/subtitles frames per second. Default: 25. Float numbers
+		with dot indicating floating point allowed.
+    -m FORMAT, --format=FORMAT
+		Output file format. Default: subrip. See section 
+		[ 1.2.2 Available formats ] for details.
+    -e ENCODING, --encoding=ENCODING
+		Input (and output) file encoding. Default: 'ascii'. For a list of
+		available encodings, see: 
+		http://docs.python.org/library/codecs.html#standard-encodings
+		Examples: utf, cp1250, iso-8859-2
+
+You can specify the output_file to which converted subs will be created. If
+output_file is not specified, the new file will be located in the directory
+with the old subtitles differing only an extension which is specific for
+each subtitle format.
+
+EXAMPLES:
+	subconvert subtitles.txt
+		Create subtitles.srt encoded in ascii (subrip wit srt extension is
+		default format)
+	subconvert subtitles.txt my_subs.ext
+		Create my_subs.ext subrip format file.
+	subconvert -e cp1250 subtitles.txt
+		Create subtitles.srt encoded in cp1250 (windows-1250)
+	subconvert -m microdvd -s 23.976 subtitles.srt
+		Create subtitles.sub microdvd format, encoded in asci with frames
+		converter from time format at 23.976 fps ratio
+
+[ 1.2.2 Available formats ]
+	-m FORMAT and --format=FORMAT options indicate the subtitle format that
+	output should be written to. Currently available sub formats are:
+	
+	* microdvd
+	* subrip
+
+[ 2 Programmer manual ]
+Generally main program uses GenericSubParser clas and it subclasses which are
+automatically loaded. Each of thos subclasses should overwrite some attributes
+and methods which are called from the GenericSubParser.parse() method (that one
+MUST NOT be overwritten as it's the heart and the brain of the application).
+This method works as a generator and parsing results are yielded for each
+subtitle. Parsing results are served as a dictionary:
+	{ sub_no, sub_fmt*, sub: { time_from**, time_to**, text } }
+	* 'time' or 'frame'
+	** FrameTime format
+
+You should overwrite the following constants:
+
+__SUB_TYPE__
+	Name of sub format. This could be really anything as at the moment it is
+	not used.
+__OPT__
+	String which equals format option that a user can select (-m and --format
+	options). For example, if user writes subconvert -m your_opt, than a
+	subclass with __OPT__ == 'your_opt' will be chosen to handle sub converting
+	and formatting.
+__EXT__
+	Extension of the output file used if user haven't specified output file.
+__FMT__
+	Specify sub type (either 'frame' or 'time'). You don't have to overwrite it
+	-- if it's not specified, parser will try to determine it automatically.
+	Keep in mind though that it's only a simple regex and doesn't have to be
+	accurate every time, so it's better to specify it explicitly.
+time_pattern
+	Regex pattern that shoud catch time/frames. It should catch at least group
+	named <time_from> but if it's possible, also try to catch <time_to>.
+text_pattern
+	Regex pattern that should catch subtitle text. It should catch group named
+	<text>. It is guaranteed that it is different to time_pattern (those two are
+	OR-ed).
+start_pattern
+	Each line of input file is first of all matched with this pattern. It
+	indicates the beginning of the new subtitle and usually initiates yielding
+	latest parsing result.
+sub_fmt
+	Subtitle format string. It indicates how a subtitle block should look like.
+	Each of the allowed tags will be replaced by a specific sub part.
+	Allowed tags: {gsp_no}, {gsp_from}, {gsp_to}, {gsp_text}
+sub_formatting
+	A dictionary containing subtitle text formatting tags. Those tags indicates
+	formatting which some sub formats allow (or, telling the truth, some movie
+	players allow as for example not all players support subrip text formatting).
+	There are both opening and closing tags to indicate formatted parts of text.
+	When a subtitle is converted to the specific format, those tags are changed
+	to the correct formatting indicators for that subtitle format according to
+	the specifications included in sub_formatting dictionary.
+	Allowed tags: {gsp_x*_} for opening tags and {_gsp_x} for closing tags,
+	where x is one of the following: b, i, u (for bold, italics and underline)
+	Also, {gsp_nl} is allowed to indicate line breaks.
+
+There is also a set of methods that probably should be overwritten to complete
+the format class:
+
+def __init__(self, file, encoding)
+	Don't forget to call GenericSubParser.__init__(...) from your subclass init.
+def format_text(self, s)
+	This one is called by parse() method to convert sub-type specific formatting
+	to the one recognised by GenericSubParser. Specific to sub format formatting
+	strings should be changed to tags described in sub_formatting constant. It
+	can be done any way you prefer (regex, string manipulation, ...).
+	Important note: don't forget to escape any curly braces ('{' and '}') that
+	may occur in sub text as they might break things down.
+def str_to_frametime(self, s)
+	Convert strings got by time_pattern regex to FrameTime objects. It is
+	important to have common time format which can be passed, recognised and
+	operated on by various GenericSubParser subclasses (subtitle formats).
+def get_time(self, ft, which)
+	Extract time (time_from or time_to) from FrameTime (which is passed in
+	yielding by parse() method dictionary). Note that it usually needs to be
+	first calculated using 'to_frame or to_time methods. The output is properly
+	formatted string according to subtitle specification. There is also a
+	possibility to specify different formats for 'time_from' and 'time_to' which
+	can be differ thanks to 'which' argument.
+
+Note that if you feel ok with defaults of all above constants attributes, you
+don't have even to touch them. Read code for more info!
+
