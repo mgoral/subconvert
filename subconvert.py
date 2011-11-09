@@ -291,6 +291,15 @@ class SubRip(GenericSubParser):
 	def get_time(self, ft, which):
 		return '%02d:%02d:%02d,%03d' % (int(ft.hours), int(ft.minutes), int(ft.seconds), int(ft.miliseconds))
 
+def backup( filename ):
+	new_arg = filename + datetime.now().strftime('_%y%m%d%H%M%S')
+	try:
+		os.remove(new_arg)
+	except OSError:
+		log.debug(_("No '%s' to remove before backuping.") % new_arg)
+	shutil.move(filename, new_arg)
+	return (new_arg, filename)
+
 def main():
 	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
 		version = '%s' % __VERSION__ )
@@ -317,7 +326,7 @@ def main():
 	(options, args) = optp.parse_args()
 
 	# A little hack to assure that translator won't make a mistake
-	_choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q') }
+	_choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q'), 'backup': _('b') }
 	if options.verbose:
 		log.setLevel(logging.INFO)
 	else:
@@ -346,21 +355,19 @@ def main():
 		log.error(_("%s not supported or mistyped.") % options.format)
 		return -1
 	elif conv.filename == args[0]:
-		new_arg = args[0] + datetime.now().strftime('_%y%m%d%H%M%S')
-		log.warning(_("Trying to overwrite input file which is, generally speaking, not wise. Backing up %s as %s") % (args[0], new_arg))
-		try:
-			os.remove(new_arg)
-		except OSError:
-			log.debug(_("No '%s' to remove before backuping.") % new_arg)
-		shutil.move(args[0], new_arg)
-		args[0] = new_arg
+		# We will write to original path (conv.filename) but read from backup (new args[0])
+		args[0], _bck = backup(args[0])
+		log.warning(_("Trying to overwrite input file which is, generally speaking, not wise. Backing up %s as %s") % (_bck, args[0]))
 	elif os.path.isfile(conv.filename):
 		choice = ''
 		if options.force:
 			choice = _choices['yes']
-		while( choice not in (_choices['yes'], _choices['no'])):
-			choice = raw_input( _("File '%s' exists. Overwrite? [y/n] ") % conv.filename)
-		if choice == _choices['no']:
+		while( choice not in (_choices['yes'], _choices['no'], _choices['backup'])):
+			choice = raw_input( _("File '%s' exists. Overwrite? [y/n/b] ") % conv.filename)
+		if choice == _choices['backup']:
+			_bck, conv_filename = backup(conv.filename)
+			log.info(_("%s backed up as %s") % (conv_filename, _bck))
+		elif choice == _choices['no']:
 			log.info(_("%s wasn't converted.") % args[0])
 			return 0
 		elif choice == _choices['yes'] and options.verbose:
