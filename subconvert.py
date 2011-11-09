@@ -6,10 +6,10 @@ import sys
 import re
 import codecs
 import logging
-from optparse import OptionParser
+from optparse import OptionParser, OptionGroup
 import gettext
 
-__VERSION__ = '0.5.0'
+__VERSION__ = '0.5.1'
 __AUTHOR__ = u'Michał Góral'
 
 log = logging.getLogger(__name__)
@@ -286,21 +286,25 @@ class SubRip(GenericSubParser):
 def main():
 	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
 		version = '%s' % __VERSION__ )
+	group_conv = OptionGroup(optp, _('Convert options'),
+		_("Options which can be used to properly convert sub files."))
 	optp.add_option('-f', '--force',
 		action='store_true', dest='force', default=False,
 		help=_("force all operations without asking (assuming yes)"))
-	optp.add_option('-s', '--fps',
-		action='store', type='float', dest='fps', default = 25,
-		help=_("select movie/subtitles frames per second. Default: 25"))
-	optp.add_option('-m', '--format',
-		action='store', type='string', dest='format', default = 'subrip',
-		help=_("output file format. Default: subrip"))
-	optp.add_option('-e', '--encoding',
-		action='store', type='string', dest='encoding', default='ascii',
-		help=_("input file encoding. Default: 'ascii'. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
 	optp.add_option('-v', '--verbose',
 		action='store_true', dest='verbose', default=False,
 		help=_("verbose output"))
+	group_conv.add_option('-s', '--fps',
+		action='store', type='float', dest='fps', default = 25,
+		help=_("select movie/subtitles frames per second. Default: 25"))
+	group_conv.add_option('-m', '--format',
+		action='store', type='string', dest='format', default = 'subrip',
+		help=_("output file format. Default: subrip"))
+	group_conv.add_option('-e', '--encoding',
+		action='store', type='string', dest='encoding', default='ascii',
+		help=_("input file encoding. Default: 'ascii'. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
+
+	optp.add_option_group(group_conv)
 	
 	(options, args) = optp.parse_args()
 
