@@ -9,7 +9,7 @@ import logging
 from optparse import OptionParser, OptionGroup
 import gettext
 
-__VERSION__ = '0.5.1'
+__VERSION__ = '0.5.2'
 __AUTHOR__ = u'Michał Góral'
 
 log = logging.getLogger(__name__)
@@ -78,6 +78,9 @@ class GenericSubParser(object):
 		'gsp_u_': 	r'', '_gsp_u': 	r'',
 		'gsp_nl': 	r'/r/n',
 		}
+	
+	# Do not overwrite further
+	__PARSED__ = False
 
 	def __init__(self, f, encoding):
 		'''Usually you will only need to call super __init__(filename, encoding)
@@ -143,6 +146,7 @@ class GenericSubParser(object):
 							log.debug(msg)
 			# One last goodbye - no new start markers after the last one.	
 			atom['text'] = self.format_text(atom['text'])
+			self.__PARSED__ = True
 			yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }	
 		except IOError:
 			log.error(_("No such file: '%s'" % self.filename))
@@ -183,7 +187,8 @@ class GenericSubParser(object):
 		{gsp_b}text{_gsp_b} -- bold
 		{gsp_i}text{gsp_i} -- italics
 		{gsp_u}text{_gsp_u} -- underline
-		{gsp_nl} -- new line'''
+		{gsp_nl} -- new line
+		Don't forget to escape '{' and '}' curly braces.'''
 		return s
 
 class MicroDVD(GenericSubParser):
@@ -216,16 +221,17 @@ class MicroDVD(GenericSubParser):
 		return FrameTime(frame=s)
 
 	def format_text(self, s):
+		s = s.replace('{', '{{').replace('}', '}}')
 		lines = s.split('|')
 		for i, l in enumerate(lines):
-			if '{y:b}' in l:
-				l = l.replace('{y:b}', '{gsp_b_}')
+			if '{{y:b}}' in l:
+				l = l.replace('{{y:b}}', '{gsp_b_}')
 				l += '{_gsp_b}'
-			if '{y:i}' in l:
-				l = l.replace('{y:i}', '{gsp_i_}')
+			if '{{y:i}}' in l:
+				l = l.replace('{{y:i}}', '{gsp_i_}')
 				l += '{_gsp_i}'
-			if '{y:u}' in l:
-				l = l.replace('{y:u}', '{gsp_u_}')
+			if '{{y:u}}' in l:
+				l = l.replace('{{y:u}}', '{gsp_u_}')
 				l += '{_gsp_u}'
 			lines[i] = l
 		s = '{gsp_nl}'.join(lines)
@@ -267,6 +273,7 @@ class SubRip(GenericSubParser):
 		return FrameTime(h=time.group('h'), m=time.group('m'), s=time.group('s'), ms=time.group('ms'))
 	
 	def format_text(self, s):
+		s = s.replace('{', '{{').replace('}', '}}')
 		s = s.replace(r'<b>', '{gsp_b_}')
 		s = s.replace(r'</b>', '{_gsp_b}')
 		s = s.replace(r'<u>', '{gsp_u_}')
@@ -331,47 +338,46 @@ def main():
 				conv = c(filename + '.' + c.__EXT__, options.encoding)
 			break
 	if not conv:
-		log.error(_("%s not supported or mistyped." % options.format))
+		log.error(_("%s not supported or mistyped.") % options.format)
 		return -1
-	elif os.path.isfile(conv.filename) and not options.force:
+	elif os.path.isfile(conv.filename):
 		choice = ''
+		if options.force:
+			choice = _choices['yes']
 		while( choice not in (_choices['yes'], _choices['no'])):
-			choice = raw_input( _("File '%s' exists. Overwrite? [y/n] " % conv.filename))
+			choice = raw_input( _("File '%s' exists. Overwrite? [y/n] ") % conv.filename)
 		if choice == _choices['no']:
 			log.info(_("%s wasn't converted.") % args[0])
 			return 0
 		elif choice == _choices['yes'] and options.verbose:
-			log.info(_("Overwriting %s"))
-		
-	log.info("Writing to %s" % conv.filename)
+			log.info(_("Overwriting %s") % conv.filename)
+	else:
+		log.info("Writing to %s" % conv.filename)
 	try:
-		for cl in cls:
-			c = cl(args[0], options.encoding)
-			if c.__FMT__ != conv.__FMT__:
-				if conv.__FMT__ == 'time':
-					with codecs.open(conv.filename, mode='r+', encoding=conv.encoding) as cf:
+		with codecs.open(conv.filename, 'w', encoding=conv.encoding) as cf:
+			for cl in cls:
+				c = cl(args[0], options.encoding)
+				if c.__FMT__ != conv.__FMT__:
+					if conv.__FMT__ == 'time':
 						for p in c.parse():
 							p['sub']['time_from'].to_time(options.fps)
 							p['sub']['time_to'].to_time(options.fps)
 							s = conv.convert(p)
 							cf.write(s.decode(conv.encoding))
-							log.info(s)
-				elif conv.__FMT__ == 'frame':
-					with codecs.open(conv.filename, mode='r+', encoding=conv.encoding) as cf:
+					elif conv.__FMT__ == 'frame':
 						for p in c.parse():
 							p['sub']['time_from'].to_frame(options.fps)
 							p['sub']['time_to'].to_frame(options.fps)
 							s = conv.convert(p)
 							cf.write(s.decode(conv.encoding))
-							log.info(s)
-			else:
-				with codecs.open(conv.filename, mode='r+', encoding=conv.encoding) as cf:
+				else:
 					for p in c.parse():
 						s = conv.convert(p)
 						cf.write(s.decode(conv.encoding))
-						log.info(s)
+				if c.__PARSED__:
+					break
 	except UnicodeDecodeError:
-		log.error(_("I'm terribly sorry but it seems that I couldn't handle %s given %s encoding. Maybe try defferent encoding?" % (args[0], options.encoding)))
+		log.error(_("I'm terribly sorry but it seems that I couldn't handle %s given %s encoding. Maybe try different encoding?") % (args[0], options.encoding))
 
 if __name__ == '__main__':
 	main()
