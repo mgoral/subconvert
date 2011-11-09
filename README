@@ -21,6 +21,7 @@ Table of contents:
 	* supports multiple sub formats (more to come)
 	* converts betweeen frame and time formats
 	* supports many sub files encodings (from ascii through "iso's" to utf16)
+	* ready to translate using gettext utilities
 
 [ 1 User manual ]
 This section describes installation and usage of subconvert.
