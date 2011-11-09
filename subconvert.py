@@ -14,8 +14,6 @@ __AUTHOR__ = u'Michał Góral'
 
 log = logging.getLogger(__name__)
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-log.addHandler(ch)
 
 gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
 gettext.textdomain('subconvert')
@@ -288,13 +286,16 @@ class SubRip(GenericSubParser):
 def main():
 	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
 		version = '%s' % __VERSION__ )
-	optp.add_option('-f', '--fps',
+	optp.add_option('-f', '--force',
+		action='store_true', dest='force', default=False,
+		help=_("force all operations without asking (assuming yes)"))
+	optp.add_option('-s', '--fps',
 		action='store', type='float', dest='fps', default = 25,
 		help=_("select movie/subtitles frames per second. Default: 25"))
 	optp.add_option('-m', '--format',
 		action='store', type='string', dest='format', default = 'subrip',
 		help=_("output file format. Default: subrip"))
-	optp.add_option('-c', '--encoding',
+	optp.add_option('-e', '--encoding',
 		action='store', type='string', dest='encoding', default='ascii',
 		help=_("input file encoding. Default: 'ascii'. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
 	optp.add_option('-v', '--verbose',
@@ -302,6 +303,14 @@ def main():
 		help=_("verbose output"))
 	
 	(options, args) = optp.parse_args()
+
+	# A little hack to assure that translator won't make a mistake
+	_choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q') }
+	if options.verbose:
+		log.setLevel(logging.INFO)
+	else:
+		log.setLevel(logging.ERROR)
+	log.addHandler(ch)
 	
 	if len(args) not in (1, 2,):
 		log.error(_("Incorrect number of arguments."))
@@ -320,8 +329,17 @@ def main():
 	if not conv:
 		log.error(_("%s not supported or mistyped." % options.format))
 		return -1
-	if options.verbose:
-		print "Writing to %s" % conv.filename
+	elif os.path.isfile(conv.filename) and not options.force:
+		choice = ''
+		while( choice not in (_choices['yes'], _choices['no'])):
+			choice = raw_input( _("File '%s' exists. Overwrite? [y/n] " % conv.filename))
+		if choice == _choices['no']:
+			log.info(_("%s wasn't converted.") % args[0])
+			return 0
+		elif choice == _choices['yes'] and options.verbose:
+			log.info(_("Overwriting %s"))
+		
+	log.info("Writing to %s" % conv.filename)
 	try:
 		for cl in cls:
 			c = cl(args[0], options.encoding)
@@ -333,8 +351,7 @@ def main():
 							p['sub']['time_to'].to_time(options.fps)
 							s = conv.convert(p)
 							cf.write(s.decode(conv.encoding))
-							if options.verbose:
-								print s
+							log.info(s)
 				elif conv.__FMT__ == 'frame':
 					with codecs.open(conv.filename, mode='r+', encoding=conv.encoding) as cf:
 						for p in c.parse():
@@ -342,15 +359,13 @@ def main():
 							p['sub']['time_to'].to_frame(options.fps)
 							s = conv.convert(p)
 							cf.write(s.decode(conv.encoding))
-							if options.verbose:
-								print s
+							log.info(s)
 			else:
 				with codecs.open(conv.filename, mode='r+', encoding=conv.encoding) as cf:
 					for p in c.parse():
 						s = conv.convert(p)
 						cf.write(s.decode(conv.encoding))
-						if options.verbose:
-							print s
+						log.info(s)
 	except UnicodeDecodeError:
 		log.error(_("I'm terribly sorry but it seems that I couldn't handle %s given %s encoding. Maybe try defferent encoding?" % (args[0], options.encoding)))
 
