@@ -70,6 +70,7 @@ class GenericSubParser(object):
 	__OPT__ = 'none'
 	__EXT__ = 'sub'
 	__FMT__ = 'Unknown' 	# time/frame
+	end_pattern = r'(?P<end>\r?\n)$'
 	pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)(?P<text>.+)'
 	sub_fmt = "{gsp_no}:%s{gsp_from} : {gsp_to} %s {gsp_text}%s" % (os.linesep, os.linesep, os.linesep)	# output subtitle format
 	sub_formatting = {
