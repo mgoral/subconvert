@@ -117,7 +117,7 @@ automatically loaded. Each of thos subclasses should overwrite some attributes
 and methods which are called from the GenericSubParser.parse() method (that one
 MUST NOT be overwritten as it's the heart and the brain of the application).
 This method works as a generator and parsing results are yielded for each
-subtitle. Parsing results are served as a dictionary:
+subtitle section. Parsing results are served as a dictionary:
 	{ sub_no, sub_fmt*, sub: { time_from**, time_to**, text } }
 	* 'time' or 'frame'
 	** FrameTime format
@@ -139,17 +139,16 @@ __FMT__
 	-- if it's not specified, parser will try to determine it automatically.
 	Keep in mind though that it's only a simple regex and doesn't have to be
 	accurate every time, so it's better to specify it explicitly.
-time_pattern
-	Regex pattern that shoud catch time/frames. It should catch at least group
-	named <time_from> but if it's possible, also try to catch <time_to>.
-text_pattern
-	Regex pattern that should catch subtitle text. It should catch group named
-	<text>. It is guaranteed that it is different to time_pattern (those two are
-	OR-ed).
-start_pattern
-	Each line of input file is first of all matched with this pattern. It
-	indicates the beginning of the new subtitle and usually initiates yielding
-	latest parsing result.
+end_pattern
+	This pattern is searched in every line of imput file. When it's matched, it
+	means that subtitle section has been found and on that section are going to
+	be made forther searches (described below). When those searches are
+	successfull, parsing result is yielded and sub_section string is cleared.
+pattern
+	Regex pattern that should catch subtitle section text. It should catch
+	groups named <text>, <time_from> and possibly <time_to>, where <text> is a
+	subtitle text and <time_from> and <time_to> are subtitle timestamps or
+	frames (depending on sub format).
 sub_fmt
 	Subtitle format string. It indicates how a subtitle block should look like.
 	Each of the allowed tags will be replaced by a specific sub part.
@@ -191,5 +190,5 @@ def get_time(self, ft, which)
 	can be differ thanks to 'which' argument.
 
 Note that if you feel ok with defaults of all above constants attributes, you
-don't have even to touch them. Read code for more info!
+don't have to even touch them. Read code for more info!
 
