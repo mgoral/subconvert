@@ -70,9 +70,7 @@ class GenericSubParser(object):
 	__OPT__ = 'none'
 	__EXT__ = 'sub'
 	__FMT__ = 'Unknown' 	# time/frame
-	time_pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)'
-	text_pattern = r'(?P<text>.+)'
-	start_pattern = r'(?P<start>\n)'
+	pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)(?P<text>.+)'
 	sub_fmt = "{gsp_no}:%s{gsp_from} : {gsp_to} %s {gsp_text}%s" % (os.linesep, os.linesep, os.linesep)	# output subtitle format
 	sub_formatting = {
 		'gsp_b_':	r'', '_gsp_b': 	r'',
@@ -90,9 +88,8 @@ class GenericSubParser(object):
 
 		self.atom_t = {'time_from': '', 'time_to': '', 'text': '',}
 		self.filename = filename
-		pattern = r'(?:%s)|(?:%s)' % (self.time_pattern, self.text_pattern)
-		self.pattern = re.compile(pattern, re.X)
-		self.start_pattern = re.compile(self.start_pattern)
+		self.pattern = re.compile(self.pattern, re.X)
+		self.end_pattern = re.compile(self.end_pattern, re.X)
 		self.encoding = encoding
 		self.lines = lines
 	
@@ -104,58 +101,57 @@ class GenericSubParser(object):
 		atom = self.atom_t.copy()
 		i = 0
 		line_no = 0
-		try:
-			for line_no, line in enumerate(self.lines):
-				if not self.__PARSED__ and line_no > 35:
-					log.debug(_("%s waited too long. Skipping.") % self.__SUB_TYPE__)
-					return
-				it = self.pattern.finditer(line)
-				st = self.start_pattern.search(line)
-				try:
-					if st:
-						# yield parsing result if new start marker occurred, then clear results
-						if atom['time_from'] and atom['text']:
-							atom['text'] = self.format_text(atom['text'])
-							self.__PARSED__ = True
-							yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }
-						i+=1
-						atom = self.atom_t.copy()
-				except IndexError:
-					log.error(_('Start of sub catching not specified. Aborting.'))
-					raise
-				for m in it:
+		sub_section = ''
+		for line_no, line in enumerate(self.lines):
+			if not self.__PARSED__ and line_no > 35:
+				log.debug(_("%s waited too long. Skipping.") % self.__SUB_TYPE__)
+				return
+			sub_section = ''.join([sub_section, line])
+			end = self.end_pattern.search(line)
+			try:
+				if end:
+					m = self.pattern.search(sub_section)
 					try:
-						if m.group('time_from'):
-							if not atom['time_from']:
-								atom['time_from'] = m.group('time_from')
-								if self.__FMT__ not in ('frame', 'time'):
-									self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
-								atom['time_from'] = self.str_to_frametime(atom['time_from'])
-							else:
-								raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, atom['time_from'], m.group('time_from'))
-						if m.group('time_to'):
-							if not atom['time_to']:
-								atom['time_to'] = m.group('time_to')
-								if self.__FMT__ not in ('frame', 'time'):
-									self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
-								atom['time_to'] = self.str_to_frametime(atom['time_to'])
-							else:
-								raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, atom['time_to'], m.group('time_to'))
-						if m.group('text'):
-							atom['text'] = ''.join([atom['text'], m.group('text')])
-						if not i and (atom['time_from'] or atom['time_to'] or atom['text']):
-							# return if we gathered something before start marker occurrence
+						try:
+							if m.group('time_from'):
+								if not atom['time_from']:
+									atom['time_from'] = m.group('time_from')
+									if self.__FMT__ not in ('frame', 'time'):
+										self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
+									atom['time_from'] = self.str_to_frametime(atom['time_from'])
+								else:
+									raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, atom['time_from'], m.group('time_from'))
+							if m.group('time_to'):
+								if not atom['time_to']:
+									atom['time_to'] = m.group('time_to')
+									if self.__FMT__ not in ('frame', 'time'):
+										self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
+									atom['time_to'] = self.str_to_frametime(atom['time_to'])
+								else:
+									raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, atom['time_to'], m.group('time_to'))
+							if m.group('text'):
+								atom['text'] = m.group('text')
+						except AttributeError, msg:
 							log.debug(_("Not a %s file.") % self.__SUB_TYPE__)
 							return
+						#if not i and (atom['time_from'] or atom['time_to'] or atom['text']):
+							# return if we gathered something before start marker occurrence
+						#	log.debug(_("Not a %s file.") % self.__SUB_TYPE__)
+						#	return
 					except IndexError, msg:
 						log.debug(msg)
-			if atom['time_from'] and atom['text']:
-				# One last goodbye - no new start markers after the last one.	
-				atom['text'] = self.format_text(atom['text'])
-				self.__PARSED__ = True
-				yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }	
-		except IOError:
-			log.error(_("No such file: '%s'" % self.filename))
+
+					# yield parsing result if new start marker occurred, then clear results
+					if atom['time_from'] and atom['text']:
+						atom['text'] = self.format_text(atom['text'])
+						self.__PARSED__ = True
+						sub_section = ''
+						yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }
+					i+=1
+					atom = self.atom_t.copy()
+			except IndexError:
+				log.error(_('End pattern not specified. Aborting.'))
+				raise
 
 	def convert(self, sub):
 		'''A function which gets dictionary containing single 
@@ -200,17 +196,13 @@ class MicroDVD(GenericSubParser):
 	__SUB_TYPE__ = 'Micro DVD'
 	__OPT__ = 'microdvd'
 	__FMT__ = 'frame'
-	time_pattern = r'''
+	pattern = r'''
 		^
 		\{(?P<time_from>\d+)\}	# {digits} 
 		\{(?P<time_to>\d+)\}	# {digits}
+		(?P<text>[^\r\n]+)
 		'''
-	text_pattern = r'''
-		(?P<text>
-		[^\r\n]+
-		)		# End of asignment
-		'''
-	start_pattern = r'^(?P<start>\{\d+\})'
+	end_pattern = r'(?P<end>\n)$'
 	sub_fmt = "{{{gsp_from}}}{{{gsp_to}}}{gsp_text}%s" % os.linesep	# Looks weird but escaping '{}' curly braces requires to double them
 	sub_formatting = {
 		'gsp_b_':	r'{y:b}', '_gsp_b': 	r'',
@@ -250,16 +242,16 @@ class SubRip(GenericSubParser):
 	__OPT__ = 'subrip'
 	__FMT__ = 'time'
 	__EXT__ = 'srt'
-	time_pattern = r'''
+	pattern = r'''
 	^
+	\d+\s+
 	(?P<time_from>\d+:\d{2}:\d{2},\d+)	# 00:00:00,000
 	[ \t]*-->[ \t]*
 	(?P<time_to>\d+:\d{2}:\d{2},\d+)
 	\s*
-	$
+	(?P<text>[^\f\v\b]+)	# dot without DOTALL flag doesn't match newline
 	'''
-	text_pattern = r'''^(?:\d+\r?\n)|(?P<text>[^\r\v\n]+\s*)$'''
-	start_pattern = r'^\d+\s*$'
+	end_pattern = r'^(?P<end>(?:\r?\n)|(?:\r))$'	# \r\n on windows, \r on mac
 	time_fmt = r'^(?P<h>\d+):(?P<m>\d{2}):(?P<s>\d{2}),(?P<ms>\d+)$'
 	sub_fmt = "{gsp_no}%s{gsp_from} --> {gsp_to}%s{gsp_text}%s%s" % (os.linesep, os.linesep, os.linesep, os.linesep)
 	sub_formatting = {
