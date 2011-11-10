@@ -12,6 +12,7 @@ Table of contents:
 		1.2.1 Available options
 		1.2.2 Available formats
 2 Programmer manual
+3 License
 
 ====================
 
@@ -198,3 +199,7 @@ def get_time(self, ft, which)
 
 Note that if you feel ok with defaults of all above constants attributes, you
 don't have even to touch them. Read code for more info!
+
+[ 3 License ]
+Subconvert is free software licensed under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+For details, see <LICENSE.txt> or http://www.gnu.org/licenses/gpl.html
