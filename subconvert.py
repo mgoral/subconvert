@@ -347,6 +347,7 @@ def main():
 	cls = GenericSubParser.__subclasses__()
 	convert_to = None
 	for c in cls:
+		# Obtain user specified subclass
 		if c.__OPT__ == options.format:
 			try:
 				conv = c(args[1], options.encoding)
@@ -357,10 +358,6 @@ def main():
 	if not conv:
 		log.error(_("%s not supported or mistyped.") % options.format)
 		return -1
-	elif conv.filename == args[0]:
-		# We will write to original path (conv.filename) but read from backup (new args[0])
-		args[0], _bck = backup(args[0])
-		log.warning(_("Trying to overwrite input file which is, generally speaking, not wise. Backing up %s as %s") % (_bck, args[0]))
 	elif os.path.isfile(conv.filename):
 		choice = ''
 		if options.force:
@@ -368,10 +365,14 @@ def main():
 		while( choice not in (_choices['yes'], _choices['no'], _choices['backup'])):
 			choice = raw_input( _("File '%s' exists. Overwrite? [y/n/b] ") % conv.filename)
 		if choice == _choices['backup']:
-			_bck, conv_filename = backup(conv.filename)
-			log.info(_("%s backed up as %s") % (conv_filename, _bck))
+			if conv.filename == args[0]:
+				args[0], _mvd = backup(args[0])	# We will read from backed up file
+				log.info(_("%s backed up as %s") % (_mvd, args[0]))
+			else:
+				_bck, conv_filename = backup(conv.filename)
+				log.info(_("%s backed up as %s") % (conv.filename, _bck))
 		elif choice == _choices['no']:
-			log.info(_("%s wasn't converted.") % args[0])
+			log.info(_("Skipping %s") % args[0])
 			return 0
 		elif choice == _choices['yes'] and options.verbose:
 			log.info(_("Overwriting %s") % conv.filename)
@@ -380,7 +381,7 @@ def main():
 	
 	with codecs.open(args[0], mode='r', encoding=options.encoding) as f:
 		file_input = f.readlines()
-
+	
 	try:
 		lines = []
 		for cl in cls:
