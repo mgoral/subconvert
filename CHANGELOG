@@ -1,0 +1,20 @@
+Version history
+
+0.6 	: 10.11.2011
+* ADD: getting FPS from avi files using MPlayer
+* ADD: option to backup files if they exist (overwriting input files are back
+	them up	automatically while output files are backed up explicitly)
+* FIX: code refactoring. Until now subconvert reads whole files to the memory
+  	which speeds it up almost twice
+* FIX: bug where parsing empty files returned results
+
+0.5.2	: 09.11.2011
+* ADD: force option
+* ADD: verbose option
+* FIX: writing a newly created file
+* FIX: unescaped curly braces in microdvd and subrip that caused crashes
+
+0.5		: 09.11.2011
+* ADD: SubRip and MicroDVD parsers/handlers
+* ADD: Writing output to a file
+* ADD: Automatic handling all newly implemented file formats
