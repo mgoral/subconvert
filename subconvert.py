@@ -11,7 +11,7 @@ from optparse import OptionParser, OptionGroup
 import gettext
 from datetime import datetime
 
-__VERSION__ = '0.5.2'
+__VERSION__ = '0.6.0'
 __AUTHOR__ = u'Michał Góral'
 
 log = logging.getLogger(__name__)
@@ -318,6 +318,9 @@ def main():
 	group_conv.add_option('-s', '--fps',
 		action='store', type='float', dest='fps', default = 25,
 		help=_("select movie/subtitles frames per second. Default: 25"))
+	group_conv.add_option('-S', '--auto-fps',
+		action='store_true', dest='auto_fps', default=False,
+		help=_("automatically try to get fps from mplayer"))
 	group_conv.add_option('-m', '--format',
 		action='store', type='string', dest='format', default = 'subrip',
 		help=_("output file format. Default: subrip"))
@@ -344,6 +347,27 @@ def main():
 	if not os.path.isfile(args[0]):
 		log.error(_("No such file: %s") % args[0])
 		return -1
+	
+	if options.auto_fps:
+		from subprocess import Popen, PIPE
+		# -really-quiet seems to display some info (like FPS, resolution etc.)
+		command = ['mplayer', '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify',]
+		exts = ('.avi', )
+		filename, extension = os.path.splitext(args[0])
+		for ext in exts:
+			f = ''.join((filename, ext))
+			if os.path.isfile(f):
+				command.append(f)
+				try:
+					mp_out = Popen(command, stdout=PIPE).communicate()[0]
+				except OSError:
+					log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH in order to use auto_fps option."))
+					break
+				try:
+					options.fps = re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', mp_out).group(1)
+				except AttributeError:
+					log.info(_("Couldn't get FPS info from mplayer."))
+					break
 	
 	cls = GenericSubParser.__subclasses__()
 	convert_to = None
