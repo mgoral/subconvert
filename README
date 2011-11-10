@@ -20,7 +20,8 @@ Table of contents:
 	* fast and lightweight
 	* supports multiple sub formats (more to come)
 	* converts betweeen frame and time formats
-	* supports many sub files encodings (from ascii through "iso's" to utf16)
+	* supports automatically getting sub fps from avi file
+	* supports many file encodings (from ascii through "iso's" to utf16)
 	* ready to translate using gettext utilities
 
 [ 1 User manual ]
@@ -37,6 +38,7 @@ The last step is to ensure that the application can be executed.
 
 [ 1.1.1 Dependencies ]
 	+ Python 2.6+
+	+ MPlayer (optional)
 
 Although subconvert should also work on earlier 2.x versions (like 2.5), it was
 created using Python 2.6 so I do not guarantee full compatibility with earlier 
@@ -75,18 +77,22 @@ General options:
 	Convert options:
 		Options which can be used to properly convert sub files.
 
-    -s FPS, --fps=FPS   
-		Select movie/subtitles frames per second. Default: 25. Float numbers
-		with dot indicating floating point allowed.
-    -m FORMAT, --format=FORMAT
-		Output file format. Default: subrip. See section 
-		[ 1.2.2 Available formats ] for details.
-    -e ENCODING, --encoding=ENCODING
+	-e ENCODING, --encoding=ENCODING
 		Input (and output) file encoding. Default: 'ascii'. For a list of
 		available encodings, see: 
 		http://docs.python.org/library/codecs.html#standard-encodings
 		Examples: utf, cp1250, iso-8859-2
-
+    -m FORMAT, --format=FORMAT
+		Output file format. Default: subrip. See section 
+		[ 1.2.2 Available formats ] for details.
+    -s FPS, --fps=FPS   
+		Select movie/subtitles frames per second. Default: 25. Float numbers
+		with dot indicating floating point allowed.
+	-S, --S
+		Automatically try to get FPS from movie. This option requires MPlayer
+		installed and overwrites any input that user gave in '-s' or '--fps'
+		option (as it's more reliable).
+    
 You can specify the output_file to which converted subs will be created. If
 output_file is not specified, the new file will be located in the directory
 with the old subtitles differing only an extension which is specific for
@@ -192,4 +198,3 @@ def get_time(self, ft, which)
 
 Note that if you feel ok with defaults of all above constants attributes, you
 don't have even to touch them. Read code for more info!
-
