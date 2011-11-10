@@ -84,16 +84,17 @@ class GenericSubParser(object):
 	# Do not overwrite further
 	__PARSED__ = False
 
-	def __init__(self, f, encoding):
+	def __init__(self, filename, encoding, lines = []):
 		'''Usually you will only need to call super __init__(filename, encoding)
 		from a specialized class.'''
 
 		self.atom_t = {'time_from': '', 'time_to': '', 'text': '',}
-		self.filename = f
+		self.filename = filename
 		pattern = r'(?:%s)|(?:%s)' % (self.time_pattern, self.text_pattern)
 		self.pattern = re.compile(pattern, re.X)
 		self.start_pattern = re.compile(self.start_pattern)
 		self.encoding = encoding
+		self.lines = lines
 	
 	def parse(self):
 		'''Actual parser.
@@ -103,10 +104,8 @@ class GenericSubParser(object):
 		atom = self.atom_t.copy()
 		i = 0
 		line_no = 0
-		with codecs.open(self.filename, mode='r', encoding=self.encoding) as f:
-			lines = f.readlines()
 		try:
-			for line_no, line in enumerate(lines):
+			for line_no, line in enumerate(self.lines):
 				if not self.__PARSED__ and line_no > 35:
 					log.debug(_("%s waited too long. Skipping.") % self.__SUB_TYPE__)
 					return
@@ -220,8 +219,8 @@ class MicroDVD(GenericSubParser):
 		'gsp_nl': 	r'|',
 	}
 	
-	def __init__(self, f, encoding):
-		GenericSubParser.__init__(self, f, encoding)
+	def __init__(self, f, encoding, lines = []):
+		GenericSubParser.__init__(self, f, encoding, lines)
 	
 	def str_to_frametime(self, s):
 		return FrameTime(frame=s)
@@ -270,9 +269,9 @@ class SubRip(GenericSubParser):
 		'gsp_nl': 	os.linesep,
 	}
 	
-	def __init__(self, f, encoding):
+	def __init__(self, f, encoding, lines = []):
 		self.time_fmt = re.compile(self.time_fmt)
-		GenericSubParser.__init__(self, f, encoding)
+		GenericSubParser.__init__(self, f, encoding, lines)
 	
 	def str_to_frametime(self, s):
 		time = self.time_fmt.search(s)
@@ -378,10 +377,14 @@ def main():
 			log.info(_("Overwriting %s") % conv.filename)
 	else:
 		log.info("Writing to %s" % conv.filename)
+	
+	with codecs.open(args[0], mode='r', encoding=options.encoding) as f:
+		file_input = f.readlines()
+
 	try:
 		lines = []
 		for cl in cls:
-			c = cl(args[0], options.encoding)
+			c = cl(args[0], options.encoding, file_input)
 			if not lines and c.__FMT__ != conv.__FMT__:
 				if conv.__FMT__ == 'time':
 					for p in c.parse():
