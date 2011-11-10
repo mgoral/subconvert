@@ -315,18 +315,18 @@ def main():
 	optp.add_option('-v', '--verbose',
 		action='store_true', dest='verbose', default=False,
 		help=_("verbose output"))
+	group_conv.add_option('-e', '--encoding',
+		action='store', type='string', dest='encoding', default='ascii',
+		help=_("input file encoding. Default: 'ascii'. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
+	group_conv.add_option('-m', '--format',
+		action='store', type='string', dest='format', default = 'subrip',
+		help=_("output file format. Default: subrip"))
 	group_conv.add_option('-s', '--fps',
 		action='store', type='float', dest='fps', default = 25,
 		help=_("select movie/subtitles frames per second. Default: 25"))
 	group_conv.add_option('-S', '--auto-fps',
 		action='store_true', dest='auto_fps', default=False,
 		help=_("automatically try to get fps from mplayer"))
-	group_conv.add_option('-m', '--format',
-		action='store', type='string', dest='format', default = 'subrip',
-		help=_("output file format. Default: subrip"))
-	group_conv.add_option('-e', '--encoding',
-		action='store', type='string', dest='encoding', default='ascii',
-		help=_("input file encoding. Default: 'ascii'. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
 
 	optp.add_option_group(group_conv)
 	
