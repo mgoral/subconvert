@@ -1,5 +1,9 @@
 Version history
 
+0.6.1
+* FIX: Uniform backup system
+* FIX: A lot of code refactoring. Now works slightly faster
+
 0.6 	: 10.11.2011
 * ADD: getting FPS from avi files using MPlayer
 * ADD: option to backup files if they exist (overwriting input files are back
