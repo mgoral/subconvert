@@ -257,7 +257,7 @@ class SubRip(GenericSubParser):
 	[ \t]*-->[ \t]*
 	(?P<time_to>\d+:\d{2}:\d{2},\d+)
 	\s*
-	(?P<text>[^f\v\b]+)
+	(?P<text>[^\f\v\b]+)
 	'''
 	end_pattern = r'^(?P<end>(?:\r?\n)|(?:\r))$'	# \r\n on windows, \r on mac
 	time_fmt = r'^(?P<h>\d+):(?P<m>\d{2}):(?P<s>\d{2}),(?P<ms>\d+)$'
