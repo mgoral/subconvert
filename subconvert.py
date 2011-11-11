@@ -130,21 +130,15 @@ class GenericSubParser(object):
 				m = self.pattern.search(sub_section)
 				try:
 					if m.group('time_from'):
-						if not atom['time_from']:
-							atom['time_from'] = m.group('time_from')
-							if self.__FMT__ not in ('frame', 'time'):
-								self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
-							atom['time_from'] = self.str_to_frametime(atom['time_from'])
-						else:
-							raise SubError, 'time_from catched/specified twice at line %d: %s --> %s' % (line_no, atom['time_from'], m.group('time_from'))
+						atom['time_from'] = m.group('time_from')
+						if self.__FMT__ not in ('frame', 'time'):
+							self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
+						atom['time_from'] = self.str_to_frametime(atom['time_from'])
 					if m.group('time_to'):
-						if not atom['time_to']:
-							atom['time_to'] = m.group('time_to')
-							if self.__FMT__ not in ('frame', 'time'):
-								self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
-							atom['time_to'] = self.str_to_frametime(atom['time_to'])
-						else:
-							raise SubError, 'time_to catched/specified twice at line %d %s --> %s' % (line_no, atom['time_to'], m.group('time_to'))
+						atom['time_to'] = m.group('time_to')
+						if self.__FMT__ not in ('frame', 'time'):
+							self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
+						atom['time_to'] = self.str_to_frametime(atom['time_to'])
 					if m.group('text'):
 						atom['text'] = m.group('text')
 				except AttributeError, msg:
@@ -157,12 +151,14 @@ class GenericSubParser(object):
 				if atom['time_from'] and atom['text']:
 					atom['text'] = self.format_text(atom['text'])
 					self.__PARSED__ = True
-					sub_section = ''
 					yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }
+					i+= 1
+				elif atom['time_from'] and not atom['text']:
+					log.warning(_("No subtitle text found in '%s' on line %d. Skipping that section.") % (self.filename, line_no + 1))
 				else:
 					log.debug(_("Not a %s file.") % self.__SUB_TYPE__)
 					return
-				i+=1
+				sub_section = ''
 				atom = {'time_from': '', 'time_to': '', 'text': '',}
 
 	def convert(self, sub):
@@ -212,7 +208,7 @@ class MicroDVD(GenericSubParser):
 		^
 		\{(?P<time_from>\d+)\}	# {digits} 
 		\{(?P<time_to>\d+)\}	# {digits}
-		(?P<text>[^\r\n]+)
+		(?P<text>[^\r\n]*)
 		'''
 	end_pattern = r'(?P<end>(?:\r?\n)|(?:\r))$'	# \r on mac, \n on linux, \r\n on windows
 	sub_fmt = "{{{gsp_from}}}{{{gsp_to}}}{gsp_text}%s" % os.linesep	# Looks weird but escaping '{}' curly braces requires to double them
@@ -375,7 +371,7 @@ def main():
 				try:
 					options.fps = re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', mp_out).group(1)
 				except AttributeError:
-					log.info(_("Couldn't get FPS info from mplayer."))
+					log.warning(_("Couldn't get FPS info from mplayer."))
 					break
 	
 	cls = GenericSubParser.__subclasses__()
@@ -392,32 +388,13 @@ def main():
 	if not conv:
 		log.error(_("%s not supported or mistyped.") % options.format)
 		return -1
-	elif os.path.isfile(conv.filename):
-		choice = ''
-		if options.force:
-			choice = _choices['yes']
-		while( choice not in (_choices['yes'], _choices['no'], _choices['backup'])):
-			choice = raw_input( _("File '%s' exists. Overwrite? [y/n/b] ") % conv.filename)
-		if choice == _choices['backup']:
-			if conv.filename == args[0]:
-				args[0], _mvd = backup(args[0])	# We will read from backed up file
-				log.info(_("%s backed up as %s") % (_mvd, args[0]))
-			else:
-				_bck, conv_filename = backup(conv.filename)
-				log.info(_("%s backed up as %s") % (conv.filename, _bck))
-		elif choice == _choices['no']:
-			log.info(_("Skipping %s") % args[0])
-			return 0
-		elif choice == _choices['yes'] and options.verbose:
-			log.info(_("Overwriting %s") % conv.filename)
-	else:
-		log.info("Writing to %s" % conv.filename)
-	
+
 	with codecs.open(args[0], mode='r', encoding=options.encoding) as f:
 		file_input = f.readlines()
 	
 	try:
 		lines = []
+		log.info(_("Trying to parse %s...") % args[0])
 		for cl in cls:
 			c = cl(args[0], options.encoding, file_input)
 			if not lines and c.__FMT__ != conv.__FMT__:
@@ -438,10 +415,36 @@ def main():
 					s = conv.convert(p)
 					lines.append(s.decode(conv.encoding))
 	except UnicodeDecodeError:
-		log.error(_("I'm terribly sorry but it seems that I couldn't handle %s given %s encoding. Maybe try different encoding?") % (args[0], options.encoding))
+		log.error(_("Couldn't handle given encoding (%s) on '%s'. Maybe try different encoding?") % (options.encoding, args[0]))
 	if lines:
+		log.info(_("Parsed."))
+		if os.path.isfile(conv.filename):
+			choice = ''
+			if options.force:
+				choice = _choices['yes']
+			while( choice not in (_choices['yes'], _choices['no'], _choices['backup'])):
+				choice = raw_input( _("File '%s' exists. Overwrite? [y/n/b] ") % conv.filename)
+			if choice == _choices['backup']:
+				if conv.filename == args[0]:
+					args[0], _mvd = backup(args[0])	# We will read from backed up file
+					log.info(_("%s backed up as %s") % (_mvd, args[0]))
+				else:
+					_bck, conv_filename = backup(conv.filename)
+					log.info(_("%s backed up as %s") % (conv.filename, _bck))
+			elif choice == _choices['no']:
+				log.info(_("Skipping %s") % args[0])
+				return 0
+			elif choice == _choices['yes'] and options.verbose:
+				log.info(_("Overwriting %s") % conv.filename)
+		else:
+			log.info("Writing to %s" % conv.filename)
+	
 		with codecs.open(conv.filename, 'w', encoding=conv.encoding) as cf:
 			cf.writelines(lines)
+		return 0
+	else:
+		log.warning(_("%s not parsed.") % args[0])
+		return -1
 
 if __name__ == '__main__':
 	main()
