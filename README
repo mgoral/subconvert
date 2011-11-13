@@ -41,10 +41,6 @@ The last step is to ensure that the application can be executed.
 	+ Python 2.6+
 	+ MPlayer (optional)
 
-Although subconvert should also work on earlier 2.x versions (like 2.5), it was
-created using Python 2.6 so I do not guarantee full compatibility with earlier 
-versions.
-
 [ 1.2 Usage ]
 Subconvert is a Python application and as such can be run by following command:
 	python subconvert.py
