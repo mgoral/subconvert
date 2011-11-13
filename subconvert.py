@@ -389,8 +389,11 @@ def main():
 		log.error(_("%s not supported or mistyped.") % options.format)
 		return -1
 
-	with codecs.open(args[0], mode='r', encoding=options.encoding) as f:
-		file_input = f.readlines()
+	try:
+		with codecs.open(args[0], mode='r', encoding=options.encoding) as f:
+			file_input = f.readlines()
+	except UnicodeDecodeError:
+		log.error(_("Couldn't open '%s' given '%s' encoding. Is that a binary file?") % (args[0], options.encoding))
 	
 	try:
 		lines = []
