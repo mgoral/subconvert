@@ -332,10 +332,17 @@ def main():
 	group_conv.add_option('-S', '--auto-fps',
 		action='store_true', dest='auto_fps', default=False,
 		help=_("automatically try to get fps from mplayer"))
+	group_conv.add_option('-x', '--extension',
+		action='store', type='string', dest='ext',
+		help=_("extension of the output file."))
 
 	optp.add_option_group(group_conv)
 	
 	(options, args) = optp.parse_args()
+	
+	if len(args)  < 1:
+		log.error(_("Incorrect number of arguments."))
+		return -1
 
 	# A little hack to assure that translator won't make a mistake
 	_choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q'), 'backup': _('b') }
@@ -345,109 +352,103 @@ def main():
 		log.setLevel(logging.ERROR)
 	log.addHandler(ch)
 	
-	if len(args) not in (1, 2,):
-		log.error(_("Incorrect number of arguments."))
-		return
-	
-	if not os.path.isfile(args[0]):
-		log.error(_("No such file: %s") % args[0])
-		return -1
-	
-	if options.auto_fps:
-		from subprocess import Popen, PIPE
-		# -really-quiet seems to display some info (like FPS, resolution etc.)
-		command = ['mplayer', '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify',]
-		exts = ('.avi', )
-		filename, extension = os.path.splitext(args[0])
-		for ext in exts:
-			f = ''.join((filename, ext))
-			if os.path.isfile(f):
-				command.append(f)
-				try:
-					mp_out = Popen(command, stdout=PIPE).communicate()[0]
-				except OSError:
-					log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH in order to use auto_fps option."))
-					break
-				try:
-					options.fps = re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', mp_out).group(1)
-				except AttributeError:
-					log.warning(_("Couldn't get FPS info from mplayer."))
-					break
-	
-	cls = GenericSubParser.__subclasses__()
-	convert_to = None
-	for c in cls:
-		# Obtain user specified subclass
-		if c.__OPT__ == options.format:
-			try:
-				conv = c(args[1], options.encoding)
-			except IndexError:
-				filename, extension = os.path.splitext(args[0])
-				conv = c(filename + '.' + c.__EXT__, options.encoding)
-			break
-	if not conv:
-		log.error(_("%s not supported or mistyped.") % options.format)
-		return -1
+	for arg in args:
+		if not os.path.isfile(arg):
+			log.error(_("No such file: %s") % arg)
+			continue
+		
+		if options.auto_fps:
+			from subprocess import Popen, PIPE
+			# -really-quiet seems to display some info (like FPS, resolution etc.)
+			command = ['mplayer', '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify',]
+			exts = ('.avi', )
+			filename, extension = os.path.splitext(arg)
+			for ext in exts:
+				f = ''.join((filename, ext))
+				if os.path.isfile(f):
+					command.append(f)
+					try:
+						mp_out = Popen(command, stdout=PIPE).communicate()[0]
+					except OSError:
+						log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH in order to use auto_fps option."))
+						break
+					try:
+						options.fps = re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', mp_out).group(1)
+					except AttributeError:
+						log.warning(_("Couldn't get FPS info from mplayer."))
+						break
+		
+		cls = GenericSubParser.__subclasses__()
+		convert_to = None
+		for c in cls:
+			# Obtain user specified subclass
+			if c.__OPT__ == options.format:
+				filename, extension = os.path.splitext(arg)
+				extension = options.ext if options.ext else c.__EXT__
+				conv = c(filename + '.' + extension, options.encoding)
+				break
+		if not conv:
+			log.error(_("%s not supported or mistyped.") % options.format)
+			return -1
 
-	try:
-		with codecs.open(args[0], mode='r', encoding=options.encoding) as f:
-			file_input = f.readlines()
-	except UnicodeDecodeError:
-		log.error(_("Couldn't open '%s' given '%s' encoding. Is that a binary file?") % (args[0], options.encoding))
-	
-	try:
-		lines = []
-		log.info(_("Trying to parse %s...") % args[0])
-		for cl in cls:
-			c = cl(args[0], options.encoding, file_input)
-			if not lines and c.__FMT__ != conv.__FMT__:
-				if conv.__FMT__ == 'time':
+		try:
+			with codecs.open(arg, mode='r', encoding=options.encoding) as f:
+				file_input = f.readlines()
+		except UnicodeDecodeError:
+			log.error(_("Couldn't open '%s' given '%s' encoding. Is that a binary file?") % (arg, options.encoding))
+			continue
+		
+		try:
+			lines = []
+			log.info(_("Trying to parse %s...") % arg)
+			for cl in cls:
+				c = cl(arg, options.encoding, file_input)
+				if not lines and c.__FMT__ != conv.__FMT__:
+					if conv.__FMT__ == 'time':
+						for p in c.parse():
+							p['sub']['time_from'].to_time(options.fps)
+							p['sub']['time_to'].to_time(options.fps)
+							s = conv.convert(p)
+							lines.append(s.decode(conv.encoding))
+					elif conv.__FMT__ == 'frame':
+						for p in c.parse():
+							p['sub']['time_from'].to_frame(options.fps)
+							p['sub']['time_to'].to_frame(options.fps)
+							s = conv.convert(p)
+							lines.append(s.decode(conv.encoding))
+				elif not lines and c.__FMT__ == conv.__FMT__ :
 					for p in c.parse():
-						p['sub']['time_from'].to_time(options.fps)
-						p['sub']['time_to'].to_time(options.fps)
 						s = conv.convert(p)
 						lines.append(s.decode(conv.encoding))
-				elif conv.__FMT__ == 'frame':
-					for p in c.parse():
-						p['sub']['time_from'].to_frame(options.fps)
-						p['sub']['time_to'].to_frame(options.fps)
-						s = conv.convert(p)
-						lines.append(s.decode(conv.encoding))
-			elif not lines and c.__FMT__ == conv.__FMT__ :
-				for p in c.parse():
-					s = conv.convert(p)
-					lines.append(s.decode(conv.encoding))
-	except UnicodeDecodeError:
-		log.error(_("Couldn't handle given encoding (%s) on '%s'. Maybe try different encoding?") % (options.encoding, args[0]))
-	if lines:
-		log.info(_("Parsed."))
-		if os.path.isfile(conv.filename):
-			choice = ''
-			if options.force:
-				choice = _choices['yes']
-			while( choice not in (_choices['yes'], _choices['no'], _choices['backup'])):
-				choice = raw_input( _("File '%s' exists. Overwrite? [y/n/b] ") % conv.filename)
-			if choice == _choices['backup']:
-				if conv.filename == args[0]:
-					args[0], _mvd = backup(args[0])	# We will read from backed up file
-					log.info(_("%s backed up as %s") % (_mvd, args[0]))
-				else:
-					_bck, conv_filename = backup(conv.filename)
-					log.info(_("%s backed up as %s") % (conv.filename, _bck))
-			elif choice == _choices['no']:
-				log.info(_("Skipping %s") % args[0])
-				return 0
-			elif choice == _choices['yes'] and options.verbose:
-				log.info(_("Overwriting %s") % conv.filename)
+		except UnicodeDecodeError:
+			log.error(_("Couldn't handle given encoding (%s) on '%s'. Maybe try different encoding?") % (options.encoding, arg))
+		if lines:
+			log.info(_("Parsed."))
+			if os.path.isfile(conv.filename):
+				choice = ''
+				if options.force:
+					choice = _choices['yes']
+				while( choice not in (_choices['yes'], _choices['no'], _choices['backup'])):
+					choice = raw_input( _("File '%s' exists. Overwrite? [y/n/b] ") % conv.filename)
+				if choice == _choices['backup']:
+					if conv.filename == arg:
+						arg, _mvd = backup(arg)	# We will read from backed up file
+						log.info(_("%s backed up as %s") % (_mvd, arg))
+					else:
+						_bck, conv_filename = backup(conv.filename)
+						log.info(_("%s backed up as %s") % (conv.filename, _bck))
+				elif choice == _choices['no']:
+					log.info(_("Skipping %s") % arg)
+					continue
+				elif choice == _choices['yes'] and options.verbose:
+					log.info(_("Overwriting %s") % conv.filename)
+			else:
+				log.info("Writing to %s" % conv.filename)
+		
+			with codecs.open(conv.filename, 'w', encoding=conv.encoding) as cf:
+				cf.writelines(lines)
 		else:
-			log.info("Writing to %s" % conv.filename)
-	
-		with codecs.open(conv.filename, 'w', encoding=conv.encoding) as cf:
-			cf.writelines(lines)
-		return 0
-	else:
-		log.warning(_("%s not parsed.") % args[0])
-		return -1
+			log.warning(_("%s not parsed.") % arg)
 
 if __name__ == '__main__':
 	main()
