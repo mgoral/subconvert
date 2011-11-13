@@ -1,6 +1,9 @@
 Version history
 
 0.6.2	:
+* ADD: mplayer auto-check more movie formats: mkv, mpg, mp4 and wmv
+* ADD: handle multiple input files
+* ADD: option to specify output file(s) extension
 * FIX: SubRip incorrect parsing (trivia: in my test subtitles a word which
 	starts with 'f' appears for the first time in 119th subtitle)
 * FIX: not clear notifications about parsing and IO operations state + add some

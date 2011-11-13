@@ -59,10 +59,10 @@ also run it this way:
 
 Subconvert has plenty available options and can take at most 2 arguments and at 
 least 1:
-	subconvert [options] input_file [output_file]
+	subconvert [options] input_file [input_file...]
 
 [ 1.2.1 Available options ]
-Usage: subconvert.py [options] input_file [output_file]
+Usage: subconvert.py [options] input_file [input_file...]
 
 General options:
 	--version
@@ -72,8 +72,8 @@ General options:
 	-f, --force
 		Force all operations without asking (assuming yes).	
 		Example: don't ask to overwrite existing file, just do it.
-	-v, --verbose
-		Verbose output. 
+	-q, --quiet
+		Silence the output. 
 
 	Convert options:
 		Options which can be used to properly convert sub files.
@@ -89,10 +89,18 @@ General options:
     -s FPS, --fps=FPS   
 		Select movie/subtitles frames per second. Default: 25. Float numbers
 		with dot indicating floating point allowed.
-	-S, --S
+	-S, --auto-fps
 		Automatically try to get FPS from movie. This option requires MPlayer
 		installed and overwrites any input that user gave in '-s' or '--fps'
 		option (as it's more reliable).
+	-v MOVIE_FILE, --video-file=MOVIE_FILE
+		Specify the movie file to get FPS from. Note that this option will only
+		have an effect with --auto-fps switched on. Normally subconvert will
+		automatically try to find a movie file depending on sub file(s) name(s)
+		but you may want to explicitly specify movie file when it doesn't share
+		the same filenames with subtitles.
+	-x EXT, --extension=EXT
+		Specify the output file(s) extension.
     
 You can specify the output_file to which converted subs will be created. If
 output_file is not specified, the new file will be located in the directory
@@ -103,8 +111,8 @@ EXAMPLES:
 	subconvert subtitles.txt
 		Create subtitles.srt encoded in ascii (subrip wit srt extension is
 		default format)
-	subconvert subtitles.txt my_subs.ext
-		Create my_subs.ext subrip format file.
+	subconvert *.txt
+		Convert all txt files in a directory
 	subconvert -e cp1250 subtitles.txt
 		Create subtitles.srt encoded in cp1250 (windows-1250)
 	subconvert -m microdvd -s 23.976 subtitles.srt

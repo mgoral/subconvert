@@ -23,6 +23,7 @@ import sys
 import shutil
 import re
 import codecs
+from subprocess import Popen, PIPE
 import logging
 from optparse import OptionParser, OptionGroup
 import gettext
@@ -309,16 +310,30 @@ def backup( filename ):
 	shutil.move(filename, new_arg)
 	return (new_arg, filename)
 
+def mplayer_check( filename, fps ):
+	command = ['mplayer', '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify',]
+	command.append(filename)
+	try:
+		mp_out = Popen(command, stdout=PIPE).communicate()[0]
+		fps = re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', mp_out).group(1)
+	except OSError:
+		log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH in order to use auto_fps option."))
+	except AttributeError:
+		log.warning(_("Couldn't get FPS info from mplayer."))
+	else:
+		log.info(_("Got %s FPS from '%s'.") % (fps, filename))
+	return fps
+
 def main():
-	optp = OptionParser(usage = _('Usage: %prog [options] input_file [output_file]'),\
+	optp = OptionParser(usage = _('Usage: %prog [options] input_file [input_file(s)]'),\
 		version = '%s' % __VERSION__ )
 	group_conv = OptionGroup(optp, _('Convert options'),
 		_("Options which can be used to properly convert sub files."))
 	optp.add_option('-f', '--force',
 		action='store_true', dest='force', default=False,
 		help=_("force all operations without asking (assuming yes)"))
-	optp.add_option('-v', '--verbose',
-		action='store_true', dest='verbose', default=False,
+	optp.add_option('-q', '--quiet',
+		action='store_true', dest='quiet', default=False,
 		help=_("verbose output"))
 	group_conv.add_option('-e', '--encoding',
 		action='store', type='string', dest='encoding', default='ascii',
@@ -332,9 +347,12 @@ def main():
 	group_conv.add_option('-S', '--auto-fps',
 		action='store_true', dest='auto_fps', default=False,
 		help=_("automatically try to get fps from mplayer"))
+	group_conv.add_option('-v', '--video-file', default = '',
+		action='store', type='string', dest='movie_file',
+		help=_("movie file to get fps info from"))
 	group_conv.add_option('-x', '--extension',
 		action='store', type='string', dest='ext',
-		help=_("extension of the output file."))
+		help=_("specify extension of the output file if the default one is not what you like."))
 
 	optp.add_option_group(group_conv)
 	
@@ -346,10 +364,10 @@ def main():
 
 	# A little hack to assure that translator won't make a mistake
 	_choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q'), 'backup': _('b') }
-	if options.verbose:
-		log.setLevel(logging.INFO)
-	else:
+	if options.quiet:
 		log.setLevel(logging.ERROR)
+	else:
+		log.setLevel(logging.INFO)
 	log.addHandler(ch)
 	
 	for arg in args:
@@ -358,25 +376,16 @@ def main():
 			continue
 		
 		if options.auto_fps:
-			from subprocess import Popen, PIPE
-			# -really-quiet seems to display some info (like FPS, resolution etc.)
-			command = ['mplayer', '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify',]
-			exts = ('.avi', )
-			filename, extension = os.path.splitext(arg)
-			for ext in exts:
-				f = ''.join((filename, ext))
-				if os.path.isfile(f):
-					command.append(f)
-					try:
-						mp_out = Popen(command, stdout=PIPE).communicate()[0]
-					except OSError:
-						log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH in order to use auto_fps option."))
+			exts = ('.avi', '.mkv', '.mpg', '.mp4', '.wmv')
+			if not options.movie_file:
+				filename, extension = os.path.splitext(arg)
+				for ext in exts:
+					f = ''.join((filename, ext))
+					if os.path.isfile(f):
+						options.fps = mplayer_check(f, options.fps)
 						break
-					try:
-						options.fps = re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', mp_out).group(1)
-					except AttributeError:
-						log.warning(_("Couldn't get FPS info from mplayer."))
-						break
+			else:
+				options.fps = mplayer_check(options.movie_file, options.fps)
 		
 		cls = GenericSubParser.__subclasses__()
 		convert_to = None
@@ -440,7 +449,7 @@ def main():
 				elif choice == _choices['no']:
 					log.info(_("Skipping %s") % arg)
 					continue
-				elif choice == _choices['yes'] and options.verbose:
+				elif choice == _choices['yes']:
 					log.info(_("Overwriting %s") % conv.filename)
 			else:
 				log.info("Writing to %s" % conv.filename)
