@@ -29,7 +29,7 @@ from optparse import OptionParser, OptionGroup
 import gettext
 from datetime import datetime
 
-__VERSION__ = '0.6.0'
+__VERSION__ = '0.6.2'
 __AUTHOR__ = u'Michał Góral'
 
 log = logging.getLogger(__name__)
