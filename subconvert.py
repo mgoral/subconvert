@@ -338,6 +338,7 @@ class TMP(GenericSubParser):
 
 	def format_text(self, s):
 		s = s.strip()
+		s = s.replace('{', '{{').replace('}', '}}')
 		if '|' in s:
 			s = s.replace('|', '{gsp_nl}')
 		if '\r\n' in s:
@@ -407,7 +408,6 @@ def prepare_options():
 
 	optp.add_option_group(group_conv)
 	return optp
-
 
 def main():
 	optp = prepare_options()
