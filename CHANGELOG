@@ -1,5 +1,9 @@
 Version history
 
+0.6.3	:
+* ADD: TMP sub formatting
+* FIX: error that prevented sub parsing when no sub end time was present
+
 0.6.2	: 13.11.2011
 * ADD: mplayer auto-check more movie formats: mkv, mpg, mp4 and wmv
 * ADD: handle multiple input files
