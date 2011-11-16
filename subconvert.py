@@ -375,7 +375,7 @@ def mplayer_check( filename, fps ):
 		log.info(_("Got %s FPS from '%s'.") % (fps, filename))
 	return fps
 
-def main():
+def prepare_options():
 	optp = OptionParser(usage = _('Usage: %prog [options] input_file [input_file(s)]'),\
 		version = '%s' % __VERSION__ )
 	group_conv = OptionGroup(optp, _('Convert options'),
@@ -406,7 +406,11 @@ def main():
 		help=_("specify extension of the output file if the default one is not what you like."))
 
 	optp.add_option_group(group_conv)
-	
+	return optp
+
+
+def main():
+	optp = prepare_options()
 	(options, args) = optp.parse_args()
 	
 	if len(args)  < 1:
