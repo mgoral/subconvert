@@ -87,15 +87,15 @@ class GenericSubParser(object):
 	__SUB_TYPE__ = 'Generic'
 	__OPT__ = 'none'
 	__EXT__ = 'sub'
-	__FMT__ = 'Unknown' 	# time/frame
+	__FMT__ = 'Unknown'		# time/frame
 	end_pattern = r'(?P<end>\r?\n)$'
 	pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)(?P<text>.+)'
 	sub_fmt = "{gsp_no}:%s{gsp_from} : {gsp_to} %s {gsp_text}%s" % (os.linesep, os.linesep, os.linesep)	# output subtitle format
 	sub_formatting = {
-		'gsp_b_':	r'', '_gsp_b': 	r'',
-		'gsp_i_': 	r'', '_gsp_i': 	r'',
-		'gsp_u_': 	r'', '_gsp_u': 	r'',
-		'gsp_nl': 	os.linesep,
+		'gsp_b_':	r'', '_gsp_b':	r'',
+		'gsp_i_':	r'', '_gsp_i':	r'',
+		'gsp_u_':	r'', '_gsp_u':	r'',
+		'gsp_nl':	os.linesep,
 		}
 	
 	# Do not overwrite further
@@ -214,10 +214,10 @@ class MicroDVD(GenericSubParser):
 	end_pattern = r'(?P<end>(?:\r?\n)|(?:\r))$'	# \r on mac, \n on linux, \r\n on windows
 	sub_fmt = "{{{gsp_from}}}{{{gsp_to}}}{gsp_text}%s" % os.linesep	# Looks weird but escaping '{}' curly braces requires to double them
 	sub_formatting = {
-		'gsp_b_':	r'{y:b}', '_gsp_b': 	r'',
-		'gsp_i_': 	r'{y:i}', '_gsp_i': 	r'',
-		'gsp_u_': 	r'{y:u}', '_gsp_u': 	r'',
-		'gsp_nl': 	r'|',
+		'gsp_b_':	r'{y:b}', '_gsp_b':		r'',
+		'gsp_i_':	r'{y:i}', '_gsp_i':		r'',
+		'gsp_u_':	r'{y:u}', '_gsp_u':		r'',
+		'gsp_nl':	r'|',
 	}
 	
 	def __init__(self, f, encoding, lines = []):
@@ -264,10 +264,10 @@ class SubRip(GenericSubParser):
 	time_fmt = r'^(?P<h>\d+):(?P<m>\d{2}):(?P<s>\d{2}),(?P<ms>\d+)$'
 	sub_fmt = "{gsp_no}"+ os.linesep + "{gsp_from} --> {gsp_to}" + os.linesep + "{gsp_text}" + os.linesep + os.linesep
 	sub_formatting = {
-		'gsp_b_':	r'<b>', '_gsp_b': 	r'</b>',
-		'gsp_i_': 	r'<i>', '_gsp_i': 	r'</i>',
-		'gsp_u_': 	r'<u>', '_gsp_u': 	r'</u>',
-		'gsp_nl': 	os.linesep,
+		'gsp_b_':	r'<b>', '_gsp_b':	r'</b>',
+		'gsp_i_':	r'<i>', '_gsp_i':	r'</i>',
+		'gsp_u_':	r'<u>', '_gsp_u':	r'</u>',
+		'gsp_nl':	os.linesep,
 	}
 	
 	def __init__(self, f, encoding, lines = []):
@@ -300,6 +300,43 @@ class SubRip(GenericSubParser):
 	
 	def get_time(self, ft, which):
 		return '%02d:%02d:%02d,%03d' % (int(ft.hours), int(ft.minutes), int(ft.seconds), int(ft.miliseconds))
+
+class TMP(GenericSubParser):
+	__SUB_TYPE__ = 'TMP'
+	__OPT__ = 'tmp'
+	__FMT__ = 'time'
+	__EXT__ = 'txt'
+	pattern = r'''
+	^
+	(?P<time_from>\d+:\d{2}:\d{2})
+	:
+	(?P<text>[^\r\n]+)
+	'''
+	end_pattern = r'(?P<end>(?:\r?\n)|(?:\r))$'	# \r on mac, \n on linux, \r\n on windows
+	time_fmt = r'^(?P<h>\d+):(?P<m>\d{2}):(?P<s>\d{2})$'
+	sub_fmt = "{gsp_from}{gsp_text}%s" % os.linesep	
+
+	def __init__(self, f, encoding, lines = []):
+		self.time_fmt = re.compile(self.time_fmt)
+		GenericSubParser.__init__(self, f, encoding, lines)
+
+	def str_to_frametime(self, s):
+		time = self.time_fmt.search(s)
+		return FrameTime(h=time.group('h'), m=time.group('m'), s=time.group('s'))
+
+	def format_text(self, s):
+		s = s.strip()
+		if '\r\n' in s:
+			s = s.replace('\r\n', '{gsp_nl}')	# Windows
+		elif '\n' in s:
+			s = s.replace('\n', '{gsp_nl}')	# Linux
+		elif '\r' in s:
+			s = s.replace('\r', '{gsp_nl}')	# Mac
+		return s
+
+	def get_time(self, ft, which):
+		if which == 'time_from':
+			return '%02d:%02d:%02d' % (int(ft.hours), int(ft.minutes), int(ft.seconds))
 
 def backup( filename ):
 	new_arg = filename + datetime.now().strftime('_%y%m%d%H%M%S')
