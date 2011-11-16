@@ -140,11 +140,17 @@ class GenericSubParser(object):
 						if self.__FMT__ not in ('frame', 'time'):
 							self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
 						atom['time_to'] = self.str_to_frametime(atom['time_to'])
-					if m.group('text'):
-						atom['text'] = m.group('text')
 				except AttributeError, msg:
 					log.debug(_("Not a %s file.") % self.__SUB_TYPE__)
 					return
+				except IndexError, msg:
+					log.debug(msg)
+				try:
+					# There should be no more AttributeErrors as parse()
+					# should return on it last time. If there is - we want
+					# to know about it and fix it.
+					if m.group('text'):
+						atom['text'] = m.group('text')
 				except IndexError, msg:
 					log.debug(msg)
 
@@ -314,7 +320,13 @@ class TMP(GenericSubParser):
 	'''
 	end_pattern = r'(?P<end>(?:\r?\n)|(?:\r))$'	# \r on mac, \n on linux, \r\n on windows
 	time_fmt = r'^(?P<h>\d+):(?P<m>\d{2}):(?P<s>\d{2})$'
-	sub_fmt = "{gsp_from}{gsp_text}%s" % os.linesep	
+	sub_fmt = "{gsp_from}:{gsp_text}%s" % os.linesep	
+	sub_formatting = {
+		'gsp_b_':	r'', '_gsp_b':		r'',
+		'gsp_i_':	r'', '_gsp_i':		r'',
+		'gsp_u_':	r'', '_gsp_u':		r'',
+		'gsp_nl':	r'|',
+	}
 
 	def __init__(self, f, encoding, lines = []):
 		self.time_fmt = re.compile(self.time_fmt)
@@ -326,6 +338,8 @@ class TMP(GenericSubParser):
 
 	def format_text(self, s):
 		s = s.strip()
+		if '|' in s:
+			s = s.replace('|', '{gsp_nl}')
 		if '\r\n' in s:
 			s = s.replace('\r\n', '{gsp_nl}')	# Windows
 		elif '\n' in s:
