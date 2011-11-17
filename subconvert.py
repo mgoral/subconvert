@@ -519,19 +519,9 @@ def main():
 			log.info(_("Trying to parse %s...") % arg)
 			for cl in cls:
 				c = cl(arg, options.fps, options.encoding, file_input)
-				if not lines and c.__FMT__ != conv.__FMT__:
-					if conv.__FMT__ == 'time':
-						for p in c.parse():
-							s = conv.convert(p)
-							lines.append(s.decode(conv.encoding))
-					elif conv.__FMT__ == 'frame':
-						for p in c.parse():
-							s = conv.convert(p)
-							lines.append(s.decode(conv.encoding))
-				elif not lines and c.__FMT__ == conv.__FMT__ :
-					for p in c.parse():
-						s = conv.convert(p)
-						lines.append(s.decode(conv.encoding))
+				for p in c.parse():
+					s = conv.convert(p)
+					lines.append(s.decode(conv.encoding))
 		except UnicodeDecodeError:
 			log.error(_("Couldn't handle given encoding (%s) on '%s'. Maybe try different encoding?") % (options.encoding, arg))
 		if lines:
