@@ -2,6 +2,8 @@ Version history
 
 0.6.3	:
 * ADD: TMP sub formatting
+* ADD: full converting subtitles without sub end time
+* FIX: error on -m option mistyped
 * FIX: error that prevented sub parsing when no sub end time was present
 
 0.6.2	: 13.11.2011
