@@ -495,7 +495,7 @@ def main():
 				options.fps = mplayer_check(options.movie_file, options.fps)
 		
 		cls = GenericSubParser.__subclasses__()
-		convert_to = None
+		conv = None
 		for c in cls:
 			# Obtain user specified subclass
 			if c.__OPT__ == options.format:
@@ -517,11 +517,28 @@ def main():
 		try:
 			lines = []
 			log.info(_("Trying to parse %s...") % arg)
+			sub_pair = [None, None]
 			for cl in cls:
-				c = cl(arg, options.fps, options.encoding, file_input)
-				for p in c.parse():
-					s = conv.convert(p)
-					lines.append(s.decode(conv.encoding))
+				if not lines:
+					c = cl(arg, options.fps, options.encoding, file_input)
+					for p in c.parse():
+						sub_pair[0] = sub_pair[1]
+						sub_pair[1] = p
+						if sub_pair[0]:
+							if not sub_pair[0]['sub']['time_to']:
+								sub_pair[0]['sub']['time_to'] = \
+									sub_pair[0]['sub']['time_from'] + \
+									(sub_pair[1]['sub']['time_from'] - sub_pair[0]['sub']['time_from']) * 0.85
+							s = conv.convert(sub_pair[0])
+							lines.append(s.decode(conv.encoding))
+					else:
+						if sub_pair[1]:
+							if not sub_pair[1]['sub']['time_to']:
+								sub_pair[1]['sub']['time_to'] = \
+									sub_pair[1]['sub']['time_from'] + FrameTime(options.fps, 'ss', seconds = 2.5)
+							s = conv.convert(sub_pair[1])
+							lines.append(s.decode(conv.encoding))
+
 		except UnicodeDecodeError:
 			log.error(_("Couldn't handle given encoding (%s) on '%s'. Maybe try different encoding?") % (options.encoding, arg))
 		if lines:
