@@ -1,5 +1,8 @@
 Version history
 
+0.7.1	:
+* FIX: remove file extension from subviewer's [TITLE]
+
 0.7		: 19.11.2011
 * ADD: TMP sub formatting
 * ADD: SubViewer sub formatting
