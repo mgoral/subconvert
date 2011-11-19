@@ -135,6 +135,7 @@ class GenericSubParser(object):
 	__EXT__ = 'sub'
 	__FMT__ = 'Unknown'		# time/frame
 	__WITH_HEADER__ = False
+	__MAX_HEADER_LEN__ = 50
 	end_pattern = r'(?P<end>\r?\n)$'
 	pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)(?P<text>.+)'
 	sub_fmt = "{gsp_no}:%s{gsp_from} : {gsp_to} %s {gsp_text}%s" % (os.linesep, os.linesep, os.linesep)	# output subtitle format
@@ -171,12 +172,16 @@ class GenericSubParser(object):
 		line_no = 0
 		sub_section = ''
 		for line_no, line in enumerate(self.lines):
-			if not self.__PARSED__ and line_no > 35:
+			if not self.__WITH_HEADER__ and not self.__PARSED__ and line_no > 35:
+				print 'aa'
 				log.debug(_("%s waited too long. Skipping.") % self.__SUB_TYPE__)
 				return
 			sub_section = ''.join([sub_section, line])
 			end = self.end_pattern.search(line)
 			if self.__WITH_HEADER__ and not self.__HEADER_FOUND__:
+				if line_no > self.__MAX_HEADER_LEN__:
+					log.debug(_("Not a %s file.") % self.__SUB_TYPE__)
+					return
 				self.__HEADER_FOUND__ = self.get_header(sub_section, atom)
 				if self.__HEADER_FOUND__:
 					self.__PARSED__ = True
@@ -340,7 +345,7 @@ class SubRip(GenericSubParser):
 	'''
 	end_pattern = r'^(?P<end>(?:\r?\n)|(?:\r))$'	# \r\n on windows, \r on mac
 	time_fmt = r'^(?P<h>\d+):(?P<m>\d{2}):(?P<s>\d{2}),(?P<ms>\d+)$'
-	sub_fmt = "{gsp_no}"+ os.linesep + "{gsp_from} --> {gsp_to}" + os.linesep + "{gsp_text}" + os.linesep + os.linesep
+	sub_fmt = "{gsp_no}%s{gsp_from} --> {gsp_to}%s{gsp_text}%s%s" % ( os.linesep, os.linesep, os.linesep, os.linesep)
 	sub_formatting = {
 		'gsp_b_':	r'<b>', '_gsp_b':	r'</b>',
 		'gsp_i_':	r'<i>', '_gsp_i':	r'</i>',
@@ -429,6 +434,111 @@ class TMP(GenericSubParser):
 		if which == 'time_from':
 			return '%02d:%02d:%02d' % (int(ft.hours), int(ft.minutes), int(ft.seconds))
 
+class SubViewer(GenericSubParser):
+	__SUB_TYPE__ = 'SubViewer 1.0'
+	__OPT__ = 'subviewer'
+	__FMT__ = 'time'
+	__EXT__ = 'sub'
+	__WITH_HEADER__ = True
+	pattern = r'''
+		^
+		(?P<time_from>\d{2}:\d{2}:\d{2}.\d{2})
+		,
+		(?P<time_to>\d{2}:\d{2}:\d{2}.\d{2})
+		[\r\n]{1,2}		# linebreaks on different os's
+		(?P<text>[^\f\v\b]+)
+		'''
+	end_pattern = r'^(?P<end>(?:\r?\n)|(?:\r))$'	# \r\n on windows, \r on mac
+	time_fmt = r'^(?P<h>\d+):(?P<m>\d{2}):(?P<s>\d{2}).(?P<ms>\d+)$'
+	sub_fmt = "{gsp_from},{gsp_to}%s{gsp_text}%s%s" % (os.linesep, os.linesep, os.linesep)
+	sub_formatting = {
+		'gsp_b_':	r'', '_gsp_b':	r'',
+		'gsp_i_':	r'', '_gsp_i':	r'',
+		'gsp_u_':	r'', '_gsp_u':	r'',
+		'gsp_nl':	os.linesep,
+	}
+	
+	def __init__(self, f, fps, encoding, lines = []):
+		self.time_fmt = re.compile(self.time_fmt)
+		GenericSubParser.__init__(self, f, fps, encoding, lines)
+	
+	def str_to_frametime(self, s):
+		time = self.time_fmt.search(s)
+		return FrameTime(fps=self.fps, value_type=self.__FMT__, \
+			h=time.group('h'), m=time.group('m'), \
+			s=time.group('s'), ms=time.group('ms'))
+
+	def format_text(self, s):
+		s = s.strip()
+		s = s.replace('{', '{{').replace('}', '}}')
+		if '\r\n' in s:
+			s = s.replace('\r\n', '{gsp_nl}')	# Windows
+		elif '\n' in s:
+			s = s.replace('\n', '{gsp_nl}')	# Linux
+		elif '\r' in s:
+			s = s.replace('\r', '{gsp_nl}')	# Mac
+		return s
+
+	def get_time(self, ft, which):
+		ms = int(round(ft.miliseconds / float(10)))
+		return '%02d:%02d:%02d.%02d' % (int(ft.hours), int(ft.minutes), int(ft.seconds), ms)
+
+	def get_header(self, header, atom):
+		if( '[colf]' in header.lower() and '[information]' in header.lower()):
+			atom['header'] = {}
+			end = header.lower().find('[end information]')
+			if -1 == end:
+				end = header.lower().find('[subtitle]')
+				if -1 == end:
+					return True
+			
+			tag_list = header[:end].splitlines()
+			for tag in tag_list:
+				if tag.strip().startswith('['):
+					parse_result = tag.strip()[1:].partition(']')
+					if parse_result[2]:
+						if parse_result[0].lower() == 'prg':
+							atom['header']['program'] = parse_result[2]
+						else:
+							atom['header'][parse_result[0].replace(' ', '_').lower()] = parse_result[2]
+			tag_list = header[end:].split(',')
+			for tag in tag_list:
+				parse_result = tag.strip()[1:].partition(']')
+				if parse_result[2]:
+					if parse_result[0].lower() == 'color':
+						atom['header']['color'] = parse_result[2]
+					elif parse_result[0].lower() == 'style':
+						atom['header']['font_style'] = parse_result[2]
+					elif parse_result[0].lower() == 'size':
+						atom['header']['font_size'] = parse_result[2]
+					elif parse_result[0].lower() == 'font':
+						atom['header']['font'] = parse_result[2]
+			return True
+		else:
+			return False
+	
+	def convert_header(self, header):
+		keys = header.keys()
+		title = header.get('title') if 'title' in keys else os.path.split(self.filename)[-1] 
+		author = header.get('author') if 'author' in keys else ''
+		source = header.get('source') if 'source' in keys else ''
+		program = header.get('program') if 'program' in keys else 'SubConvert'
+		filepath = header.get('filepath') if 'filepath' in keys else self.filename
+		delay = header.get('delay') if 'delay' in keys else '0'
+		cd_track = header.get('cd_track') if 'cd_track' in keys else '0'
+		comment = header.get('comment') if 'comment' in keys else 'Converted to subviewer format with SubConvert'
+		color = header.get('color') if 'color' in keys else '&HFFFFFF'
+		font_style = header.get('font_style') if 'font_style' in keys else 'no'
+		font_size = header.get('font_size') if 'font_size' in keys else '24'
+		font = header.get('font') if 'font' in keys else 'Tahoma'
+		return os.linesep.join([ \
+			'[INFORMATION]', '[TITLE]%s' % title, '[AUTHOR]%s' % author, \
+			'[SOURCE]%s' % source, '[PRG]%s' % program, '[FILEPATH]%s' % filepath, \
+			'[DELAY]%s' % delay, '[CD TRACK]%s' % cd_track, '[COMMENT]%s' % comment, \
+			'[END INFORMATION]', '[SUBTITLE]',
+			'[COLF]%s,[STYLE]%s,[SIZE]%s,[FONT]%s%s' % \
+			(color, font_style, font_size, font, os.linesep)])
+
 def backup( filename ):
 	new_arg = filename + datetime.now().strftime('_%y%m%d%H%M%S')
 	try:
@@ -463,6 +573,9 @@ def prepare_options():
 	optp.add_option('-q', '--quiet',
 		action='store_true', dest='quiet', default=False,
 		help=_("verbose output"))
+	optp.add_option('--debug',
+		action='store_true', dest='debug_messages', default=False,
+		help=_("Generate debug output"))
 	group_conv.add_option('-e', '--encoding',
 		action='store', type='string', dest='encoding', default='ascii',
 		help=_("input file encoding. Default: 'ascii'. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
@@ -499,6 +612,8 @@ def main():
 		log.setLevel(logging.ERROR)
 	else:
 		log.setLevel(logging.INFO)
+	if options.debug_messages:
+		log.setLevel(logging.DEBUG)
 	log.addHandler(ch)
 	
 	for arg in args:
@@ -546,9 +661,11 @@ def main():
 				if not lines:
 					c = cl(arg, options.fps, options.encoding, file_input)
 					for p in c.parse():
-						if not sub_pair[1] and conv.__WITH_HEADER__ and c.__HEADER_FOUND__: # Only the first element
+						if not sub_pair[1] and conv.__WITH_HEADER__: # Only the first element
 							header = p['sub'].get('header')
-							header = conv.convert_header(header) if header else ''
+							if type(header) != dict:
+								header = {}
+							header = conv.convert_header(header)
 							if header:
 								lines.append(header.decode(conv.encoding))
 						sub_pair[0] = sub_pair[1]
