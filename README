@@ -123,6 +123,8 @@ EXAMPLES:
 	
 	* microdvd
 	* subrip
+	* tmp
+	* subviewer
 
 [ 2 Programmer manual ]
 Generally main program uses GenericSubParser clas and it subclasses which are
