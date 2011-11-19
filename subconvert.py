@@ -121,7 +121,6 @@ class FrameTime:
 		return "t: %s:%s:%s.%s; f: %s" % \
 			( self.hours, self.minutes, self.seconds, self.miliseconds, self.frame )
 
-
 class GenericSubParser(object):
 	'''Generic class that should be inherited
 	and polymorphed by the other, specialized
@@ -547,7 +546,7 @@ def main():
 				if not lines:
 					c = cl(arg, options.fps, options.encoding, file_input)
 					for p in c.parse():
-						if not sub_pair[1] and c.__HEADER_FOUND__: # Only the first element
+						if not sub_pair[1] and conv.__WITH_HEADER__ and c.__HEADER_FOUND__: # Only the first element
 							header = p['sub'].get('header')
 							header = conv.convert_header(header) if header else ''
 							if header:
