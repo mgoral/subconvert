@@ -135,6 +135,7 @@ class GenericSubParser(object):
 	__OPT__ = 'none'
 	__EXT__ = 'sub'
 	__FMT__ = 'Unknown'		# time/frame
+	__WITH_HEADER__ = False
 	end_pattern = r'(?P<end>\r?\n)$'
 	pattern = r'(?P<time_from>\d+) (?P<time_to>\d+)(?P<text>.+)'
 	sub_fmt = "{gsp_no}:%s{gsp_from} : {gsp_to} %s {gsp_text}%s" % (os.linesep, os.linesep, os.linesep)	# output subtitle format
@@ -147,12 +148,13 @@ class GenericSubParser(object):
 	
 	# Do not overwrite further
 	__PARSED__ = False
+	__HEADER_FOUND__ = False
 
 	def __init__(self, filename, fps, encoding, lines = []):
 		'''Usually you will only need to call super __init__(filename, encoding)
 		from a specialized class.'''
 
-		self.atom_t = {'time_from': '', 'time_to': '', 'text': '',}
+		self.atom_t = {'time_from': '', 'time_to': '', 'text': ''}
 		self.filename = filename
 		self.pattern = re.compile(self.pattern, re.X)
 		self.end_pattern = re.compile(self.end_pattern, re.X)
@@ -175,7 +177,12 @@ class GenericSubParser(object):
 				return
 			sub_section = ''.join([sub_section, line])
 			end = self.end_pattern.search(line)
-			if end:
+			if self.__WITH_HEADER__ and not self.__HEADER_FOUND__:
+				self.__HEADER_FOUND__ = self.get_header(sub_section, atom)
+				if self.__HEADER_FOUND__:
+					self.__PARSED__ = True
+					sub_section = ''
+			elif end:
 				m = self.pattern.search(sub_section)
 				try:
 					if m.group('time_from'):
@@ -219,7 +226,8 @@ class GenericSubParser(object):
 	def convert(self, sub):
 		'''A function which gets dictionary containing single 
 		sub info and returns appropriately formated string
-		according to the passed sub format specification.'''
+		according to the passed sub format specification.
+		First sub might also contain header info.'''
 		try:
 			sub_text = sub['sub']['text'].format(**self.sub_formatting)
 		except KeyError, msg:
@@ -231,6 +239,23 @@ class GenericSubParser(object):
 			gsp_text = sub_text.encode(self.encoding))
 	
 	# Following methods should probably be polymorphed
+	def get_header(self, sub_section , atom):
+		'''Try to find header in a given sub_section. For example
+		you can try to match precompiled regex or use Python string
+		operations. Return True if header was parsed, False otherwise.
+		Header parsing results should be saved as a dictionary to the
+		atom['header']. After it returns True, it will not be called again.'''
+		atom['header'] = {'info': sub_section.strip()}
+		return True
+	
+	def convert_header(self, header):
+		'''Convert parsed header keys and values to the string 
+		that can be saved to file.'''
+		header_str = ''
+		for key, val in header.items():
+			header_str = "%s[%s]:[%s]%s%s" % (header_str, key, val, os.linesep, os.linesep)
+		return header_str.encode(self.encoding)
+
 	def get_time(self, ft, which):
 		'''Extract time (time_from or time_to) from FrameTime.
 		Note that it usually needs to be first calculated using
@@ -522,6 +547,11 @@ def main():
 				if not lines:
 					c = cl(arg, options.fps, options.encoding, file_input)
 					for p in c.parse():
+						if not sub_pair[1] and c.__HEADER_FOUND__: # Only the first element
+							header = p['sub'].get('header')
+							header = conv.convert_header(header) if header else ''
+							if header:
+								lines.append(header.decode(conv.encoding))
 						sub_pair[0] = sub_pair[1]
 						sub_pair[1] = p
 						if sub_pair[0]:
