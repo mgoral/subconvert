@@ -70,6 +70,8 @@ General options:
 		Example: don't ask to overwrite existing file, just do it.
 	-q, --quiet
 		Silence the output. 
+	--debug
+		Show debug output. This overwrites -q (or --quiet) option.
 
 	Convert options:
 		Options which can be used to properly convert sub files.
@@ -150,6 +152,12 @@ __FMT__
 	-- if it's not specified, parser will try to determine it automatically.
 	Keep in mind though that it's only a simple regex and doesn't have to be
 	accurate every time, so it's better to specify it explicitly.
+__WITH_HEADER__
+	Set to True if subtitle format contains some kind of header.
+__MAX_HEADER_LEN__
+	Performance option. Maximum line number to which subconvert will check for
+	header. By default it is set to 50 but you can (though you do not have to)
+	override it if you want.
 end_pattern
 	This pattern is searched in every line of imput file. When it's matched, it
 	means that subtitle section has been found and on that section are going to
@@ -181,6 +189,23 @@ the format class:
 
 def __init__(self, file, encoding)
 	Don't forget to call GenericSubParser.__init__(...) from your subclass init.
+def get_header(self, section, atom)
+	Called during parsing when input format contains header (__WITH_HEADER__ is
+	set to True). This function should try to find and parse header in a given
+	sub_section and save results as a dictionary to atom['header']. If parsing
+	was successfull it should return True and False otherwise. Note that though
+	programmer is not required to follow any naming convention, it is HIGHLY
+	RECOMMENDED to name atom['header'] keys with full, lower case, underscore
+	separated names (like 'information', 'delay', 'author', 'version', 'title'
+	etc.). It is to allow sharing those pieces of informations between various
+	formats.
+	For formats with __WITH_HEADER__ set to True this method is checked until it
+	returns True (or __MAX_HEADER_LEN__ is reached).
+def convert_header(self, header)
+	Convert given header (which is dictionary saved by input class get_header
+	method) to string. Note that it is HIGHLY RECOMMENDED to define default
+	values for all required pieces of informations as formats does not have to
+	share some informations between each other.
 def format_text(self, s)
 	This one is called by parse() method to convert sub-type specific formatting
 	to the one recognised by GenericSubParser. Specific to sub format formatting
