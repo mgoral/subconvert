@@ -519,7 +519,8 @@ class SubViewer(GenericSubParser):
 	
 	def convert_header(self, header):
 		keys = header.keys()
-		title = header.get('title') if 'title' in keys else os.path.split(self.filename)[-1] 
+		filename = os.path.split(self.filename)[-1]
+		title = header.get('title') if 'title' in keys else os.path.splitext(filename)[0]
 		author = header.get('author') if 'author' in keys else ''
 		source = header.get('source') if 'source' in keys else ''
 		program = header.get('program') if 'program' in keys else 'SubConvert'
