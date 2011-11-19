@@ -694,8 +694,8 @@ def main():
 				choice = ''
 				if options.force:
 					choice = _choices['yes']
-				while( choice not in (_choices['yes'], _choices['no'], _choices['backup'])):
-					choice = raw_input( _("File '%s' exists. Overwrite? [y/n/b] ") % conv.filename)
+				while( choice not in (_choices['yes'], _choices['no'], _choices['backup'], _choices['quit'])):
+					choice = raw_input( _("File '%s' exists. Overwrite? [y/n/b/q] ") % conv.filename)
 				if choice == _choices['backup']:
 					if conv.filename == arg:
 						arg, _mvd = backup(arg)	# We will read from backed up file
@@ -708,6 +708,9 @@ def main():
 					continue
 				elif choice == _choices['yes']:
 					log.info(_("Overwriting %s") % conv.filename)
+				elif choice == _choices['quit']:
+					log.info(_("Quitting converting work."))
+					return 1
 			else:
 				log.info("Writing to %s" % conv.filename)
 		

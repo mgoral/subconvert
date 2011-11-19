@@ -1,6 +1,8 @@
 Version history
 
 0.7.1	:
+* ADD: option to stop converting when file exists. Not only it stops file from
+	being updated but also quits batch work.
 * FIX: remove file extension from subviewer's [TITLE]
 
 0.7		: 19.11.2011
