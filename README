@@ -37,6 +37,7 @@ This should install subconvert to your $PATH. If you do not have root privileges
 
 [ 1.1.1 Dependencies ]
 	+ Python 2.6+
+	+ python-setuptools
 	+ MPlayer (optional)
 
 [ 1.2 Usage ]

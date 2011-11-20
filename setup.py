@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-from distutils.core import setup
+from ez_setup import use_setuptools
+use_setuptools()
+
+from setuptools import setup
 
 __AUTHOR__ = "Michał Góral"
 
@@ -12,6 +15,6 @@ setup(
 	author_email = "michal.goral@mgoral.org",
 	url = "https://github.com/virgoerns/subconvert",
 	license = "GPLv3+",
-	scripts = ["subconvert"]
+	scripts = ["subconvert.py"],
 )
 
