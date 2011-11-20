@@ -15,6 +15,14 @@ setup(
 	author_email = "michal.goral@mgoral.org",
 	url = "https://github.com/virgoerns/subconvert",
 	license = "GPLv3+",
-	scripts = ["subconvert.py"],
+	py_modules = ["subconvert", "subconvert_gui"],
+	entry_points = {
+		'console_scripts' : [
+			'subconvert = subconvert:main',
+		],
+		'gui_scripts': [
+			'subconvert-gui = subconvert_gui:main',
+		]
+	},
 )
 
