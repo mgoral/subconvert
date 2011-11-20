@@ -599,6 +599,54 @@ def prepare_options():
 	optp.add_option_group(group_conv)
 	return optp
 
+def convert_file(filepath, file_encoding, file_fps, output_format, output_extension = ''):
+	cls = GenericSubParser.__subclasses__()
+	conv = None
+	for c in cls:
+		# Obtain user specified subclass
+		if c.__OPT__ == output_format:
+			filename, extension = os.path.splitext(filepath)
+			extension = output_extension if output_extension else c.__EXT__
+			conv = c(filename + '.' + extension, file_fps, file_encoding)
+			break
+	if not conv:
+		raise NameError
+
+	with codecs.open(filepath, mode='r', encoding=file_encoding) as f:
+		file_input = f.readlines()
+
+	lines = []
+	log.info(_("Trying to parse %s...") % filepath)
+	sub_pair = [None, None]
+	for cl in cls:
+		if not lines:
+			c = cl(filepath, file_fps, file_encoding, file_input)
+			for p in c.parse():
+				if not sub_pair[1] and conv.__WITH_HEADER__: # Only the first element
+					header = p['sub'].get('header')
+					if type(header) != dict:
+						header = {}
+					header = conv.convert_header(header)
+					if header:
+						lines.append(header.decode(conv.encoding))
+				sub_pair[0] = sub_pair[1]
+				sub_pair[1] = p
+				if sub_pair[0]:
+					if not sub_pair[0]['sub']['time_to']:
+						sub_pair[0]['sub']['time_to'] = \
+							sub_pair[0]['sub']['time_from'] + \
+							(sub_pair[1]['sub']['time_from'] - sub_pair[0]['sub']['time_from']) * 0.85
+					s = conv.convert(sub_pair[0])
+					lines.append(s.decode(conv.encoding))
+			else:
+				if sub_pair[1]:
+					if not sub_pair[1]['sub']['time_to']:
+						sub_pair[1]['sub']['time_to'] = \
+							sub_pair[1]['sub']['time_from'] + FrameTime(file_fps, 'ss', seconds = 2.5)
+					s = conv.convert(sub_pair[1])
+					lines.append(s.decode(conv.encoding))
+	return (conv, lines)
+
 def main():
 	optp = prepare_options()
 	(options, args) = optp.parse_args()
@@ -633,61 +681,16 @@ def main():
 						break
 			else:
 				options.fps = mplayer_check(options.movie_file, options.fps)
-		
-		cls = GenericSubParser.__subclasses__()
-		conv = None
-		for c in cls:
-			# Obtain user specified subclass
-			if c.__OPT__ == options.format:
-				filename, extension = os.path.splitext(arg)
-				extension = options.ext if options.ext else c.__EXT__
-				conv = c(filename + '.' + extension, options.fps, options.encoding)
-				break
-		if not conv:
-			log.error(_("%s not supported or mistyped.") % options.format)
-			return -1
 
 		try:
-			with codecs.open(arg, mode='r', encoding=options.encoding) as f:
-				file_input = f.readlines()
+			conv, lines = convert_file(arg, options.encoding, options.fps, options.format, options.ext)
+		except NameError:
+			log.error(_("'%s' format not supported (or mistyped).") % options.format)
+			return -1
 		except UnicodeDecodeError:
-			log.error(_("Couldn't open '%s' given '%s' encoding. Is that a binary file?") % (arg, options.encoding))
+			log.error(_("Couldn't handle '%s' given '%s' encoding.") % (arg, options.encoding))
 			continue
 
-		try:
-			lines = []
-			log.info(_("Trying to parse %s...") % arg)
-			sub_pair = [None, None]
-			for cl in cls:
-				if not lines:
-					c = cl(arg, options.fps, options.encoding, file_input)
-					for p in c.parse():
-						if not sub_pair[1] and conv.__WITH_HEADER__: # Only the first element
-							header = p['sub'].get('header')
-							if type(header) != dict:
-								header = {}
-							header = conv.convert_header(header)
-							if header:
-								lines.append(header.decode(conv.encoding))
-						sub_pair[0] = sub_pair[1]
-						sub_pair[1] = p
-						if sub_pair[0]:
-							if not sub_pair[0]['sub']['time_to']:
-								sub_pair[0]['sub']['time_to'] = \
-									sub_pair[0]['sub']['time_from'] + \
-									(sub_pair[1]['sub']['time_from'] - sub_pair[0]['sub']['time_from']) * 0.85
-							s = conv.convert(sub_pair[0])
-							lines.append(s.decode(conv.encoding))
-					else:
-						if sub_pair[1]:
-							if not sub_pair[1]['sub']['time_to']:
-								sub_pair[1]['sub']['time_to'] = \
-									sub_pair[1]['sub']['time_from'] + FrameTime(options.fps, 'ss', seconds = 2.5)
-							s = conv.convert(sub_pair[1])
-							lines.append(s.decode(conv.encoding))
-
-		except UnicodeDecodeError:
-			log.error(_("Couldn't handle given encoding (%s) on '%s'. Maybe try different encoding?") % (options.encoding, arg))
 		if lines:
 			log.info(_("Parsed."))
 			if os.path.isfile(conv.filename):
