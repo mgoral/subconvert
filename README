@@ -29,33 +29,25 @@ Table of contents:
 This section describes installation and usage of subconvert.
 
 [ 1.1 Installation ]
-For a convenience subconvert can be moved to any directory located in $PATH and
-renamed from subconvert.py to subconvert, for example:
-	cd /subconvert/downloaad/dir
-	mv subconvert.py $HOME/bin/subconvert
-	chmod +x $HOME/bin/subconvert
-
-The last step is to ensure that the application can be executed.
+Simply:
+	# ./setup.py install
+This should install subconvert to your $PATH. If you do not have root privileges
+(or want to install subconvert only for one user) you can do it by:
+	$ ./setup.py install --home=/home/user-name
 
 [ 1.1.1 Dependencies ]
 	+ Python 2.6+
 	+ MPlayer (optional)
 
 [ 1.2 Usage ]
-Subconvert is a Python application and as such can be run by following command:
-	python subconvert.py
-
-For a convenience it is also written as a Bash script that can be run directly
-from prompt (assuming that it has execution rights).
-	./subconvert.py
-
-If it was installed using the commands from [1.1 Installation] section, you can
-also run it this way:
-	subconvert
-
-Subconvert has plenty available options and can take at most 2 arguments and at 
-least 1:
+Subconvert has plenty available options:
 	subconvert [options] input_file [input_file...]
+
+You can specify as many input files as you like to begin batch converting them.
+You can also ask subconvert to convert all files like this:
+	subconvert [options] *
+	subconvert [options] *.txt
+	subconvert [options] common_prefix*.srt
 
 [ 1.2.1 Available options ]
 Usage: subconvert.py [options] input_file [input_file...]
