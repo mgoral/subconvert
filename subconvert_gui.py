@@ -33,56 +33,60 @@ gettext.textdomain('subconvert')
 _ = gettext.gettext
 
 class SubConvertGUI(QtGui.QWidget):
-	"""Graphical User Interface for Subconvert"""
+	"""Graphical User Interface for Subconvert."""
 
 	def __init__(self):
 		super(SubConvertGUI, self).__init__()
 		self.init_gui()
 	
 	def init_gui(self):
-		grid = QtGui.QGridLayout(self)
-		add_file = QtGui.QPushButton(self)
-		movie_file = QtGui.QPushButton(self)
-		remove_file = QtGui.QPushButton(self)
-		start = QtGui.QPushButton('Start', self)
-		encodings = QtGui.QComboBox(self)
-		output_formats = QtGui.QComboBox(self)
-		output_extensions = QtGui.QComboBox(self)
-		fps = QtGui.QComboBox(self)
-		file_list = QtGui.QListView(self)
-		movie_path = QtGui.QLineEdit(self)
-		auto_fps = QtGui.QCheckBox('Get FPS from movie.', self)
-		fps_label = QtGui.QLabel('Movie FPS:', self)
-		encoding_label = QtGui.QLabel('File(s) encoding:', self)
-		format_label = QtGui.QLabel('Output format:', self)
-		extension_label = QtGui.QLabel('File extension:', self)
+		self.grid = QtGui.QGridLayout(self)
+		self.add_file = QtGui.QPushButton('+', self)
+		self.add_movie_file = QtGui.QPushButton('...', self)
+		self.remove_file = QtGui.QPushButton('-', self)
+		self.start = QtGui.QPushButton(_('Start'), self)
+		self.encodings = QtGui.QComboBox(self)
+		self.output_formats = QtGui.QComboBox(self)
+		self.output_extensions = QtGui.QComboBox(self)
+		self.fps = QtGui.QComboBox(self)
+		self.file_list = QtGui.QListWidget(self)
+		self.movie_path = QtGui.QLineEdit(self)
+		self.auto_fps = QtGui.QCheckBox(_('Get FPS from movie.'), self)
+		self.fps_label = QtGui.QLabel('Movie FPS:', self)
+		self.encoding_label = QtGui.QLabel(_('File(s) encoding:'), self)
+		self.format_label = QtGui.QLabel(_('Output format:'), self)
+		self.extension_label = QtGui.QLabel(_('File extension:'), self)
 
-		grid.setSpacing(10)
-		add_file.setText('+')
-		remove_file.setText('-')
-		movie_file.setText('...')
-		encodings.addItems(self.get_encodings())
-		output_formats.addItems(self.get_formats())
-		output_extensions.addItems(self.get_extensions())
-		fps.addItems(['23.976', '24', '25', '29.97', '30'])
+		self.file_dialog = QtGui.QAction('Open', self)
+
+		self.grid.setSpacing(10)
+		self.encodings.addItems(self.get_encodings())
+		self.output_formats.addItems(self.get_formats())
+		self.output_extensions.addItems(self.get_extensions())
+		self.fps.addItems(['23.976', '24', '25', '29.97', '30'])
+
+		self.add_file.clicked.connect(self.open_dialog)
+		self.add_movie_file.clicked.connect(self.open_dialog)
+		self.remove_file.clicked.connect(self.remove_from_list)
+		self.auto_fps.clicked.connect(self.change_auto_fps)
 		
-		grid.addWidget(encoding_label, 0, 0)
-		grid.addWidget(encodings, 0, 1)
-		grid.addWidget(fps_label, 0, 2)
-		grid.addWidget(fps, 0, 3)
-		grid.addWidget(file_list, 1, 0, 4, 6)
-		grid.addWidget(add_file, 1, 6 )
-		grid.addWidget(remove_file, 2, 6)
-		grid.addWidget(movie_path, 5, 0, 1, 6)
-		grid.addWidget(movie_file, 5, 6)
-		grid.addWidget(auto_fps, 6, 0, 1, 2)
-		grid.addWidget(format_label, 7, 0)
-		grid.addWidget(output_formats, 7, 1)
-		grid.addWidget(extension_label, 8, 0)
-		grid.addWidget(output_extensions, 8, 1)
-		grid.addWidget(start, 8, 6)
+		self.grid.addWidget(self.encoding_label, 0, 0)
+		self.grid.addWidget(self.encodings, 0, 1)
+		self.grid.addWidget(self.fps_label, 0, 2)
+		self.grid.addWidget(self.fps, 0, 3)
+		self.grid.addWidget(self.file_list, 1, 0, 4, 6)
+		self.grid.addWidget(self.add_file, 1, 6 )
+		self.grid.addWidget(self.remove_file, 2, 6)
+		self.grid.addWidget(self.movie_path, 5, 0, 1, 6)
+		self.grid.addWidget(self.add_movie_file, 5, 6)
+		self.grid.addWidget(self.auto_fps, 6, 0, 1, 2)
+		self.grid.addWidget(self.format_label, 7, 0)
+		self.grid.addWidget(self.output_formats, 7, 1)
+		self.grid.addWidget(self.extension_label, 8, 0)
+		self.grid.addWidget(self.output_extensions, 8, 1)
+		self.grid.addWidget(self.start, 8, 6)
 
-		self.setLayout(grid)
+		self.setLayout(self.grid)
 		self.setWindowTitle('SubConvert')
 		self.show()
 
@@ -108,6 +112,28 @@ class SubConvertGUI(QtGui.QWidget):
 		exts.extend(set([ c.__EXT__ for c in cls ]))
 		exts.sort()
 		return exts
+
+	def open_dialog(self):
+		button = self.sender()
+		if button == self.add_file:
+			filenames = QtGui.QFileDialog.getOpenFileNames(self, _('Open file'))
+			for f in filenames:
+				item = QtGui.QListWidgetItem(f)
+				self.file_list.addItem(item)
+		elif button == self.add_movie_file:
+			filename = QtGui.QFileDialog.getOpenFileName(self, _('Open file'))
+			if filename:
+				self.movie_path.setText(filename)
+
+	def remove_from_list(self):
+		item = self.file_list.takeItem(self.file_list.currentRow())
+		item = None
+
+	def change_auto_fps(self):
+		if self.auto_fps.isChecked():
+			self.fps.setEnabled(False)
+		else:
+			self.fps.setEnabled(True)
 
 def main():
 	app = QtGui.QApplication(sys.argv)
