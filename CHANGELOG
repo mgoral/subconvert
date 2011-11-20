@@ -1,10 +1,8 @@
 Version history
 
-0.7		: 19.11.2011
+0.6.3	:
 * ADD: TMP sub formatting
-* ADD: SubViewer sub formatting
 * ADD: full converting subtitles without sub end time
-* ADD: support subtitles with header
 * FIX: error on -m option mistyped
 * FIX: error that prevented sub parsing when no sub end time was present
 
