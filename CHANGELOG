@@ -1,7 +1,8 @@
 Version history
 
-0.7.1	:
+0.8		:
 * ADD: setup.py (installer)
+* ADD: GUI
 * ADD: option to stop converting when file exists. Not only it stops file from
 	being updated but also quits batch work.
 * FIX: remove file extension from subviewer's [TITLE]

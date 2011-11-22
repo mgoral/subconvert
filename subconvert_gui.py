@@ -18,13 +18,16 @@
     along with Subconvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
 import sys
 from PyQt4 import QtGui
 import pkgutil
 import encodings
+import codecs
 from subprocess import Popen, PIPE
 import logging
 import gettext
+import time
 import subconvert
 
 __VERSION__ = '0.1'
@@ -36,6 +39,22 @@ ch = logging.StreamHandler()
 gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
 gettext.textdomain('subconvert')
 _ = gettext.gettext
+
+class BackupMessage(QtGui.QMessageBox):
+	def __init__(self, filename):
+		QtGui.QMessageBox.__init__(self)
+		self.setText(_("File %s exists.") % filename) 
+		self.setInformativeText("Do you want to overwrite it?.")
+		self.setIcon(self.Question)
+		self.addButton(_("Backup file"), QtGui.QMessageBox.ActionRole)
+		self.addButton(_("Yes"), QtGui.QMessageBox.YesRole)
+		self.addButton(_("No"), QtGui.QMessageBox.NoRole)
+		self.addButton(_("Cancel"), QtGui.QMessageBox.DestructiveRole)
+		self.to_all = QtGui.QCheckBox(_('To all'), self)
+		self.layout().addWidget(self.to_all, 3, 0, 1, 1)
+
+	def get_to_all(self):
+		return self.to_all.isChecked()
 
 class SubConvertGUI(QtGui.QWidget):
 	"""Graphical User Interface for Subconvert."""
@@ -142,12 +161,17 @@ class SubConvertGUI(QtGui.QWidget):
 			self.fps.setEnabled(True)
 
 	def convert_files(self):
+		time_start = time.time()
 		fps = str(self.fps.currentText())
 		encoding = str(self.encodings.currentText())
 		movie_file = str(self.movie_path.text())
 		files = [str(self.file_list.item(i).text()) for i in xrange(self.file_list.count())]
 		sub_format = str(self.output_formats.itemData(self.output_formats.currentIndex()).toString())
-		extension = str(self.output_extensions.itemText(self.output_extensions.currentIndex())) if self.output_extensions.currentIndex() > 0 else ''
+		out_extension = str(self.output_extensions.itemText(self.output_extensions.currentIndex())) if self.output_extensions.currentIndex() > 0 else ''
+
+		convert_info = []
+
+		to_all = False
 
 		for arg in files:
 			# Call it 'arg' to keep a consistency with cli version
@@ -163,16 +187,55 @@ class SubConvertGUI(QtGui.QWidget):
 				else:
 					fps = subconvert.mplayer_check(movie_file, fps)
 
-			
-
 			try:
-				conv, lines = subconvert.convert_file(arg, encoding, fps, sub_format, extension)
+				conv, lines = subconvert.convert_file(arg, encoding, fps, sub_format, out_extension)
 			except NameError:
-				log.error(_("'%s' format not supported (or mistyped).") % sub_format)
+				convert_info.append(_("'%s' format not supported (or mistyped).") % sub_format)
 				return -1
 			except UnicodeDecodeError:
-				log.error(_("Couldn't handle '%s' given '%s' encoding.") % (arg, encoding))
+				convert_info.append(_("Couldn't handle '%s' given '%s' encoding.") % (arg, encoding))
 				continue
+			if lines:
+				convert_info.append(_("%s parsed.") % arg)
+				if os.path.isfile(conv.filename):
+					if not to_all:
+						bbox = BackupMessage(conv.filename)
+						choice = bbox.exec_()
+						to_all = bbox.get_to_all()
+					if choice == 0: # backup
+						if conv.filename == arg:
+							arg, _mvd = subconvert.backup(arg)	# We will read from backed up file
+							log.info(_("%s backed up as %s") % (_mvd, arg))
+							convert_info.append(_("%s backed up as %s") % (_mvd, arg))
+						else:
+							_bck, conv_filename = subconvert.backup(conv.filename)
+							convert_info.append(_("%s backed up as %s") % (conv.filename, _bck))
+					elif choice == 2: # No
+						convert_info.append(_("Skipping %s") % arg)
+						continue
+					elif choice == 1: # Yes
+						convert_info.append(_("Overwriting %s") % conv.filename)
+					elif choice == 3: # Cancel 
+						convert_info.append(_("Quitting converting work."))
+						return 1
+				else:
+					convert_info.append("Writing to %s" % conv.filename)
+			
+				with codecs.open(conv.filename, 'w', encoding=conv.encoding) as cf:
+					cf.writelines(lines)
+			else:
+				convert_info.append(_("%s not parsed.") % arg)
+
+		elapsed_time = time.time() - time_start
+		summary = QtGui.QMessageBox()
+		spacer = QtGui.QSpacerItem(500, 0, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+		l = summary.layout()
+		l.addItem(spacer, l.rowCount(), 0, 1, l.columnCount())
+		summary.setWindowTitle(_("Subconvert - finished"))
+		summary.setText(_("Work finished."))
+		summary.setInformativeText(os.linesep.join([_("Sub FPS: %s") % fps, _("Converted in: %f") % elapsed_time]))
+		summary.setDetailedText(os.linesep.join(convert_info))
+		summary.exec_()
 
 def main():
 	log.setLevel(logging.INFO)
