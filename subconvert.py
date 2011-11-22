@@ -173,7 +173,6 @@ class GenericSubParser(object):
 		sub_section = ''
 		for line_no, line in enumerate(self.lines):
 			if not self.__WITH_HEADER__ and not self.__PARSED__ and line_no > 35:
-				print 'aa'
 				log.debug(_("%s waited too long. Skipping.") % self.__SUB_TYPE__)
 				return
 			sub_section = ''.join([sub_section, line])
