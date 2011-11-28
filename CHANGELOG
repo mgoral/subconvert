@@ -8,6 +8,8 @@ Version history
 * FIX: remove file extension from subviewer's [TITLE]
 * FIX: let the shell find python in $PATH
 * FIX: Add maximum file size limit to subtitle files.
+* FIX: Better parsing state output.
+* FIX: Don't save not completely parsed files anymore.
 
 0.7		: 19.11.2011
 * ADD: TMP sub formatting

@@ -39,7 +39,7 @@ gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
 gettext.textdomain('subconvert')
 _ = gettext.gettext
 
-class SubError(Exception):
+class SubParsingError(Exception):
 	pass
 
 class FrameTime:
@@ -161,6 +161,9 @@ class GenericSubParser(object):
 		self.encoding = encoding
 		self.lines = lines
 		self.fps = fps
+
+	def message(self, line_no, msg = "parsing error."):
+		return _("%s:%d %s") % (self.filename, line_no, msg)
 	
 	def parse(self):
 		'''Actual parser.
@@ -173,13 +176,13 @@ class GenericSubParser(object):
 		sub_section = ''
 		for line_no, line in enumerate(self.lines):
 			if not self.__WITH_HEADER__ and not self.__PARSED__ and line_no > 35:
-				log.debug(_("%s waited too long. Skipping.") % self.__SUB_TYPE__)
-				return
+				log.debug(self.message(line_no, _("%s waited too long. Skipping.") % self.__SUB_TYPE__))
+				return 
 			sub_section = ''.join([sub_section, line])
 			end = self.end_pattern.search(line)
 			if self.__WITH_HEADER__ and not self.__HEADER_FOUND__:
 				if line_no > self.__MAX_HEADER_LEN__:
-					log.debug(_("Not a %s file.") % self.__SUB_TYPE__)
+					log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
 					return
 				self.__HEADER_FOUND__ = self.get_header(sub_section, atom)
 				if self.__HEADER_FOUND__:
@@ -199,10 +202,13 @@ class GenericSubParser(object):
 							self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
 						atom['time_to'] = self.str_to_frametime(atom['time_to'])
 				except AttributeError, msg:
-					log.debug(_("Not a %s file.") % self.__SUB_TYPE__)
-					return
+					if i > 0:
+						raise SubParsingError, self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__)
+					else:
+						log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
+						return 
 				except IndexError, msg:
-					log.debug(msg)
+					log.debug(self.message(line_no, msg))
 				try:
 					# There should be no more AttributeErrors as parse()
 					# should return on it last time. If there is - we want
@@ -210,7 +216,7 @@ class GenericSubParser(object):
 					if m.group('text'):
 						atom['text'] = m.group('text')
 				except IndexError, msg:
-					log.debug(msg)
+					log.debug(self.message(line_no, msg))
 
 				# yield parsing result if new end marker occurred, then clear results
 				if atom['time_from'] and atom['text']:
@@ -219,12 +225,16 @@ class GenericSubParser(object):
 					yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }
 					i+= 1
 				elif atom['time_from'] and not atom['text']:
-					log.warning(_("No subtitle text found in '%s' on line %d. Skipping that section.") % (self.filename, line_no + 1))
+					log.warning(self.message(line_no, _("No subtitle text found. Skipping that section.")))
 				else:
-					log.debug(_("Not a %s file.") % self.__SUB_TYPE__)
-					return
+					if i > 0:
+						raise SubParsingError, self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__)
+					else:
+						log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
+						return 
 				sub_section = ''
 				atom = {'time_from': '', 'time_to': '', 'text': '',}
+		log.info(_("Recognised %s.") % self.__SUB_TYPE__)
 
 	def convert(self, sub):
 		'''A function which gets dictionary containing single 
@@ -694,6 +704,9 @@ def main():
 		except UnicodeDecodeError:
 			log.error(_("Couldn't handle '%s' given '%s' encoding.") % (arg, options.encoding))
 			continue
+		except SubParsingError, msg:
+			log.error(msg)
+			continue;
 
 		if lines:
 			log.info(_("Parsed."))
