@@ -194,7 +194,8 @@ class SubConvertGUI(QtGui.QWidget):
 
 		to_all = False
 
-		for arg in files: # Call it 'arg' to keep a consistency with cli version
+		for job, arg in enumerate(files): # Call it 'arg' to keep a consistency with cli version
+			convert_info.append(_("----- [ %d. %s ] -----") % (job, os.path.split(arg)[1]))
 			if os.path.getsize(arg) > MAX_MEGS:
 				convert_info.append(_("File '%s' too large.") % arg)
 				continue
@@ -218,6 +219,9 @@ class SubConvertGUI(QtGui.QWidget):
 			except UnicodeDecodeError:
 				convert_info.append(_("Couldn't handle '%s' given '%s' encoding.") % (arg, encoding))
 				continue
+			except subconvert.SubParsingError, msg:
+				convert_info.append(str(msg))
+				continue;
 			if lines:
 				convert_info.append(_("%s parsed.") % arg)
 				if os.path.isfile(conv.filename):
