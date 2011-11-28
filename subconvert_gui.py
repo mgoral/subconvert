@@ -88,6 +88,7 @@ class SubConvertGUI(QtGui.QWidget):
 		self.movie_exts = ('.avi', '.mkv', '.mpg', '.mp4', '.wmv')
 		self.str_sub_exts = ' '.join(['*.%s' % ext for ext in sub_extensions[1:]])
 		self.str_movie_exts = ' '.join(['*%s' % fmt for fmt in self.movie_exts])
+		self.directory = ''
 
 		self.grid.setSpacing(10)
 		self.encodings.addItems(sub_extensions)
@@ -150,7 +151,12 @@ class SubConvertGUI(QtGui.QWidget):
 			filenames = self.file_dialog.getOpenFileNames(
 				parent = self, 
 				caption = _('Open file'),
+				directory = self.directory,
 				filter = _("Subtitle files (%s);;All files (*.*)") % self.str_sub_exts)
+			try:
+				self.directory = filenames[0]
+			except IndexError:
+				pass	# Normal error when hitting "Cancel"
 			for f in filenames:
 				item = QtGui.QListWidgetItem(f)
 				self.file_list.addItem(item)
@@ -161,6 +167,7 @@ class SubConvertGUI(QtGui.QWidget):
 				filter = _("Movie files (%s);;All files (*.*)") % self.str_movie_exts)
 			if filename:
 				self.movie_path.setText(filename)
+				self.directory = filename
 
 	def remove_from_list(self):
 		item = self.file_list.takeItem(self.file_list.currentRow())
