@@ -81,15 +81,21 @@ class SubConvertGUI(QtGui.QWidget):
 		self.format_label = QtGui.QLabel(_('Output format:'), self)
 		self.extension_label = QtGui.QLabel(_('File extension:'), self)
 
-		self.file_dialog = QtGui.QAction('Open', self)
+		self.file_dialog = QtGui.QFileDialog
+		sub_extensions = self.get_extensions()
+
+		self.formats = self.get_formats()
+		self.movie_exts = ('.avi', '.mkv', '.mpg', '.mp4', '.wmv')
+		self.str_sub_exts = ' '.join(['*.%s' % ext for ext in sub_extensions[1:]])
+		self.str_movie_exts = ' '.join(['*%s' % fmt for fmt in self.movie_exts])
 
 		self.grid.setSpacing(10)
-		self.encodings.addItems(self.get_encodings())
-		#self.output_formats.addItems(self.get_formats())
-		for fmt in self.get_formats():
+		self.encodings.addItems(sub_extensions)
+		for fmt in self.formats:
 			self.output_formats.addItem(fmt[0], fmt[1])
-		self.output_extensions.addItems(self.get_extensions())
+		self.output_extensions.addItems(sub_extensions)
 		self.fps.addItems(['23.976', '24', '25', '29.97', '30'])
+
 
 		self.add_file.clicked.connect(self.open_dialog)
 		self.add_movie_file.clicked.connect(self.open_dialog)
@@ -141,12 +147,18 @@ class SubConvertGUI(QtGui.QWidget):
 	def open_dialog(self):
 		button = self.sender()
 		if button == self.add_file:
-			filenames = QtGui.QFileDialog.getOpenFileNames(self, _('Open file'))
+			filenames = self.file_dialog.getOpenFileNames(
+				parent = self, 
+				caption = _('Open file'),
+				filter = _("Subtitle files (%s);;All files (*.*)") % self.str_sub_exts)
 			for f in filenames:
 				item = QtGui.QListWidgetItem(f)
 				self.file_list.addItem(item)
 		elif button == self.add_movie_file:
-			filename = QtGui.QFileDialog.getOpenFileName(self, _('Open file'))
+			filename = QtGui.QFileDialog.getOpenFileName(
+				parent = self,
+				caption = _('Open file'),
+				filter = _("Movie files (%s);;All files (*.*)") % self.str_movie_exts)
 			if filename:
 				self.movie_path.setText(filename)
 
@@ -176,10 +188,9 @@ class SubConvertGUI(QtGui.QWidget):
 		for arg in files:
 			# Call it 'arg' to keep a consistency with cli version
 			if self.auto_fps.isChecked():
-				exts = ('.avi', '.mkv', '.mpg', '.mp4', '.wmv')
 				if not movie_file:
 					filename, extension = os.path.splitext(arg)
-					for ext in exts:
+					for ext in self.movie_exts:
 						f = ''.join((filename, ext))
 						if os.path.isfile(f):
 							fps = subconvert.mplayer_check(f, fps)
