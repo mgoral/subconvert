@@ -154,7 +154,7 @@ class SubConvertGUI(QtGui.QWidget):
 				directory = self.directory,
 				filter = _("Subtitle files (%s);;All files (*.*)") % self.str_sub_exts)
 			try:
-				self.directory = filenames[0]
+				self.directory = os.path.split(str(filenames[0]))[0]
 			except IndexError:
 				pass	# Normal error when hitting "Cancel"
 			for f in filenames:
@@ -164,10 +164,11 @@ class SubConvertGUI(QtGui.QWidget):
 			filename = QtGui.QFileDialog.getOpenFileName(
 				parent = self,
 				caption = _('Open file'),
+				directory = self.directory,
 				filter = _("Movie files (%s);;All files (*.*)") % self.str_movie_exts)
 			if filename:
 				self.movie_path.setText(filename)
-				self.directory = filename
+				self.directory = os.path.split(str(filename))[0]
 
 	def remove_from_list(self):
 		item = self.file_list.takeItem(self.file_list.currentRow())
