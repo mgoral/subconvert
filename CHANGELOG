@@ -1,6 +1,6 @@
 Version history
 
-0.8		:
+0.8		: 28.11.2011
 * ADD: setup.py (installer)
 * ADD: GUI
 * ADD: option to stop converting when file exists. Not only it stops file from

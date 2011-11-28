@@ -12,6 +12,7 @@ setup(
 	name = "subconvert",
 	description = "Movie subtitles converter",
 	author = __AUTHOR__,
+	version = 0.8,
 	author_email = "michal.goral@mgoral.org",
 	url = "https://github.com/virgoerns/subconvert",
 	license = "GPLv3+",
