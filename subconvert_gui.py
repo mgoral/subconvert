@@ -91,7 +91,7 @@ class SubConvertGUI(QtGui.QWidget):
 		self.directory = ''
 
 		self.grid.setSpacing(10)
-		self.encodings.addItems(sub_extensions)
+		self.encodings.addItems(self.get_encodings())
 		for fmt in self.formats:
 			self.output_formats.addItem(fmt[0], fmt[1])
 		self.output_extensions.addItems(sub_extensions)
@@ -180,6 +180,7 @@ class SubConvertGUI(QtGui.QWidget):
 			self.fps.setEnabled(True)
 
 	def convert_files(self):
+		MAX_MEGS = 5 * 1048576
 		time_start = time.time()
 		fps = str(self.fps.currentText())
 		encoding = str(self.encodings.currentText())
@@ -192,8 +193,11 @@ class SubConvertGUI(QtGui.QWidget):
 
 		to_all = False
 
-		for arg in files:
-			# Call it 'arg' to keep a consistency with cli version
+		for arg in files: # Call it 'arg' to keep a consistency with cli version
+			if os.path.getsize(arg) > MAX_MEGS:
+				convert_info.append(_("File '%s' too large.") % arg)
+				continue
+
 			if self.auto_fps.isChecked():
 				if not movie_file:
 					filename, extension = os.path.splitext(arg)

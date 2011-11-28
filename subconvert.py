@@ -647,6 +647,7 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
 	return (conv, lines)
 
 def main():
+	MAX_MEGS = 5 * 1048576
 	optp = prepare_options()
 	(options, args) = optp.parse_args()
 	
@@ -667,6 +668,10 @@ def main():
 	for arg in args:
 		if not os.path.isfile(arg):
 			log.error(_("No such file: %s") % arg)
+			continue
+
+		if os.path.getsize(arg) > MAX_MEGS:
+			log.warning(_("File '%s' too large.") % arg)
 			continue
 		
 		if options.auto_fps:
