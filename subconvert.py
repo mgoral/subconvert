@@ -29,7 +29,7 @@ from optparse import OptionParser, OptionGroup
 import gettext
 from datetime import datetime
 
-__VERSION__ = '0.8'
+__VERSION__ = '0.8.0-1'
 __AUTHOR__ = u'Michał Góral'
 
 log = logging.getLogger(__name__)
@@ -640,20 +640,24 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
 						lines.append(header.decode(conv.encoding))
 				sub_pair[0] = sub_pair[1]
 				sub_pair[1] = p
-				if sub_pair[0]:
-					if not sub_pair[0]['sub']['time_to']:
-						sub_pair[0]['sub']['time_to'] = \
-							sub_pair[0]['sub']['time_from'] + \
-							(sub_pair[1]['sub']['time_from'] - sub_pair[0]['sub']['time_from']) * 0.85
-					s = conv.convert(sub_pair[0])
-					lines.append(s.decode(conv.encoding))
-			else:
-				if sub_pair[1]:
-					if not sub_pair[1]['sub']['time_to']:
-						sub_pair[1]['sub']['time_to'] = \
-							sub_pair[1]['sub']['time_from'] + FrameTime(file_fps, 'ss', seconds = 2.5)
-					s = conv.convert(sub_pair[1])
-					lines.append(s.decode(conv.encoding))
+				try:
+					if sub_pair[0]:
+						if not sub_pair[0]['sub']['time_to']:
+							sub_pair[0]['sub']['time_to'] = \
+								sub_pair[0]['sub']['time_from'] + \
+								(sub_pair[1]['sub']['time_from'] - sub_pair[0]['sub']['time_from']) * 0.85
+						s = conv.convert(sub_pair[0])
+						lines.append(s.decode(conv.encoding))
+					else:
+						if sub_pair[1]:
+							if not sub_pair[1]['sub']['time_to']:
+								sub_pair[1]['sub']['time_to'] = \
+									sub_pair[1]['sub']['time_from'] + FrameTime(file_fps, 'ss', seconds = 2.5)
+							s = conv.convert(sub_pair[1])
+							lines.append(s.decode(conv.encoding))
+				except AssertionError:
+					log.warning(_("Correct time not asserted for subtitle %d. Skipping it...") % (sub_pair[0]['sub_no']))
+					log.debug(_(".. incorrect subtitle pair times: (%s, %s)") % (sub_pair[0]['sub']['time_from'], sub_pair[1]['sub']['time_from']))
 	return (conv, lines)
 
 def main():

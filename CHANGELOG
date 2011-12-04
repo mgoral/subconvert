@@ -1,5 +1,8 @@
 Version history
 
+0.8.0-1	: 04.12.2011
+* FIX: unhandled assertion errors which were caused by incorrect subtitles
+
 0.8		: 28.11.2011
 * ADD: setup.py (installer)
 * ADD: GUI
