@@ -30,8 +30,11 @@ def main():
 	zip_path = os.path.join(path, ZIPFILE)
 	print _(" ...working directory: %s") % path
 
-	command = ["subconvert", "--version"]
-	v1 = Popen(command, stdout=PIPE).communicate()[0]
+	try:
+		command = ["subconvert", "--version"]
+		v1 = Popen(command, stdout=PIPE).communicate()[0]
+	except OSError:
+		v1 = "unknown"
 
 	print _(" ...current SubConvert version: %s") % v1.strip()
 	
