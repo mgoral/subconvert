@@ -13,6 +13,13 @@ from datetime import datetime as dt
 _ = gettext.gettext
 ZIPFILE = "%s_%s.%s" % ('subconvert', dt.now().strftime("D%Y%m%%dT%H%M%S%f"), 'zip')
 
+def cleanup(zip_path, extract_path):
+	print _("Cleanup:")
+	print _(" ...removing zipball")
+	os.remove(zip_path)
+	print _(" ...removing temporary extract directory")
+	shutil.rmtree(extract_path)
+
 def main():
 	print _("Starting SubConvert Updater")
 
@@ -60,6 +67,7 @@ def main():
 
 		if v1.strip() == v2.strip():
 			print _("You have the latest version of SubConvert installed. No need to update.")
+			cleanup(zip_path, extract_path)
 			return 0
 		else:
 			print _(" ...newer version found. Executing installer\n")
@@ -69,11 +77,7 @@ def main():
 			print "++++++++++++ [ SETUP LOG END ] +++++++++++++\n"
 
 			print _("Update process finished (but there might be some errors which are not handled by updater).")
-			print _("Cleanup:")
-			print _(" ...removing zipball")
-			os.remove(zip_path)
-			print _(" ...removing temporary extract directory")
-			shutil.rmtree(extract_path)
+			cleanup(zip_path, extract_path)
 			print _("This was a triumph. Bye bye!")
 			return 0
 	else:
