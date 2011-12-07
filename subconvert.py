@@ -29,6 +29,12 @@ from optparse import OptionParser, OptionGroup
 import gettext
 from datetime import datetime
 
+try:
+	import chardet
+	IS_CHARDET = True
+except ImportError:
+	IS_CHARDET = False
+
 __VERSION__ = '0.8.0-1'
 __AUTHOR__ = u'Michał Góral'
 
@@ -620,6 +626,23 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
 			break
 	if not conv:
 		raise NameError
+
+	# Try to detect file encoding
+	# STRANGE BEHAVIOUR (but most desired) which I cannot explain:
+	# when we specify "-e ascii" option, detecting is skipped
+	if IS_CHARDET and file_encoding is 'ascii': 
+		size = os.path.getsize(filepath) / 20
+		with open(filepath, mode='r',) as f:
+			rd = f.read(size)
+			enc = chardet.detect(rd)
+			log.debug(_("Detecting encoding from %d bytes") % len(rd))
+			log.debug(_(" ...chardet: %s") % enc)
+		if enc['confidence'] > 0.60:
+			file_encoding = enc['encoding']
+			conv.encoding = file_encoding
+			log.debug(_(" ...detected %s encoding.") % enc['encoding'])
+		else:
+			log.debug(_("I am not too confident about encoding. Skipping check."))
 
 	with codecs.open(filepath, mode='r', encoding=file_encoding) as f:
 		file_input = f.readlines()

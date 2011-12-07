@@ -23,6 +23,7 @@ Table of contents:
 	* converts betweeen frame and time formats
 	* supports automatically getting sub fps from avi file
 	* supports many file encodings (from ascii through "iso's" to utf16)
+	* detects encodings automatically
 	* ready to translate using gettext utilities
 
 [ 1 User manual ]
@@ -37,8 +38,9 @@ This should install subconvert to your $PATH. If you do not have root privileges
 
 [ 1.1.1 Dependencies ]
 	+ Python 2.6+
-	+ python-setuptools
-	+ MPlayer (optional)
+	+ python-setuptools (optional)
+	+ python-chardet (optional, recommended)
+	+ MPlayer (optional, recommended)
 
 [ 1.2 Usage ]
 Subconvert has plenty available options:

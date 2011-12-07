@@ -2,6 +2,7 @@ Version history
 
 0.8.1	:
 * ADD: SubConvert updater
+* ADD: encoding detecting (optional)
 
 0.8.0-1	: 04.12.2011
 * FIX: unhandled assertion errors which were caused by incorrect subtitles
