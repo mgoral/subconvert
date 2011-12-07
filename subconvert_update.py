@@ -82,14 +82,15 @@ def check_versions(new_subconvert):
 	else:
 		return 1
 
-def install(setup_file):
-	print "++++++++++++ [ SETUP LOG ] +++++++++++++"
-	command = ['python', setup_file, 'install']
-	Popen(command).communicate()
-	print "++++++++++++ [ SETUP LOG END ] +++++++++++++\n"
-
 def prepare_options():
 	optp = OptionParser(usage = _('Usage: %prog [options]'))
+	optp.add_option('--dir',\
+		action='store', type='string', dest='scriptdir', default='',\
+		help=_("install directory"))
+	optp.add_option('--base-dir',\
+		action='store', type='string', dest='prefix', default='',\
+		help=_("python site-packages dir to install original scripts"))
+		
 	return optp
 
 def main():
@@ -121,10 +122,17 @@ def main():
 		return 0
 	else:
 		print _(" ...newer version found. Executing installer\n")
-		install(setup_file)
+		print "++++++++++++ [ SETUP LOG ] +++++++++++++"
+		command = ['python', setup_file, 'install']
+		if options.prefix:
+			command.extend(['--prefix', options.prefix])
+		if options.scriptdir:
+			command.extend(['--install-scripts', options.scriptdir])
+		Popen(command).communicate()
+		print "++++++++++++ [ SETUP LOG END ] +++++++++++++\n"
 		print _("Update process finished (but there might be some errors which are not handled by updater).")
 		cleanup(zip_path, extract_path)
-		print _("This was a triumph. Bye bye!")
+		print _("Bye bye!")
 		return 0
 
 if __name__ == '__main__':
