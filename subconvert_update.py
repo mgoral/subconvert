@@ -7,8 +7,10 @@ import gettext
 import os
 import sys
 import shutil
+import re
 from subprocess import Popen, PIPE
 from datetime import datetime as dt
+from optparse import OptionParser, OptionGroup
 
 _ = gettext.gettext
 ZIPFILE = "%s_%s.%s" % ('subconvert', dt.now().strftime("D%Y%m%%dT%H%M%S%f"), 'zip')
@@ -20,30 +22,8 @@ def cleanup(zip_path, extract_path):
 	print _(" ...removing temporary extract directory")
 	shutil.rmtree(extract_path)
 
-def main():
-	print _("Starting SubConvert Updater")
-
-	path = os.path.split(os.path.realpath(__file__))[0]
-	if len(sys.argv) > 1:
-		if os.path.isdir(sys.argv[1]):
-			path = sys.argv[1]
-	zip_path = os.path.join(path, ZIPFILE)
-	print _(" ...working directory: %s") % path
-
-	try:
-		command = ["subconvert", "--version"]
-		v1 = Popen(command, stdout=PIPE).communicate()[0]
-	except OSError:
-		v1 = "unknown"
-
-	print _(" ...current SubConvert version: %s") % v1.strip()
-	
-	print _(" ...downloading zipball to %s") % zip_path
-
-	urllib.urlretrieve("https://github.com/virgoerns/subconvert/zipball/master", zip_path)
-
+def extract(zip_path,extract_path):
 	if zipfile.is_zipfile(zip_path):
-		extract_path = os.path.join(path, 'subc_tmp')
 		print _(" ...extracting zipball")
 		with zipfile.ZipFile(zip_path, 'r') as zf:
 			members = zf.infolist()
@@ -64,28 +44,88 @@ def main():
 		except NameError:
 			print _("ERROR: setup.py not found in a zipball")
 			return -1
-
-		command = ['python', new_subconvert, '--version']
-		v2 = Popen(command, stdout=PIPE).communicate()[0]
-
-		if v1.strip() == v2.strip():
-			print _("You have the latest version of SubConvert installed. No need to update.")
-			cleanup(zip_path, extract_path)
-			return 0
-		else:
-			print _(" ...newer version found. Executing installer\n")
-			print "++++++++++++ [ SETUP LOG ] +++++++++++++"
-			command = ['python', setup_file, 'install']
-			Popen(command).communicate()
-			print "++++++++++++ [ SETUP LOG END ] +++++++++++++\n"
-
-			print _("Update process finished (but there might be some errors which are not handled by updater).")
-			cleanup(zip_path, extract_path)
-			print _("This was a triumph. Bye bye!")
-			return 0
 	else:
 		print _("ERROR: '%s' is not correct zip file (or it is corrupted)") % ZIPFILE
 		return -1
+	return (setup_file, new_subconvert)
+
+
+def check_versions(new_subconvert):
+	try:
+		command = ["subconvert", "--version"]
+		v1 = Popen(command, stdout=PIPE).communicate()[0]
+		print _(" ...current SubConvert version: %s") % v1.strip()
+	except OSError:
+		v1 = "unknown"
+
+	command = ['python', new_subconvert, '--version']
+	v2 = Popen(command, stdout=PIPE).communicate()[0]
+
+	v1 = re.findall(r'\d+', v1)
+	v2 = re.findall(r'\d+', v2)
+	v1.reverse()
+	v2.reverse()
+
+	ver1 = 0
+	ver2 = 0
+	mult = 1
+	for no in v1:
+		ver1 += mult * int(no)
+		mult *= 10
+	mult = 1
+	for no in v2:
+		ver2 += mult * int(no)
+		mult *= 10
+		
+	if ver1 < ver2:
+		return 0
+	else:
+		return 1
+
+def install(setup_file):
+	print "++++++++++++ [ SETUP LOG ] +++++++++++++"
+	command = ['python', setup_file, 'install']
+	Popen(command).communicate()
+	print "++++++++++++ [ SETUP LOG END ] +++++++++++++\n"
+
+def prepare_options():
+	optp = OptionParser(usage = _('Usage: %prog [options]'))
+	return optp
+
+def main():
+	optp = prepare_options()
+	(options, args) = optp.parse_args()
+
+	print _("Starting SubConvert Updater")
+
+	path = os.path.split(os.path.realpath(__file__))[0]
+	if len(sys.argv) > 1:
+		if os.path.isdir(sys.argv[1]):
+			path = sys.argv[1]
+	zip_path = os.path.join(path, ZIPFILE)
+	extract_path = os.path.join(path, 'subc_tmp')
+	print _(" ...working directory: %s") % path
+
+	print _(" ...downloading zipball to %s") % zip_path
+	urllib.urlretrieve("https://github.com/virgoerns/subconvert/zipball/master", zip_path)
+
+	try:
+		setup_file, new_subconvert = extract(zip_path, extract_path)
+	except TypeError:
+		cleanup()
+		return -1
+
+	if check_versions(new_subconvert):
+		print _("You have the latest version of SubConvert installed. No need to update.")
+		cleanup(zip_path, extract_path)
+		return 0
+	else:
+		print _(" ...newer version found. Executing installer\n")
+		install(setup_file)
+		print _("Update process finished (but there might be some errors which are not handled by updater).")
+		cleanup(zip_path, extract_path)
+		print _("This was a triumph. Bye bye!")
+		return 0
 
 if __name__ == '__main__':
 	main()
