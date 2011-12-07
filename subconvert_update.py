@@ -108,7 +108,11 @@ def main():
 	print _(" ...working directory: %s") % path
 
 	print _(" ...downloading zipball to %s") % zip_path
-	urllib.urlretrieve("https://github.com/virgoerns/subconvert/zipball/master", zip_path)
+	try:
+		urllib.urlretrieve("https://github.com/virgoerns/subconvert/zipball/master", zip_path)
+	except IOError:
+		print _("ERROR: cannot save to %s") % zip_path
+		return -1
 
 	try:
 		setup_file, new_subconvert = extract(zip_path, extract_path)
