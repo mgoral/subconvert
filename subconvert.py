@@ -631,7 +631,8 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
 	# STRANGE BEHAVIOUR (but most desired) which I cannot explain:
 	# when we specify "-e ascii" option, detecting is skipped
 	if IS_CHARDET and file_encoding is 'ascii': 
-		size = os.path.getsize(filepath) / 20
+		fs = os.path.getsize(filepath)
+		size = 1400 if fs > 1400 else fs
 		with open(filepath, mode='r',) as f:
 			rd = f.read(size)
 			enc = chardet.detect(rd)
