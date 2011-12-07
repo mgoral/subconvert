@@ -35,7 +35,7 @@ try:
 except ImportError:
 	IS_CHARDET = False
 
-__VERSION__ = '0.8.0-1'
+__VERSION__ = '0.8.1'
 __AUTHOR__ = u'Michał Góral'
 
 log = logging.getLogger(__name__)

@@ -30,7 +30,7 @@ import gettext
 import time
 import subconvert
 
-__VERSION__ = '0.8'
+__VERSION__ = '0.8.1'
 __AUTHOR__ = u'Michał Góral'
 
 log = logging.getLogger(__name__)
