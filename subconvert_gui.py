@@ -91,6 +91,7 @@ class SubConvertGUI(QtGui.QWidget):
 		self.directory = ''
 
 		self.grid.setSpacing(10)
+		self.encodings.addItem(_('[Detect]'))
 		self.encodings.addItems(self.get_encodings())
 		for fmt in self.formats:
 			self.output_formats.addItem(fmt[0], fmt[1])
@@ -185,6 +186,8 @@ class SubConvertGUI(QtGui.QWidget):
 		time_start = time.time()
 		fps = str(self.fps.currentText())
 		encoding = str(self.encodings.currentText())
+		if encoding == '[Detect]':
+			encoding = 'ascii'
 		movie_file = str(self.movie_path.text())
 		files = [str(self.file_list.item(i).text()) for i in xrange(self.file_list.count())]
 		sub_format = str(self.output_formats.itemData(self.output_formats.currentIndex()).toString())
