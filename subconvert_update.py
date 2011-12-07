@@ -63,20 +63,18 @@ def check_versions(new_subconvert):
 
 	v1 = re.findall(r'\d+', v1)
 	v2 = re.findall(r'\d+', v2)
-	v1.reverse()
-	v2.reverse()
 
-	ver1 = 0
-	ver2 = 0
-	mult = 1
+	ver1 = 0.0
+	ver2 = 0.0
+	mult = 100
 	for no in v1:
 		ver1 += mult * int(no)
-		mult *= 10
-	mult = 1
+		mult /= 10.0
+	mult = 100
 	for no in v2:
 		ver2 += mult * int(no)
-		mult *= 10
-		
+		mult /= 10.0
+
 	if ver1 < ver2:
 		return 0
 	else:
