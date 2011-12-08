@@ -628,8 +628,10 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
 		raise NameError
 
 	# Try to detect file encoding
-	# STRANGE BEHAVIOUR (but most desired) which I cannot explain:
-	# when we specify "-e ascii" option, detecting is skipped
+	# 'is' keyword checks objects identity and it's the key to disabling
+	# autodetect when '-e ascii' option is given. It seems that optparse
+	# creates a new object (which is logical) when given an option from
+	# shell and overrides a variable in program memory.
 	if IS_CHARDET and file_encoding is 'ascii': 
 		fs = os.path.getsize(filepath)
 		size = 1400 if fs > 1400 else fs
