@@ -33,8 +33,7 @@ import subparser.Convert as Convert
 
 from optparse import OptionParser, OptionGroup
 
-__VERSION__ = '0.8.2'
-__AUTHOR__ = u'Michał Góral'
+import subcinfo.py
 
 log = logging.getLogger('SubConvert')
 
@@ -278,7 +277,7 @@ class SubConvertGUI(QtGui.QWidget):
 def prepare_options():
     """Define optparse options."""
     optp = OptionParser(usage = _('Usage: %prog [options]'), \
-        version = '%s' % __VERSION__ )
+        version = '%s' % version.__version__ )
     optp.add_option('--debug',
         action='store_true', dest='debug_messages', default=False,
         help=_("Generate debug output"))

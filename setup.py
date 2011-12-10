@@ -6,20 +6,20 @@ use_setuptools()
 
 from setuptools import setup, find_packages
 
-__AUTHOR__ = "Michał Góral"
 
 setup(
     name = "subconvert",
     description = "Movie subtitles converter",
-    author = __AUTHOR__,
+    author = "Michał Góral",
     version = "0.8.2",
     author_email = "michal.goral@mgoral.org",
     url = "https://github.com/virgoerns/subconvert",
+    download_url = "https://github.com/virgoerns/subconvert/zipball/master",
     license = "GPLv3+",
     package_dir = {'':'src'},
     packages = find_packages(),
     py_modules = ["subparser.Convert", "subparser.FrameTime", \
-        "subparser.Parsers", "subparser.SubParser", \
+        "subparser.Parsers", "subparser.SubParser", "subparser.version", \
         "subconvert", "subconvert_gui", "subconvert_update"],
     entry_points = {
         'console_scripts' : [

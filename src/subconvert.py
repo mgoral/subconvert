@@ -27,9 +27,7 @@ import gettext
 
 import subparser.SubParser as SubParser
 import subparser.Convert as Convert
-
-__VERSION__ = '0.8.2'
-__AUTHOR__ = u'Michał Góral'
+import subparser.version as version
 
 gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
 gettext.textdomain('subconvert')
@@ -41,7 +39,7 @@ MAX_MEGS = 5 * 1048576
 def prepare_options():
     """Define optparse options."""
     optp = OptionParser(usage = _('Usage: %prog [options] input_file [input_file(s)]'), \
-        version = '%s' % __VERSION__ )
+        version = '%s' % version.__version__ )
     group_conv = OptionGroup(optp, _('Convert options'),
         _("Options which can be used to properly convert sub files."))
     optp.add_option('-f', '--force',
