@@ -3,6 +3,17 @@ import sys
 import codecs
 import logging
 import gettext
+import re
+
+log = logging.getLogger(__name__)
+
+gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
+gettext.textdomain('subconvert')
+_ = gettext.gettext
+
+
+class SubParsingError(Exception):
+	pass
 
 class GenericSubParser(object):
 	'''Generic class that should be inherited

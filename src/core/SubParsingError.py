@@ -1,2 +1,0 @@
-class SubParsingError(Exception):
-	pass

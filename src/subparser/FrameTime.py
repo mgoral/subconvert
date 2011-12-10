@@ -1,6 +1,6 @@
 from datetime import datetime
 
-class FrameTime:
+class FrameTime(object):
 	def __init__(self, fps, value_type, **kwargs):
 		'''Construct and convert value(s) given in kwargs.
 		Kwargs should describe either 'frame' or 'h', 'm',

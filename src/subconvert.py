@@ -29,6 +29,10 @@ from optparse import OptionParser, OptionGroup
 import gettext
 from datetime import datetime
 
+import subparser.SubParser as SubParser
+import subparser.FrameTime as FrameTime
+import subparser.Parsers
+
 try:
 	import chardet
 	IS_CHARDET = True
@@ -106,7 +110,7 @@ def prepare_options():
 	return optp
 
 def convert_file(filepath, file_encoding, file_fps, output_format, output_extension = ''):
-	cls = GenericSubParser.__subclasses__()
+	cls = SubParser.GenericSubParser.__subclasses__()
 	conv = None
 	for c in cls:
 		# Obtain user specified subclass
@@ -219,13 +223,13 @@ def main():
 
 		try:
 			conv, lines = convert_file(arg, options.encoding, options.fps, options.format, options.ext)
-		except NameError:
-			log.error(_("'%s' format not supported (or mistyped).") % options.format)
-			return -1
+		#except NameError:
+	#		log.error(_("'%s' format not supported (or mistyped).") % options.format)
+#			return -1
 		except UnicodeDecodeError:
 			log.error(_("Couldn't handle '%s' given '%s' encoding.") % (arg, options.encoding))
 			continue
-		except SubParsingError, msg:
+		except SubParser.SubParsingError, msg:
 			log.error(msg)
 			continue;
 
