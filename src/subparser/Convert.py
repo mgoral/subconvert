@@ -115,7 +115,7 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
 
     lines = []
     log.info(_("Trying to parse %s...") % filepath)
-    sub_pair = [None, None]
+    sub_pair = [0, 0]
     for cl in cls:
         if not lines:
             for parsed in cl(filepath, file_fps, file_encoding, file_input).parse():
@@ -131,18 +131,15 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
                 try:
                     if sub_pair[0]:
                         if not sub_pair[0]['sub']['time_to']:
-                            sub_pair[0]['sub']['time_to'] = \
-                                sub_pair[0]['sub']['time_from'] + \
-                                (sub_pair[1]['sub']['time_from'] - sub_pair[0]['sub']['time_from']) * 0.85
-                        sub = conv.convert(sub_pair[0])
-                        lines.append(sub.decode(conv.encoding))
-                    else:
-                        if sub_pair[1]:
-                            if not sub_pair[1]['sub']['time_to']:
+                            if sub_pair[1] is None:
                                 sub_pair[1]['sub']['time_to'] = \
                                     sub_pair[1]['sub']['time_from'] + FrameTime.FrameTime(file_fps, 'ss', seconds = 2.5)
-                            sub = conv.convert(sub_pair[1])
-                            lines.append(sub.decode(conv.encoding))
+                            else:
+                                sub_pair[0]['sub']['time_to'] = \
+                                    sub_pair[0]['sub']['time_from'] + \
+                                    (sub_pair[1]['sub']['time_from'] - sub_pair[0]['sub']['time_from']) * 0.85
+                        sub = conv.convert(sub_pair[0])
+                        lines.append(sub.decode(conv.encoding))
                 except AssertionError:
                     log.warning(_("Correct time not asserted for subtitle %d. Skipping it...") % (sub_pair[0]['sub_no']))
                     log.debug(_(".. incorrect subtitle pair times: (%s, %s)") % (sub_pair[0]['sub']['time_from'], sub_pair[1]['sub']['time_from']))

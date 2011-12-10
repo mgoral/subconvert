@@ -28,7 +28,7 @@ import gettext
 import subparser.SubParser as SubParser
 import subparser.Convert as Convert
 
-__VERSION__ = '0.8.1'
+__VERSION__ = '0.8.2'
 __AUTHOR__ = u'Michał Góral'
 
 gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')

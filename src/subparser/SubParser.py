@@ -152,6 +152,7 @@ class GenericSubParser(object):
                 sub_section = ''
                 atom = {'time_from': '', 'time_to': '', 'text': '',}
         log.info(_("Recognised %s.") % self.__SUB_TYPE__)
+        yield None  # Last element is None so we can adjust sub converting
 
     def convert(self, sub):
         '''A function which gets dictionary containing single 
