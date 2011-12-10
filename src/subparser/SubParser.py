@@ -5,7 +5,7 @@ import logging
 import gettext
 import re
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('SubConvert.%s' % __name__)
 
 gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
 gettext.textdomain('subconvert')
