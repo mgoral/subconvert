@@ -33,7 +33,7 @@ import subparser.Convert as Convert
 
 from optparse import OptionParser, OptionGroup
 
-__VERSION__ = '0.8.1'
+__VERSION__ = '0.8.2'
 __AUTHOR__ = u'Michał Góral'
 
 log = logging.getLogger('SubConvert')
