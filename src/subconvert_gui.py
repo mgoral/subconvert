@@ -24,21 +24,25 @@ from PyQt4 import QtGui
 import pkgutil
 import encodings
 import codecs
-from subprocess import Popen, PIPE
 import logging
 import gettext
 import time
-import subconvert
+
+import subparser.SubParser as SubParser
+import subparser.Convert as Convert
+
+from optparse import OptionParser, OptionGroup
 
 __VERSION__ = '0.8.1'
 __AUTHOR__ = u'Michał Góral'
 
-log = logging.getLogger(__name__)
-ch = logging.StreamHandler()
+log = logging.getLogger('SubConvert')
 
 gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
 gettext.textdomain('subconvert')
 _ = gettext.gettext
+
+MAX_MEGS = 5 * 1048576
 
 class BackupMessage(QtGui.QMessageBox):
     def __init__(self, filename):
@@ -135,12 +139,12 @@ class SubConvertGUI(QtGui.QWidget):
         return found
 
     def get_formats(self):
-        cls = subconvert.GenericSubParser.__subclasses__()
+        cls = SubParser.GenericSubParser.__subclasses__()
         for c in cls:
             yield (c.__SUB_TYPE__, c.__OPT__)
 
     def get_extensions(self):
-        cls = subconvert.GenericSubParser.__subclasses__()
+        cls = SubParser.GenericSubParser.__subclasses__()
         exts = ['Default']
         exts.extend(set([ c.__EXT__ for c in cls ]))
         exts.sort()
@@ -182,12 +186,9 @@ class SubConvertGUI(QtGui.QWidget):
             self.fps.setEnabled(True)
 
     def convert_files(self):
-        MAX_MEGS = 5 * 1048576
         time_start = time.time()
         fps = str(self.fps.currentText())
-        encoding = str(self.encodings.currentText())
-        if encoding == '[Detect]':
-            encoding = 'ascii'
+        opt_encoding = str(self.encodings.currentText())
         movie_file = str(self.movie_path.text())
         files = [str(self.file_list.item(i).text()) for i in xrange(self.file_list.count())]
         sub_format = str(self.output_formats.itemData(self.output_formats.currentIndex()).toString())
@@ -209,23 +210,29 @@ class SubConvertGUI(QtGui.QWidget):
                     for ext in self.movie_exts:
                         f = ''.join((filename, ext))
                         if os.path.isfile(f):
-                            fps = subconvert.mplayer_check(f, fps)
+                            fps = Convert.mplayer_check(f, fps)
                             break
                 else:
-                    fps = subconvert.mplayer_check(movie_file, fps)
+                    fps = Convert.mplayer_check(movie_file, fps)
+
+            if opt_encoding == '[Detect]':
+                encoding = Convert.detect_encoding( arg, 'ascii' )
+            else:
+                encoding = opt_encoding
 
             try:
-                conv, lines = subconvert.convert_file(arg, encoding, fps, sub_format, out_extension)
+                conv, lines = Convert.convert_file(arg, encoding, fps, sub_format, out_extension)
             except NameError:
                 convert_info.append(_("'%s' format not supported (or mistyped).") % sub_format)
                 return -1
             except UnicodeDecodeError:
                 convert_info.append(_("Couldn't handle '%s' given '%s' encoding.") % (arg, encoding))
                 continue
-            except subconvert.SubParsingError, msg:
+            except SubParser.SubParsingError, msg:
                 convert_info.append(str(msg))
                 continue;
             if lines:
+                log.debug(_("%s parsed.") % arg)
                 convert_info.append(_("%s parsed.") % arg)
                 if os.path.isfile(conv.filename):
                     if not to_all:
@@ -234,11 +241,11 @@ class SubConvertGUI(QtGui.QWidget):
                         to_all = bbox.get_to_all()
                     if choice == 0: # backup
                         if conv.filename == arg:
-                            arg, _mvd = subconvert.backup(arg)  # We will read from backed up file
+                            arg, _mvd = Convert.backup(arg)  # We will read from backed up file
                             log.info(_("%s backed up as %s") % (_mvd, arg))
                             convert_info.append(_("%s backed up as %s") % (_mvd, arg))
                         else:
-                            _bck, conv_filename = subconvert.backup(conv.filename)
+                            _bck = Conveert.backup(conv.filename)[0]
                             convert_info.append(_("%s backed up as %s") % (conv.filename, _bck))
                     elif choice == 2: # No
                         convert_info.append(_("Skipping %s") % arg)
@@ -254,6 +261,7 @@ class SubConvertGUI(QtGui.QWidget):
                 with codecs.open(conv.filename, 'w', encoding=conv.encoding) as cf:
                     cf.writelines(lines)
             else:
+                log.debug(_("%s not parsed.") % arg)
                 convert_info.append(_("%s not parsed.") % arg)
 
         elapsed_time = time.time() - time_start
@@ -267,9 +275,27 @@ class SubConvertGUI(QtGui.QWidget):
         summary.setDetailedText(os.linesep.join(convert_info))
         summary.exec_()
 
+def prepare_options():
+    """Define optparse options."""
+    optp = OptionParser(usage = _('Usage: %prog [options]'), \
+        version = '%s' % __VERSION__ )
+    optp.add_option('--debug',
+        action='store_true', dest='debug_messages', default=False,
+        help=_("Generate debug output"))
+
+    return optp
+
 def main():
-    log.setLevel(logging.INFO)
-    log.addHandler(ch)
+    """Main SubConvert GUI function"""
+    optp = prepare_options()
+    (options, args) = optp.parse_args()
+
+    if options.debug_messages:
+        log.setLevel(logging.DEBUG)
+    else:
+        log.setLevel(logging.ERROR)
+    log.addHandler(logging.StreamHandler())
+
     app = QtGui.QApplication(sys.argv)
     gui = SubConvertGUI()
     sys.exit(app.exec_())

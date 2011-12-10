@@ -116,6 +116,8 @@ def main():
             else:
                 options.fps = Convert.mplayer_check(options.movie_file, options.fps)
 
+        options.encoding = Convert.detect_encoding(arg, options.encoding)
+
         try:
             conv, lines = Convert.convert_file(arg, options.encoding, options.fps, options.format, options.ext)
         except NameError, msg:

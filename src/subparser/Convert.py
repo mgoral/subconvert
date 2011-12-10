@@ -75,6 +75,25 @@ def mplayer_check( filename, fps ):
         log.info(_("Got %s FPS from '%s'.") % (fps, filename))
     return fps
 
+def detect_encoding( filepath, encoding ):
+    """Try to detect file encoding
+    'is' keyword checks objects identity and it's the key to disabling
+    autodetect when '-e ascii' option is given. It seems that optparse
+    creates a new object (which is logical) when given an option from
+    shell and overrides a variable in program memory."""
+    if IS_CHARDET and encoding is 'ascii': 
+        file_size = os.path.getsize(filepath)
+        size = 2000 if file_size > 2000 else file_size
+        with open(filepath, mode='r',) as file_:
+            enc = chardet.detect(file_.read(size))
+            log.debug(_("Detecting encoding from %d bytes") % size)
+            log.debug(_(" ...chardet: %s") % enc)
+        if enc['confidence'] > 0.60:
+            encoding = enc['encoding']
+            log.debug(_(" ...detected %s encoding.") % enc['encoding'])
+        else:
+            log.info(_("I am not too confident about encoding (most probably %s). Skipping check.") % enc['encoding'])
+    return encoding
 
 def convert_file(filepath, file_encoding, file_fps, output_format, output_extension = ''):
     """Convert a file to given output format (with optional output extension)."""
@@ -90,26 +109,6 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
             break
     if not conv:
         raise NameError
-
-    # Try to detect file encoding
-    # 'is' keyword checks objects identity and it's the key to disabling
-    # autodetect when '-e ascii' option is given. It seems that optparse
-    # creates a new object (which is logical) when given an option from
-    # shell and overrides a variable in program memory.
-    if IS_CHARDET and file_encoding is 'ascii': 
-        file_size = os.path.getsize(filepath)
-        size = 1400 if file_size > 1400 else file_size
-        with open(filepath, mode='r',) as file_:
-            enc = chardet.detect(file_.read(size))
-            log.debug(_("Detecting encoding from %d bytes") % size)
-            log.debug(_(" ...chardet: %s") % enc)
-        if enc['confidence'] > 0.60:
-            file_encoding = enc['encoding']
-            conv.encoding = file_encoding
-            log.debug(_(" ...detected %s encoding.") % enc['encoding'])
-        else:
-            log.info(_("I am not too confident about encoding (most probably %s). Skipping check.") % enc['encoding'])
-
     with codecs.open(filepath, mode='r', encoding=file_encoding) as file_:
         file_input = file_.readlines()
 
