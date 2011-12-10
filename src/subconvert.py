@@ -2,31 +2,30 @@
 #-*- coding: utf-8 -*-
 
 """
-    This file is part of Subconvert.
+This file is part of SubConvert.
 
-    Subconvert is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+SubConvert is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    Subconvert is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+SubConvert is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Subconvert.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 import os
-import sys
 import codecs
 import logging
 from optparse import OptionParser, OptionGroup
 import gettext
 
 import subparser.SubParser as SubParser
-import subparser.FrameTime as FrameTime
 import subparser.Parsers
 import subparser.Convert as Convert
 
@@ -42,9 +41,12 @@ gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
 gettext.textdomain('subconvert')
 _ = gettext.gettext
 
+MAX_MEGS = 5 * 1048576
+
 
 def prepare_options():
-    optp = OptionParser(usage = _('Usage: %prog [options] input_file [input_file(s)]'),\
+    """Define optparse options."""
+    optp = OptionParser(usage = _('Usage: %prog [options] input_file [input_file(s)]'), \
         version = '%s' % __VERSION__ )
     group_conv = OptionGroup(optp, _('Convert options'),
         _("Options which can be used to properly convert sub files."))
@@ -80,7 +82,7 @@ def prepare_options():
     return optp
 
 def main():
-    MAX_MEGS = 5 * 1048576
+    """Main SubConvert function"""
     optp = prepare_options()
     (options, args) = optp.parse_args()
     
@@ -130,7 +132,7 @@ def main():
             continue
         except SubParser.SubParsingError, msg:
             log.error(msg)
-            continue;
+            continue
 
         if lines:
             log.info(_("Parsed."))
@@ -142,10 +144,10 @@ def main():
                     choice = raw_input( _("File '%s' exists. Overwrite? [y/n/b/q] ") % conv.filename)
                 if choice == _choices['backup']:
                     if conv.filename == arg:
-                        arg, _mvd = backup(arg) # We will read from backed up file
+                        arg, _mvd = Convert.backup(arg) # We will read from backed up file
                         log.info(_("%s backed up as %s") % (_mvd, arg))
                     else:
-                        _bck, conv_filename = backup(conv.filename)
+                        _bck, conv_filename = Convert.backup(conv.filename)
                         log.info(_("%s backed up as %s") % (conv.filename, _bck))
                 elif choice == _choices['no']:
                     log.info(_("Skipping %s") % arg)
