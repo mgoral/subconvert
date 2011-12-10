@@ -116,16 +116,16 @@ def main():
             else:
                 options.fps = Convert.mplayer_check(options.movie_file, options.fps)
 
-        options.encoding = Convert.detect_encoding(arg, options.encoding)
+        encoding = Convert.detect_encoding(arg, options.encoding)
 
         try:
-            conv, lines = Convert.convert_file(arg, options.encoding, options.fps, options.format, options.ext)
+            conv, lines = Convert.convert_file(arg, encoding, options.fps, options.format, options.ext)
         except NameError, msg:
             log.error(_("'%s' format not supported (or mistyped).") % options.format)
             log.debug(msg)  # in case some other Name Error occured (i.e. while refactoring)
             return -1
         except UnicodeDecodeError:
-            log.error(_("Couldn't handle '%s' given '%s' encoding.") % (arg, options.encoding))
+            log.error(_("Couldn't handle '%s' given '%s' encoding.") % (arg, encoding))
             continue
         except SubParser.SubParsingError, msg:
             log.error(msg)
