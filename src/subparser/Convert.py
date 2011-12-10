@@ -108,7 +108,7 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
             conv.encoding = file_encoding
             log.debug(_(" ...detected %s encoding.") % enc['encoding'])
         else:
-            log.info(_("I am not too confident about encoding. Skipping check."))
+            log.info(_("I am not too confident about encoding (most probably %s). Skipping check.") % enc['encoding'])
 
     with codecs.open(filepath, mode='r', encoding=file_encoding) as file_:
         file_input = file_.readlines()
