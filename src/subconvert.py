@@ -26,16 +26,10 @@ from optparse import OptionParser, OptionGroup
 import gettext
 
 import subparser.SubParser as SubParser
-import subparser.Parsers
 import subparser.Convert as Convert
-
-
 
 __VERSION__ = '0.8.1'
 __AUTHOR__ = u'Michał Góral'
-
-log = logging.getLogger('SubConvert')
-ch = logging.StreamHandler()
 
 gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
 gettext.textdomain('subconvert')
@@ -85,21 +79,24 @@ def main():
     """Main SubConvert function"""
     optp = prepare_options()
     (options, args) = optp.parse_args()
-    
-    if len(args)  < 1:
-        log.error(_("Incorrect number of arguments."))
-        return -1
 
-    # A little hack to assure that translator won't make a mistake
-    _choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q'), 'backup': _('b') }
+    log = logging.getLogger('SubConvert')
+
     if options.quiet:
         log.setLevel(logging.ERROR)
     else:
         log.setLevel(logging.INFO)
     if options.debug_messages:
         log.setLevel(logging.DEBUG)
-    log.addHandler(ch)
-    
+    log.addHandler(logging.StreamHandler())
+
+    if len(args)  < 1:
+        log.error(_("Incorrect number of arguments."))
+        return -1
+
+    # A little hack to assure that translator won't make a mistake
+    _choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q'), 'backup': _('b') }
+
     for arg in args:
         if not os.path.isfile(arg):
             log.error(_("No such file: %s") % arg)
@@ -110,13 +107,11 @@ def main():
             continue
         
         if options.auto_fps:
-            exts = ('.avi', '.mkv', '.mpg', '.mp4', '.wmv')
             if not options.movie_file:
-                filename, extension = os.path.splitext(arg)
-                for ext in exts:
-                    f = ''.join((filename, ext))
-                    if os.path.isfile(f):
-                        options.fps = Convert.mplayer_check(f, options.fps)
+                filename = os.path.splitext(arg)[0]
+                for ext in ('.avi', '.mkv', '.mpg', '.mp4', '.wmv'):
+                    if os.path.isfile(''.join((filename, ext))):
+                        options.fps = Convert.mplayer_check(''.join((filename, ext)), options.fps)
                         break
             else:
                 options.fps = Convert.mplayer_check(options.movie_file, options.fps)
@@ -147,7 +142,7 @@ def main():
                         arg, _mvd = Convert.backup(arg) # We will read from backed up file
                         log.info(_("%s backed up as %s") % (_mvd, arg))
                     else:
-                        _bck, conv_filename = Convert.backup(conv.filename)
+                        _bck = Convert.backup(conv.filename)[0]
                         log.info(_("%s backed up as %s") % (conv.filename, _bck))
                 elif choice == _choices['no']:
                     log.info(_("Skipping %s") % arg)
@@ -160,8 +155,8 @@ def main():
             else:
                 log.info("Writing to %s" % conv.filename)
         
-            with codecs.open(conv.filename, 'w', encoding=conv.encoding) as cf:
-                cf.writelines(lines)
+            with codecs.open(conv.filename, 'w', encoding=conv.encoding) as output_file:
+                output_file.writelines(lines)
         else:
             log.warning(_("%s not parsed.") % arg)
 

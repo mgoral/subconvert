@@ -30,6 +30,7 @@ from subprocess import Popen, PIPE
 
 import subparser.SubParser as SubParser
 import subparser.FrameTime as FrameTime
+import subparser.Parsers
 
 try:
     import chardet
@@ -46,13 +47,15 @@ _ = gettext.gettext
 
 
 def backup( filename ):
-    """Backup a file to filename_strftime"""
+    """Backup a file to filename_strftime (by moving it, not copying).
+    Return a tuple (backed_up_filename, old_filename)"""
 
     new_arg = filename + datetime.datetime.now().strftime('_%y%m%d%H%M%S')
     try:
         os.remove(new_arg)
+        log.debug(_("'%s' exists and needs to be removed before backing up.") % new_arg)
     except OSError:
-        log.debug(_("No '%s' to remove before backuping.") % new_arg)
+        pass
     shutil.move(filename, new_arg)
     return (new_arg, filename)
 
@@ -94,54 +97,52 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
     # creates a new object (which is logical) when given an option from
     # shell and overrides a variable in program memory.
     if IS_CHARDET and file_encoding is 'ascii': 
-        fs = os.path.getsize(filepath)
-        size = 1400 if fs > 1400 else fs
-        with open(filepath, mode='r',) as f:
-            rd = f.read(size)
-            enc = chardet.detect(rd)
-            log.debug(_("Detecting encoding from %d bytes") % len(rd))
+        file_size = os.path.getsize(filepath)
+        size = 1400 if file_size > 1400 else file_size
+        with open(filepath, mode='r',) as file_:
+            enc = chardet.detect(file_.read(size))
+            log.debug(_("Detecting encoding from %d bytes") % size)
             log.debug(_(" ...chardet: %s") % enc)
         if enc['confidence'] > 0.60:
             file_encoding = enc['encoding']
             conv.encoding = file_encoding
             log.debug(_(" ...detected %s encoding.") % enc['encoding'])
         else:
-            log.debug(_("I am not too confident about encoding. Skipping check."))
+            log.info(_("I am not too confident about encoding. Skipping check."))
 
-    with codecs.open(filepath, mode='r', encoding=file_encoding) as f:
-        file_input = f.readlines()
+    with codecs.open(filepath, mode='r', encoding=file_encoding) as file_:
+        file_input = file_.readlines()
 
     lines = []
     log.info(_("Trying to parse %s...") % filepath)
     sub_pair = [None, None]
     for cl in cls:
         if not lines:
-            c = cl(filepath, file_fps, file_encoding, file_input)
-            for p in c.parse():
+            for parsed in cl(filepath, file_fps, file_encoding, file_input).parse():
                 if not sub_pair[1] and conv.__WITH_HEADER__: # Only the first element
-                    header = p['sub'].get('header')
+                    header = parsed['sub'].get('header')
                     if type(header) != dict:
                         header = {}
                     header = conv.convert_header(header)
                     if header:
                         lines.append(header.decode(conv.encoding))
                 sub_pair[0] = sub_pair[1]
-                sub_pair[1] = p
+                sub_pair[1] = parsed
                 try:
                     if sub_pair[0]:
                         if not sub_pair[0]['sub']['time_to']:
                             sub_pair[0]['sub']['time_to'] = \
                                 sub_pair[0]['sub']['time_from'] + \
                                 (sub_pair[1]['sub']['time_from'] - sub_pair[0]['sub']['time_from']) * 0.85
-                        s = conv.convert(sub_pair[0])
-                        lines.append(s.decode(conv.encoding))
+                        sub = conv.convert(sub_pair[0])
+                        lines.append(sub.decode(conv.encoding))
                     else:
                         if sub_pair[1]:
                             if not sub_pair[1]['sub']['time_to']:
                                 sub_pair[1]['sub']['time_to'] = \
                                     sub_pair[1]['sub']['time_from'] + FrameTime.FrameTime(file_fps, 'ss', seconds = 2.5)
-                            s = conv.convert(sub_pair[1])
-                            lines.append(s.decode(conv.encoding))
+                            sub = conv.convert(sub_pair[1])
+                            lines.append(sub.decode(conv.encoding))
                 except AssertionError:
                     log.warning(_("Correct time not asserted for subtitle %d. Skipping it...") % (sub_pair[0]['sub_no']))
                     log.debug(_(".. incorrect subtitle pair times: (%s, %s)") % (sub_pair[0]['sub']['time_from'], sub_pair[1]['sub']['time_from']))

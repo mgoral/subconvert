@@ -106,15 +106,15 @@ class GenericSubParser(object):
                     self.__PARSED__ = True
                     sub_section = ''
             elif end:
-                m = self.pattern.search(sub_section)
+                matched = self.pattern.search(sub_section)
                 try:
-                    if m.group('time_from'):
-                        atom['time_from'] = m.group('time_from')
+                    if matched.group('time_from'):
+                        atom['time_from'] = matched.group('time_from')
                         if self.__FMT__ not in ('frame', 'time'):
                             self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_from']) else 'frame'
                         atom['time_from'] = self.str_to_frametime(atom['time_from'])
-                    if m.group('time_to'):
-                        atom['time_to'] = m.group('time_to')
+                    if matched.group('time_to'):
+                        atom['time_to'] = matched.group('time_to')
                         if self.__FMT__ not in ('frame', 'time'):
                             self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
                         atom['time_to'] = self.str_to_frametime(atom['time_to'])
@@ -130,8 +130,8 @@ class GenericSubParser(object):
                     # There should be no more AttributeErrors as parse()
                     # should return on it last time. If there is - we want
                     # to know about it and fix it.
-                    if m.group('text'):
-                        atom['text'] = m.group('text')
+                    if matched.group('text'):
+                        atom['text'] = matched.group('text')
                 except IndexError, msg:
                     log.debug(self.message(line_no, msg))
 
@@ -186,21 +186,21 @@ class GenericSubParser(object):
             header_str = "%s[%s]:[%s]%s%s" % (header_str, key, val, os.linesep, os.linesep)
         return header_str.encode(self.encoding)
 
-    def get_time(self, ft, which):
+    def get_time(self, frametime, which):
         '''Extract time (time_from or time_to) from FrameTime.
         Note that it usually needs to be first calculated using
         'to_frame or to_time methods. The output is properly formatted
         string according to sub specification.'''
-        return ft.frame
+        return frametime.frame
 
-    def str_to_frametime(self, s):
+    def str_to_frametime(self, string):
         '''Convert string to frametime objects.
         This one is called during file parsing to pass it
         to the other GenericSubParser subclass which can then
         recognize it and operate on it.'''
-        return s
+        return string
     
-    def format_text(self, s):
+    def format_text(self, string):
         '''Convert sub-type specific formatting to the one known
         to GenericSubParser. Supported tags:
         {gsp_b}text{_gsp_b} -- bold
@@ -208,5 +208,5 @@ class GenericSubParser(object):
         {gsp_u}text{_gsp_u} -- underline
         {gsp_nl} -- new line
         Don't forget to escape '{' and '}' curly braces.'''
-        return s
+        return string
 

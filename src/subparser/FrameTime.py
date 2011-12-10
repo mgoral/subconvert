@@ -47,17 +47,29 @@ class FrameTime(object):
             self.minutes = int(kwargs['m'])
             self.hours = int(kwargs['h'])
             self.frame = int(round(self.fps * (3600*self.hours + 60*self.minutes + self.seconds + float(self.miliseconds)/1000)))
-            self.ss = self.frame / self.fps
+            self.full_seconds = self.frame / self.fps
         elif value_type == 'ss':
             self.__set_time__( kwargs['seconds'] )
         else:
             raise AttributeError, _("Not supported FrameTime type: '%s'") % value_type
-    
+
+    def get_frame(self):
+        """Get Frame (and FPS) value)"""
+        return (self.fps, self.frame)
+
+    def get_time(self):
+        """Get Time (and FPS) value)"""
+        return (self.fps, { \
+            'hours': self.hours, \
+            'minutes': self.minutes, \
+            'seconds': self.seconds, \
+            'miliseconds': self.miliseconds })
+
     def __set_time__(self, seconds):
         """Set frame from a given time"""
         if seconds >= 0:
-            self.ss = float(seconds)
-            self.frame = int(round(self.ss * self.fps))
+            self.full_seconds = float(seconds)
+            self.frame = int(round(self.full_seconds * self.fps))
         else:
             raise ValueError, _("Incorrect seconds value.")
         tmp = seconds
@@ -78,34 +90,34 @@ class FrameTime(object):
     def __cmp__(self, other):
         """Define FrameTime comparing"""
         assert(self.fps == other.fps)
-        if self.ss < other.ss:
+        if self.full_seconds < other.ss:
             return -1
-        elif self.ss == other.ss:
+        elif self.full_seconds == other.ss:
             return 0
-        elif self.ss > other.ss:
+        elif self.full_seconds > other.ss:
             return 1
 
     def __add__(self, other):
         """Define FrameTime + FrameTime"""
         assert(self.fps == other.fps)
-        result = self.ss + other.ss
+        result = self.full_seconds + other.ss
         return FrameTime(fps = self.fps, value_type = 'ss', seconds = result)
     
     def __sub__(self, other):
         """Define FrameTime - FrameTime"""
         assert(self.fps == other.fps)
-        assert(self.ss >= other.ss)
-        result = self.ss - other.ss
+        assert(self.full_seconds >= other.ss)
+        result = self.full_seconds - other.ss
         return FrameTime(fps = self.fps, value_type = 'ss', seconds = result)
     
-    def __mul__(self, n):
+    def __mul__(self, val):
         """Define FrameTime * number"""
-        result = self.ss * n
+        result = self.full_seconds * val
         return FrameTime(fps = self.fps, value_type = 'ss', seconds = result)
     
-    def __div__(self, n):
+    def __div__(self, val):
         """Define FrameTime / number"""
-        result = self.ss / n
+        result = self.full_seconds / val
         return FrameTime(fps = self.fps, value_type = 'ss', seconds = result)
     
     def __str__(self):

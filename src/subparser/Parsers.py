@@ -25,6 +25,8 @@ from SubParser import GenericSubParser
 from FrameTime import FrameTime
 
 class MicroDVD(GenericSubParser):
+    """See a GenericSubParser for a documentation."""
+
     __SUB_TYPE__ = 'Micro DVD'
     __OPT__ = 'microdvd'
     __FMT__ = 'frame'
@@ -43,33 +45,35 @@ class MicroDVD(GenericSubParser):
         'gsp_nl':   r'|',
     }
     
-    def __init__(self, f, fps, encoding, lines = None):
-        GenericSubParser.__init__(self, f, fps, encoding, lines)
+    def __init__(self, filename, fps, encoding, lines = None):
+        GenericSubParser.__init__(self, filename, fps, encoding, lines)
     
-    def str_to_frametime(self, s):
-        return FrameTime(fps=self.fps, value_type=self.__FMT__, frame=s)
+    def str_to_frametime(self, string):
+        return FrameTime(fps=self.fps, value_type=self.__FMT__, frame=string)
 
-    def format_text(self, s):
-        s = s.replace('{', '{{').replace('}', '}}')
-        lines = s.split('|')
-        for i, l in enumerate(lines):
-            if '{{y:b}}' in l:
-                l = l.replace('{{y:b}}', '{gsp_b_}')
-                l += '{_gsp_b}'
-            if '{{y:i}}' in l:
-                l = l.replace('{{y:i}}', '{gsp_i_}')
-                l += '{_gsp_i}'
-            if '{{y:u}}' in l:
-                l = l.replace('{{y:u}}', '{gsp_u_}')
-                l += '{_gsp_u}'
-            lines[i] = l
-        s = '{gsp_nl}'.join(lines)
-        return s
+    def format_text(self, string):
+        string = string.replace('{', '{{').replace('}', '}}')
+        lines = string.split('|')
+        for i, line in enumerate(lines):
+            if '{{y:b}}' in line:
+                line = line.replace('{{y:b}}', '{gsp_b_}')
+                line += '{_gsp_b}'
+            if '{{y:i}}' in line:
+                line = line.replace('{{y:i}}', '{gsp_i_}')
+                line += '{_gsp_i}'
+            if '{{y:u}}' in line:
+                line = line.replace('{{y:u}}', '{gsp_u_}')
+                line += '{_gsp_u}'
+            lines[i] = line
+        string = '{gsp_nl}'.join(lines)
+        return string
 
-    def get_time(self, ft, which):
-        return ft.frame
+    def get_time(self, frametime, which):
+        return frametime.frame
 
 class SubRip(GenericSubParser):
+    """See a GenericSubParser for a documentation."""
+
     __SUB_TYPE__ = 'Sub Rip'
     __OPT__ = 'subrip'
     __FMT__ = 'time'
@@ -93,40 +97,42 @@ class SubRip(GenericSubParser):
         'gsp_nl':   os.linesep,
     }
     
-    def __init__(self, f, fps, encoding, lines = None):
+    def __init__(self, filename, fps, encoding, lines = None):
         self.time_fmt = re.compile(self.time_fmt)
-        GenericSubParser.__init__(self, f, fps, encoding, lines)
+        GenericSubParser.__init__(self, filename, fps, encoding, lines)
     
-    def str_to_frametime(self, s):
-        time = self.time_fmt.search(s)
+    def str_to_frametime(self, string):
+        time = self.time_fmt.search(string)
         return FrameTime(fps=self.fps, value_type=self.__FMT__, \
             h=time.group('h'), m=time.group('m'), \
             s=time.group('s'), ms=time.group('ms'))
     
-    def format_text(self, s):
-        s = s.strip()
-        s = s.replace('{', '{{').replace('}', '}}')
-        if r'<b>' in s:
-            s = s.replace(r'<b>', '{gsp_b_}')
-            s = s.replace(r'</b>', '{_gsp_b}')
-        if r'<u>' in s:
-            s = s.replace(r'<u>', '{gsp_u_}')
-            s = s.replace(r'</u>', '{_gsp_u}')
-        if r'<i>' in s:
-            s = s.replace(r'<i>', '{gsp_i_}')
-            s = s.replace(r'</i>', '{_gsp_i}')
-        if '\r\n' in s:
-            s = s.replace('\r\n', '{gsp_nl}')   # Windows
-        elif '\n' in s:
-            s = s.replace('\n', '{gsp_nl}') # Linux
-        elif '\r' in s:
-            s = s.replace('\r', '{gsp_nl}') # Mac
-        return s
+    def format_text(self, string):
+        string = string.strip()
+        string = string.replace('{', '{{').replace('}', '}}')
+        if r'<b>' in string:
+            string = string.replace(r'<b>', '{gsp_b_}')
+            string = string.replace(r'</b>', '{_gsp_b}')
+        if r'<u>' in string:
+            string = string.replace(r'<u>', '{gsp_u_}')
+            string = string.replace(r'</u>', '{_gsp_u}')
+        if r'<i>' in string:
+            string = string.replace(r'<i>', '{gsp_i_}')
+            string = string.replace(r'</i>', '{_gsp_i}')
+        if '\r\n' in string:
+            string = string.replace('\r\n', '{gsp_nl}')   # Windows
+        elif '\n' in string:
+            string = string.replace('\n', '{gsp_nl}') # Linux
+        elif '\r' in string:
+            string = string.replace('\r', '{gsp_nl}') # Mac
+        return string
     
-    def get_time(self, ft, which):
-        return '%02d:%02d:%02d,%03d' % (int(ft.hours), int(ft.minutes), int(ft.seconds), int(ft.miliseconds))
+    def get_time(self, frametime, which):
+        return '%02d:%02d:%02d,%03d' % (int(frametime.hours), int(frametime.minutes), int(frametime.seconds), int(frametime.miliseconds))
 
 class SubViewer(GenericSubParser):
+    """See a GenericSubParser for a documentation."""
+
     __SUB_TYPE__ = 'SubViewer 1.0'
     __OPT__ = 'subviewer'
     __FMT__ = 'time'
@@ -150,30 +156,30 @@ class SubViewer(GenericSubParser):
         'gsp_nl':   os.linesep,
     }
     
-    def __init__(self, f, fps, encoding, lines = None):
+    def __init__(self, filename, fps, encoding, lines = None):
         self.time_fmt = re.compile(self.time_fmt)
-        GenericSubParser.__init__(self, f, fps, encoding, lines)
+        GenericSubParser.__init__(self, filename, fps, encoding, lines)
     
-    def str_to_frametime(self, s):
-        time = self.time_fmt.search(s)
+    def str_to_frametime(self, string):
+        time = self.time_fmt.search(string)
         return FrameTime(fps=self.fps, value_type=self.__FMT__, \
             h=time.group('h'), m=time.group('m'), \
             s=time.group('s'), ms=time.group('ms'))
 
-    def format_text(self, s):
-        s = s.strip()
-        s = s.replace('{', '{{').replace('}', '}}')
-        if '\r\n' in s:
-            s = s.replace('\r\n', '{gsp_nl}')   # Windows
-        elif '\n' in s:
-            s = s.replace('\n', '{gsp_nl}') # Linux
-        elif '\r' in s:
-            s = s.replace('\r', '{gsp_nl}') # Mac
-        return s
+    def format_text(self, string):
+        string = string.strip()
+        string = string.replace('{', '{{').replace('}', '}}')
+        if '\r\n' in string:
+            string = string.replace('\r\n', '{gsp_nl}')   # Windows
+        elif '\n' in string:
+            string = string.replace('\n', '{gsp_nl}') # Linux
+        elif '\r' in string:
+            string = string.replace('\r', '{gsp_nl}') # Mac
+        return string
 
-    def get_time(self, ft, which):
-        ms = int(round(ft.miliseconds / float(10)))
-        return '%02d:%02d:%02d.%02d' % (int(ft.hours), int(ft.minutes), int(ft.seconds), ms)
+    def get_time(self, frametime, which):
+        ms = int(round(frametime.miliseconds / float(10)))
+        return '%02d:%02d:%02d.%02d' % (int(frametime.hours), int(frametime.minutes), int(frametime.seconds), ms)
 
     def get_header(self, header, atom):
         if( '[colf]' in header.lower() and '[information]' in header.lower()):
@@ -233,6 +239,8 @@ class SubViewer(GenericSubParser):
             (color, font_style, font_size, font, os.linesep)])
 
 class TMP(GenericSubParser):
+    """See a GenericSubParser for a documentation."""
+
     __SUB_TYPE__ = 'TMP'
     __OPT__ = 'tmp'
     __FMT__ = 'time'
@@ -253,30 +261,30 @@ class TMP(GenericSubParser):
         'gsp_nl':   r'|',
     }
 
-    def __init__(self, f, fps, encoding, lines = None):
+    def __init__(self, filename, fps, encoding, lines = None):
         self.time_fmt = re.compile(self.time_fmt)
-        GenericSubParser.__init__(self, f, fps, encoding, lines)
+        GenericSubParser.__init__(self, filename, fps, encoding, lines)
 
-    def str_to_frametime(self, s):
-        time = self.time_fmt.search(s)
+    def str_to_frametime(self, string):
+        time = self.time_fmt.search(string)
         return FrameTime(fps=self.fps, value_type=self.__FMT__, \
             h=time.group('h'), m=time.group('m'), \
             s=time.group('s'), ms=0)
 
-    def format_text(self, s):
-        s = s.strip()
-        s = s.replace('{', '{{').replace('}', '}}')
-        if '|' in s:
-            s = s.replace('|', '{gsp_nl}')
-        if '\r\n' in s:
-            s = s.replace('\r\n', '{gsp_nl}')   # Windows
-        elif '\n' in s:
-            s = s.replace('\n', '{gsp_nl}') # Linux
-        elif '\r' in s:
-            s = s.replace('\r', '{gsp_nl}') # Mac
-        return s
+    def format_text(self, string):
+        string = string.strip()
+        string = string.replace('{', '{{').replace('}', '}}')
+        if '|' in string:
+            string = string.replace('|', '{gsp_nl}')
+        if '\r\n' in string:
+            string = string.replace('\r\n', '{gsp_nl}')   # Windows
+        elif '\n' in string:
+            string = string.replace('\n', '{gsp_nl}') # Linux
+        elif '\r' in string:
+            string = string.replace('\r', '{gsp_nl}') # Mac
+        return string
 
-    def get_time(self, ft, which):
+    def get_time(self, frametime, which):
         if which == 'time_from':
-            return '%02d:%02d:%02d' % (int(ft.hours), int(ft.minutes), int(ft.seconds))
+            return '%02d:%02d:%02d' % (int(frametime.hours), int(frametime.minutes), int(frametime.seconds))
 
