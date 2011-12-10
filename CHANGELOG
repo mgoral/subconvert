@@ -1,5 +1,10 @@
 Version history
 
+0.8.2   :
+* FIX: HUGE code refactoring
+* FIX: ugly converting error (which doubled first subtitle and removed rhe 
+    last one)
+
 0.8.1   : 07.12.2011
 * ADD: SubConvert updater
 * ADD: encoding detecting (optional)
