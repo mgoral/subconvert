@@ -17,7 +17,7 @@ setup(
     download_url = "https://github.com/virgoerns/subconvert/zipball/master",
     license = "GPLv3+",
     package_dir = {'':'src'},
-    packages = find_packages(),
+    packages = find_packages(exclude=["test"]),
     py_modules = ["subparser.Convert", "subparser.FrameTime", \
         "subparser.Parsers", "subparser.SubParser", "subparser.version", \
         "subconvert", "subconvert_gui", "subconvert_update"],
