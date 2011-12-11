@@ -1,5 +1,5 @@
 #!/bin/bash
 
-export PYTHONPATH=$PYTHONPATH:/home/virgo/Programy/python/subconvert/src
+export PYTHONPATH=/home/virgo/Programy/python/subconvert/src:$PYTHONPATH
 
 python test_parsers.py
