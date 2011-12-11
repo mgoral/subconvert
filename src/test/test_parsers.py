@@ -41,7 +41,6 @@ class TestParsers(unittest.TestCase):
         self.original_file = "SubSample.sub"
         self.encoding = "utf8"
         self.fps = 25
-        print "Testing SubConvert, version %s.\n\n" % version.__version__
         with codecs.open(self.original_file, mode='r', encoding=self.encoding) as file_:
             self.file_input = file_.readlines()
         with codecs.open(self.original_file, mode='rb', encoding=self.encoding) as file_:
@@ -90,7 +89,20 @@ class TestParsers(unittest.TestCase):
     def test_subrip(self):
         print " ... running SubRip test"
         self.two_way_parser_test(Parsers.SubRip)
+
+    def test_microdvd(self):
+        print " ... running MicroDVD test"
+        self.two_way_parser_test(Parsers.MicroDVD)
+
+    def test_subviewer(self):
+        print " ... running SubViewer test"
+        self.two_way_parser_test(Parsers.SubViewer)
+        
+    def test_tmp(self):
+        print " ... running TMP test"
+        self.two_way_parser_test(Parsers.TMP)
         
 if __name__ == "__main__":
+    print "Testing SubConvert, version %s.\n\n" % version.__version__
     unittest.main()
         
