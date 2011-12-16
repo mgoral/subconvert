@@ -30,10 +30,9 @@ import time
 
 import subparser.SubParser as SubParser
 import subparser.Convert as Convert
+import subparser.version as version
 
 from optparse import OptionParser, OptionGroup
-
-import subcinfo.py
 
 log = logging.getLogger('SubConvert')
 
