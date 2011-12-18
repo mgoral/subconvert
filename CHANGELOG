@@ -1,64 +1,65 @@
 Version history
 
 0.8.2   :
-* FIX: HUGE code refactoring
-* FIX: ugly converting error (which doubled first subtitle and removed rhe 
-    last one)
+* ADD:  Unit tests
+* FIX:  HUGE code refactoring
+* FIX:  ugly converting error (which doubled first subtitle and removed rhe 
+        last one)
 
 0.8.1   : 07.12.2011
-* ADD: SubConvert updater
-* ADD: encoding detecting (optional)
+* ADD:  SubConvert updater
+* ADD:  encoding detecting (optional)
 
 0.8.0-1 : 04.12.2011
-* FIX: unhandled assertion errors which were caused by incorrect subtitles
+* FIX:  unhandled assertion errors which were caused by incorrect subtitles
 
 0.8     : 28.11.2011
-* ADD: setup.py (installer)
-* ADD: GUI
-* ADD: option to stop converting when file exists. Not only it stops file from
-    being updated but also quits batch work.
-* FIX: remove file extension from subviewer's [TITLE]
-* FIX: let the shell find python in $PATH
-* FIX: Add maximum file size limit to subtitle files.
-* FIX: Better parsing state output.
-* FIX: Don't save not completely parsed files anymore.
+* ADD:  setup.py (installer)
+* ADD:  GUI
+* ADD:  option to stop converting when file exists. Not only it stops file from
+        being updated but also quits batch work.
+* FIX:  remove file extension from subviewer's [TITLE]
+* FIX:  let the shell find python in $PATH
+* FIX:  Add maximum file size limit to subtitle files.
+* FIX:  Better parsing state output.
+* FIX:  Don't save not completely parsed files anymore.
 
 0.7     : 19.11.2011
-* ADD: TMP sub formatting
-* ADD: SubViewer sub formatting
-* ADD: full converting subtitles without sub end time
-* ADD: support subtitles with header
-* FIX: error on -m option mistyped
-* FIX: error that prevented sub parsing when no sub end time was present
+* ADD:  TMP sub formatting
+* ADD:  SubViewer sub formatting
+* ADD:  full converting subtitles without sub end time
+* ADD:  support subtitles with header
+* FIX:  error on -m option mistyped
+* FIX:  error that prevented sub parsing when no sub end time was present
 
 0.6.2   : 13.11.2011
-* ADD: mplayer auto-check more movie formats: mkv, mpg, mp4 and wmv
-* ADD: handle multiple input files
-* ADD: option to specify output file(s) extension
-* FIX: SubRip incorrect parsing (trivia: in my test subtitles a word which
-    starts with 'f' appears for the first time in 119th subtitle)
-* FIX: not clear notifications about parsing and IO operations state + add some
-    more info to verbose output
+* ADD:  mplayer auto-check more movie formats: mkv, mpg, mp4 and wmv
+* ADD:  handle multiple input files
+* ADD:  option to specify output file(s) extension
+* FIX:  SubRip incorrect parsing (trivia: in my test subtitles a word which
+        starts with 'f' appears for the first time in 119th subtitle)
+* FIX:  not clear notifications about parsing and IO operations state + add some
+        more info to verbose output
 
 0.6.1   : 10.11.2011
-* FIX: Uniform backup system
-* FIX: A lot of code refactoring. Now works slightly faster
+* FIX:  Uniform backup system
+* FIX:  A lot of code refactoring. Now works slightly faster
 
 0.6     : 10.11.2011
-* ADD: getting FPS from avi files using MPlayer
-* ADD: option to backup files if they exist (overwriting input files are back
-    them up automatically while output files are backed up explicitly)
-* FIX: code refactoring. Until now subconvert reads whole files to the memory
-    which speeds it up almost twice
-* FIX: bug where parsing empty files returned results
+* ADD:  getting FPS from avi files using MPlayer
+* ADD:  option to backup files if they exist (overwriting input files are back
+        them up automatically while output files are backed up explicitly)
+* FIX:  code refactoring. Until now subconvert reads whole files to the memory
+        which speeds it up almost twice
+* FIX:  bug where parsing empty files returned results
 
 0.5.2   : 09.11.2011
-* ADD: force option
-* ADD: verbose option
-* FIX: writing a newly created file
-* FIX: unescaped curly braces in microdvd and subrip that caused crashes
+* ADD:  force option
+* ADD:  verbose option
+* FIX:  writing a newly created file
+* FIX:  unescaped curly braces in microdvd and subrip that caused crashes
 
 0.5     : 09.11.2011
-* ADD: SubRip and MicroDVD parsers/handlers
-* ADD: Writing output to a file
-* ADD: Automatic handling all newly implemented file formats
+* ADD:  SubRip and MicroDVD parsers/handlers
+* ADD:  Writing output to a file
+* ADD:  Automatic handling all newly implemented file formats
