@@ -48,7 +48,7 @@ class FrameTime(object):
             self.hours = int(kwargs['h'])
             self.frame = int(round(self.fps * (3600*self.hours + 60*self.minutes + self.seconds + float(self.miliseconds)/1000)))
             self.full_seconds = self.frame / self.fps
-        elif value_type == 'ss':
+        elif value_type == 'full_seconds':
             self.__set_time__( kwargs['seconds'] )
         else:
             raise AttributeError, _("Not supported FrameTime type: '%s'") % value_type
@@ -90,35 +90,35 @@ class FrameTime(object):
     def __cmp__(self, other):
         """Define FrameTime comparing"""
         assert(self.fps == other.fps)
-        if self.full_seconds < other.ss:
+        if self.full_seconds < other.full_seconds:
             return -1
-        elif self.full_seconds == other.ss:
+        elif self.full_seconds == other.full_seconds:
             return 0
-        elif self.full_seconds > other.ss:
+        elif self.full_seconds > other.full_seconds:
             return 1
 
     def __add__(self, other):
         """Define FrameTime + FrameTime"""
         assert(self.fps == other.fps)
-        result = self.full_seconds + other.ss
-        return FrameTime(fps = self.fps, value_type = 'ss', seconds = result)
+        result = self.full_seconds + other.full_seconds
+        return FrameTime(fps = self.fps, value_type = 'full_seconds', seconds = result)
     
     def __sub__(self, other):
         """Define FrameTime - FrameTime"""
         assert(self.fps == other.fps)
-        assert(self.full_seconds >= other.ss)
-        result = self.full_seconds - other.ss
-        return FrameTime(fps = self.fps, value_type = 'ss', seconds = result)
+        assert(self.full_seconds >= other.full_seconds)
+        result = self.full_seconds - other.full_seconds
+        return FrameTime(fps = self.fps, value_type = 'full_seconds', seconds = result)
     
     def __mul__(self, val):
         """Define FrameTime * number"""
         result = self.full_seconds * val
-        return FrameTime(fps = self.fps, value_type = 'ss', seconds = result)
+        return FrameTime(fps = self.fps, value_type = 'full_seconds', seconds = result)
     
     def __div__(self, val):
         """Define FrameTime / number"""
         result = self.full_seconds / val
-        return FrameTime(fps = self.fps, value_type = 'ss', seconds = result)
+        return FrameTime(fps = self.fps, value_type = 'full_seconds', seconds = result)
     
     def __str__(self):
         """Define str(FrameTime)"""

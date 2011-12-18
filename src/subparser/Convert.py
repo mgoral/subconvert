@@ -131,8 +131,8 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
                     if sub_pair[0]:
                         if not sub_pair[0]['sub']['time_to']:
                             if sub_pair[1] is None:
-                                sub_pair[1]['sub']['time_to'] = \
-                                    sub_pair[1]['sub']['time_from'] + FrameTime.FrameTime(file_fps, 'ss', seconds = 2.5)
+                                sub_pair[0]['sub']['time_to'] = \
+                                    sub_pair[0]['sub']['time_from'] + FrameTime.FrameTime(file_fps, 'full_seconds', seconds = 2.5)
                             else:
                                 sub_pair[0]['sub']['time_to'] = \
                                     sub_pair[0]['sub']['time_from'] + \

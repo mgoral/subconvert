@@ -77,7 +77,7 @@ class GenericSubParser(object):
 
     def message(self, line_no, msg = "parsing error."):
         '''Uniform error message.'''
-        return _("%s:%d %s") % (self.filename, line_no, msg)
+        return _("%s:%d %s") % (self.filename, line_no + 1, msg)
     
     def parse(self):
         '''Actual parser.
