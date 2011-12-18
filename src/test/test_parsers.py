@@ -49,14 +49,13 @@ class TestParsers(unittest.TestCase):
 
     def convert(self, parser, converter, filename):
         lines = []
-        for parsed in parser.parse():
-            if parsed is None:
-                break
-            sub = converter.convert(parsed)
-            lines.append(sub.decode(converter.encoding))
+
+        conv, lines = Convert.convert_file(self.original_file, self.encoding, self.fps, converter.__OPT__)
+
         with codecs.open(filename, mode='w', encoding=self.encoding) as file_:
             file_.writelines(lines)
         return lines
+
 
     def two_way_parser_test(self, tested_parser):
         test_file = "Test_%s.%s" % (tested_parser.__OPT__, tested_parser.__EXT__)
