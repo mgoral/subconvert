@@ -20,11 +20,10 @@ setup(
     packages = find_packages(exclude=["test"]),
     py_modules = ["subparser.Convert", "subparser.FrameTime", \
         "subparser.Parsers", "subparser.SubParser", "subparser.version", \
-        "subconvert", "subconvert_gui", "subconvert_update"],
+        "subconvert", "subconvert_gui"],
     entry_points = {
         'console_scripts' : [
             'subconvert = subconvert:main',
-            'subconvert-update = subconvert_update:main',
         ],
         'gui_scripts': [
             'subconvert-gui = subconvert_gui:main',
