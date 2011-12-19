@@ -35,6 +35,8 @@ Simply:
 This should install subconvert to your $PATH. If you do not have root privileges
 (or want to install subconvert only for one user) you can do it by:
     $ ./setup.py install --home=/home/user-name
+You can always check out the following command for installer built-in help:
+    ./setup.py --help
 
 [ 1.1.1 Dependencies ]
     + Python 2.6+
@@ -72,7 +74,8 @@ General options:
         Options which can be used to properly convert sub files.
 
     -e ENCODING, --encoding=ENCODING
-        Input (and output) file encoding. Default: 'ascii'. For a list of
+        Input (and output) file encoding. If no encoding is provided,
+        SubConvert will try to auto detect file encoding. For a list of
         available encodings, see: 
         http://docs.python.org/library/codecs.html#standard-encodings
         Examples: utf, cp1250, iso-8859-2
@@ -122,7 +125,7 @@ EXAMPLES:
     * subviewer
 
 [ 2 Programmer manual ]
-Generally main program uses GenericSubParser clas and it subclasses which are
+Generally main program uses GenericSubParser class and it subclasses which are
 automatically loaded. Each of thos subclasses should overwrite some attributes
 and methods which are called from the GenericSubParser.parse() method (that one
 MUST NOT be overwritten as it's the heart and the brain of the application).

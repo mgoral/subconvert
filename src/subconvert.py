@@ -53,7 +53,7 @@ def prepare_options():
         help=_("Generate debug output"))
     group_conv.add_option('-e', '--encoding',
         action='store', type='string', dest='encoding', default='ascii',
-        help=_("input file encoding. Default: 'ascii'. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
+        help=_("input file encoding. If no encoding is provided, SubConvert will try to automatically detect file encoding and switch to 'ascii' when unsuccessfull. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
     group_conv.add_option('-m', '--format',
         action='store', type='string', dest='format', default = 'subrip',
         help=_("output file format. Default: subrip"))
