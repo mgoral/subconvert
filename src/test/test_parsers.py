@@ -34,19 +34,14 @@ import subparser.version as version
 class TestParsers(unittest.TestCase):
     """Parsers UnitTest"""
 
-    @classmethod
-    def setUpClass(self):
-        """
-        Because of this method Python 2.7 is required to run tests.
-        """
-        self.original_file = "SubSample.sub"
-        self.encoding = "utf8"
-        self.fps = 25
-        with codecs.open(self.original_file, mode='r', encoding=self.encoding) as file_:
-            self.file_input = file_.readlines()
-        with codecs.open(self.original_file, mode='rb', encoding=self.encoding) as file_:
-            self.orig_md5 = hashlib.md5(file_.read())
-        self.subs_no = len(self.file_input)
+    original_file = "SubSample.sub"
+    encoding = "utf8"
+    fps = 25
+    with codecs.open(original_file, mode='r', encoding=encoding) as file_:
+        file_input = file_.readlines()
+    with codecs.open(original_file, mode='rb', encoding=encoding) as file_:
+        orig_md5 = hashlib.md5(file_.read())
+    subs_no = len(file_input)
 
     def convert(self, converter, file_to_parse, output_filename):
         lines = []

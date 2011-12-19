@@ -1,6 +1,13 @@
+SPATH=${HOME}/Programy/python/subconvert
+
 test:
-	export PYTHONPATH=/home/virgo/Programy/python/subconvert/src:${PYTHONPATH}
-	python test_parsers.py
+	PYTHONPATH=${SPATH}/src:${PYTHONPATH} python test_parsers.py
+
+test26:
+	PYTHONPATH=${SPATH}/src:${PYTHONPATH} python2.6 test_parsers.py
+
+test27:
+	PYTHONPATH=${SPATH}/src:${PYTHONPATH} python2.7 test_parsers.py
 
 clean:
 	rm -f Assert_*
@@ -9,3 +16,4 @@ clean:
 cleantest:
 	make test 
 	make clean
+
