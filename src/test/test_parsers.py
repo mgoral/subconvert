@@ -34,7 +34,7 @@ import subparser.version as version
 class TestParsers(unittest.TestCase):
     """Parsers UnitTest"""
 
-    original_file = "SubSample.sub"
+    original_file = "subs/SubSample.microdvd"
     encoding = "utf8"
     fps = 25
     with codecs.open(original_file, mode='r', encoding=encoding) as file_:
@@ -54,8 +54,8 @@ class TestParsers(unittest.TestCase):
 
 
     def two_way_parser_test(self, tested_parser, head_lines = 0):
-        test_file = "Test_%s.%s" % (tested_parser.__OPT__, tested_parser.__EXT__)
-        assert_file = "Assert_%s.subc" % tested_parser.__OPT__
+        test_file = "subs/Test_%s.%s" % (tested_parser.__OPT__, tested_parser.__EXT__)
+        assert_file = "subs/Assert_%s.subc" % tested_parser.__OPT__
         lines = []
 
         parser = Parsers.MicroDVD(self.original_file, self.fps, self.encoding, self.file_input)
@@ -91,7 +91,7 @@ class TestParsers(unittest.TestCase):
     def test_tmp(self):
         print " ... running TMP test"
         tested_parser = Parsers.TMP
-        test_file = "Test_%s.%s" % (tested_parser.__OPT__, tested_parser.__EXT__)
+        test_file = "subs/Test_%s.%s" % (tested_parser.__OPT__, tested_parser.__EXT__)
         parser = Parsers.MicroDVD(self.original_file, self.fps, self.encoding, self.file_input)
         conv = tested_parser(self.original_file, self.fps, self.encoding)
         lines = self.convert(conv, self.original_file, test_file)

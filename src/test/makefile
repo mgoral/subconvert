@@ -10,8 +10,8 @@ test27:
 	PYTHONPATH=${SPATH}/src:${PYTHONPATH} python2.7 test_parsers.py
 
 clean:
-	rm -f Assert_*
-	rm -f Test_*
+	rm -f subs/Assert_*
+	rm -f subs/Test_*
 
 cleantest:
 	make test 
