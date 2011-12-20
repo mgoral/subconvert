@@ -58,7 +58,6 @@ class TestParsers(unittest.TestCase):
         assert_file = "subs/Assert_%s.subc" % tested_parser.__OPT__
         lines = []
 
-        parser = Parsers.MicroDVD(self.original_file, self.fps, self.encoding, self.file_input)
         conv = tested_parser(self.original_file, self.fps, self.encoding)
         lines = self.convert(conv, self.original_file, test_file)
 
@@ -67,7 +66,6 @@ class TestParsers(unittest.TestCase):
         with codecs.open(test_file, mode='r', encoding=self.encoding) as file_:
             test_file_input = file_.readlines()
 
-        parser = tested_parser(test_file, self.fps, self.encoding, test_file_input)
         conv = Parsers.MicroDVD(test_file, self.fps, self.encoding)
         lines = self.convert(conv, test_file, assert_file)
         
