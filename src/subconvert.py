@@ -47,7 +47,7 @@ def prepare_options():
         help=_("force all operations without asking (assuming yes)"))
     optp.add_option('-q', '--quiet',
         action='store_true', dest='quiet', default=False,
-        help=_("verbose output"))
+        help=_("quiet output"))
     optp.add_option('--debug',
         action='store_true', dest='debug_messages', default=False,
         help=_("Generate debug output"))
