@@ -3,8 +3,9 @@ Version history
 0.8.2   :
 * ADD:  Unit tests
 * FIX:  HUGE code refactoring
-* FIX:  ugly converting error (which doubled first subtitle and removed rhe 
+* FIX:  ugly converting error (which doubled first subtitle and removed the 
         last one)
+* FIX:  incorrect SubViewer miliseconds converting
 
 0.8.1   : 07.12.2011
 * ADD:  SubConvert updater
