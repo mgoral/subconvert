@@ -164,7 +164,7 @@ class SubViewer(GenericSubParser):
         time = self.time_fmt.search(string)
         return FrameTime(fps=self.fps, value_type=self.__FMT__, \
             h=time.group('h'), m=time.group('m'), \
-            s=time.group('s'), ms=time.group('ms'))
+            s=time.group('s'), ms=int(time.group('ms'))*10)
 
     def format_text(self, string):
         string = string.strip()
