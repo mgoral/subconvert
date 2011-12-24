@@ -1,20 +1,22 @@
+echo 'May the Force be with you during SubConvert tests!'
+
 cd ..
 SPATH=`pwd`
-cd -
+cd - > /dev/null
 
 if [ ! -d 'log' ]; then
     echo "Creating log directory..."
     mkdir log
 fi
 
-sh clean.sh
+sh clean.sh 2> /dev/null
 
 echo "Running tests..."
 for test in ./test_*.py
 do
     TESTNAME=`basename ${test}`
     TESTNAME=${TESTNAME%.*}
-    PYTHONPATH=${SPATH}/src:${PYTHONPATH} python ${test} &>> log/${TESTNAME}.log
+    PYTHONPATH=${SPATH}/src:${PYTHONPATH} python ${test} 2>> log/${TESTNAME}.log
 done
 
 # Uncomment to enable other Python versions tests
@@ -24,7 +26,7 @@ done
 #do
 #    TESTNAME=`basename ${test}`
 #    TESTNAME=${TESTNAME%.*}
-#    PYTHONPATH=${SPATH}/src:${PYTHONPATH} python2.6 ${test} &>> log/${TESTNAME}_26.log
+#    PYTHONPATH=${SPATH}/src:${PYTHONPATH} python2.6 ${test} 2>> log/${TESTNAME}_26.log
 #done
 
 #echo "Running Python 2.7 tests..."
@@ -32,7 +34,7 @@ done
 #do
 #    TESTNAME=`basename ${test}`
 #    TESTNAME=${TESTNAME%.*}
-#    PYTHONPATH=${SPATH}/src:${PYTHONPATH} python2.7 ${test} &>> log/${TESTNAME}_27.log
+#    PYTHONPATH=${SPATH}/src:${PYTHONPATH} python2.7 ${test} 2>> log/${TESTNAME}_27.log
 #done
 
 echo -e "\n=============== [ Summary ] ==============="
