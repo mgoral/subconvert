@@ -105,7 +105,7 @@ class GenericSubParser(object):
                 if self.__HEADER_FOUND__:
                     self.__PARSED__ = True
                     sub_section = ''
-            elif end:
+            elif end or (line_no + 1) == len(self.lines):
                 matched = self.pattern.search(sub_section)
                 try:
                     if matched.group('time_from'):
