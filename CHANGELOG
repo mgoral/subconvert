@@ -2,6 +2,7 @@ Version history
 
 0.8.2   :
 * ADD:  Unit tests
+* ADD:  option to specify output file(s) encoding
 * FIX:  HUGE code refactoring
 * FIX:  ugly converting error (which doubled first subtitle and removed the 
         last one)

@@ -54,6 +54,9 @@ def prepare_options():
     group_conv.add_option('-e', '--encoding',
         action='store', type='string', dest='encoding', default='ascii',
         help=_("input file encoding. If no encoding is provided, SubConvert will try to automatically detect file encoding and switch to 'ascii' when unsuccessfull. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
+    group_conv.add_option('-E', '--output-encoding',
+        action='store', type='string', dest='output_encoding', default='',
+        help=_("output file encoding. If no output encoding is provided, SubConvert will save output files with the same encoding as input."))
     group_conv.add_option('-m', '--format',
         action='store', type='string', dest='format', default = 'subrip',
         help=_("output file format. Default: subrip"))
@@ -116,14 +119,20 @@ def main():
 
         encoding = Convert.detect_encoding(arg, options.encoding)
 
+        if not options.output_encoding:
+            options.output_encoding = encoding
+
         try:
-            conv, lines = Convert.convert_file(arg, encoding, options.fps, options.format, options.ext)
+            conv, lines = Convert.convert_file(arg, encoding, options.output_encoding, options.fps, options.format, options.ext)
         except NameError, msg:
             log.error(_("'%s' format not supported (or mistyped).") % options.format)
             log.debug(msg)  # in case some other Name Error occured (i.e. while refactoring)
             return -1
         except UnicodeDecodeError:
             log.error(_("Couldn't handle '%s' given '%s' encoding.") % (arg, encoding))
+            continue
+        except UnicodeEncodeError:
+            log.error(_("Couldnt convert from '%s' encoding to '%s'") % (encoding, options.output_encoding))
             continue
         except SubParser.SubParsingError, msg:
             log.error(msg)

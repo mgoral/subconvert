@@ -95,7 +95,7 @@ def detect_encoding( filepath, encoding ):
             log.info(_("I am not too confident about encoding (most probably %s). Skipping check.") % enc['encoding'])
     return encoding
 
-def convert_file(filepath, file_encoding, file_fps, output_format, output_extension = ''):
+def convert_file(filepath, file_encoding, output_encoding, file_fps, output_format, output_extension = ''):
     """Convert a file to given output format (with optional output extension)."""
 
     cls = SubParser.GenericSubParser.__subclasses__()
@@ -105,7 +105,7 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
         if c.__OPT__ == output_format:
             filename, extension = os.path.splitext(filepath)
             extension = output_extension if output_extension else c.__EXT__
-            conv = c(filename + '.' + extension, file_fps, file_encoding)
+            conv = c(filename + '.' + extension, file_fps, output_encoding)
             break
     if not conv:
         raise NameError
@@ -124,7 +124,10 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
                         header = {}
                     header = conv.convert_header(header)
                     if header:
-                        lines.append(header.decode(conv.encoding))
+                        try:
+                            lines.append(header.decode(conv.encoding))
+                        except UnicodeEncodeError:
+                            raise
                 sub_pair[0] = sub_pair[1]
                 sub_pair[1] = parsed
                 try:
@@ -138,7 +141,10 @@ def convert_file(filepath, file_encoding, file_fps, output_format, output_extens
                                     sub_pair[0]['sub']['time_from'] + \
                                     (sub_pair[1]['sub']['time_from'] - sub_pair[0]['sub']['time_from']) * 0.85
                         sub = conv.convert(sub_pair[0])
-                        lines.append(sub.decode(conv.encoding))
+                        try:
+                            lines.append(sub.decode(conv.encoding))
+                        except UnicodeEncodeError:
+                            raise
                 except AssertionError:
                     log.warning(_("Correct time not asserted for subtitle %d. Skipping it...") % (sub_pair[0]['sub_no']))
                     log.debug(_(".. incorrect subtitle pair times: (%s, %s)") % (sub_pair[0]['sub']['time_from'], sub_pair[1]['sub']['time_from']))
