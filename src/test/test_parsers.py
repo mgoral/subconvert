@@ -75,19 +75,19 @@ class TestParsers(unittest.TestCase):
         self.assertEqual(self.orig_md5.hexdigest(), assert_md5.hexdigest())
 
     def test_subrip(self):
-        print " ... running SubRip test"
+        log.info(" \n... running SubRip test")
         self.two_way_parser_test(Parsers.SubRip)
 
     def test_microdvd(self):
-        print " ... running MicroDVD test"
+        log.info(" \n... running MicroDVD test")
         self.two_way_parser_test(Parsers.MicroDVD)
 
     def test_subviewer(self):
-        print " ... running SubViewer test"
+        log.info(" \n... running SubViewer test")
         self.two_way_parser_test(Parsers.SubViewer, 1)
         
     def test_tmp(self):
-        print " ... running TMP test"
+        log.info(" \n... running TMP test")
         tested_parser = Parsers.TMP
         test_file = "subs/Test_%s.%s" % (tested_parser.__OPT__, tested_parser.__EXT__)
         parser = Parsers.MicroDVD(self.original_file, self.fps, self.encoding, self.file_input)
@@ -96,9 +96,9 @@ class TestParsers(unittest.TestCase):
         self.assertEqual(self.subs_no, len(lines) ) # TMP will remove subs with incorrect timing
         
 if __name__ == "__main__":
-    print "Testing SubConvert, version %s.\n\n" % version.__version__
     log = logging.getLogger('SubConvert')
     log.setLevel(logging.DEBUG)
     log.addHandler(logging.StreamHandler())
+    log.info("Testing SubConvert, version %s.\n\n" % version.__version__)
     unittest.main()
         
