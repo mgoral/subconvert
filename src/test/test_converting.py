@@ -32,7 +32,7 @@ import subparser.version as version
 
 
 
-class TestParsers(unittest.TestCase):
+class TestConverting(unittest.TestCase):
     """Parsers UnitTest"""
 
     original_file = "subs/SubSample.microdvd"
@@ -47,7 +47,7 @@ class TestParsers(unittest.TestCase):
     def convert(self, converter, file_to_parse, output_filename):
         lines = []
 
-        conv, lines = Convert.convert_file(file_to_parse, self.encoding, self.fps, converter.__OPT__)
+        conv, lines = Convert.convert_file(file_to_parse, self.encoding, self.encoding, self.fps, converter.__OPT__)
 
         with codecs.open(output_filename, mode='w', encoding=self.encoding) as file_:
             file_.writelines(lines)
