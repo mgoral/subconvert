@@ -23,6 +23,7 @@ import unittest
 import codecs
 import logging
 import hashlib
+import datetime
 
 import subparser.SubParser as SubParser
 import subparser.Parsers as Parsers
@@ -99,6 +100,7 @@ if __name__ == "__main__":
     log = logging.getLogger('SubConvert')
     log.setLevel(logging.DEBUG)
     log.addHandler(logging.StreamHandler())
-    log.info("Testing SubConvert, version %s.\n\n" % version.__version__)
+    log.info("Testing SubConvert, version %s." % version.__version__)
+    log.info(datetime.datetime.now().isoformat())
     unittest.main()
         
