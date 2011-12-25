@@ -24,6 +24,7 @@ import codecs
 import logging
 import hashlib
 import datetime
+import re
 
 import subparser.SubParser as SubParser
 import subparser.Parsers as Parsers
@@ -46,55 +47,49 @@ class TestConverting(unittest.TestCase):
 
     def convert(self, converter, file_to_parse, output_filename):
         lines = []
-
         conv, lines = Convert.convert_file(file_to_parse, self.encoding, self.encoding, self.fps, converter.__OPT__)
-
         with codecs.open(output_filename, mode='w', encoding=self.encoding) as file_:
             file_.writelines(lines)
         return lines
 
+    def compare(self, original_file, assert_file, remove_empty_lines = False):
+        with codecs.open(original_file, mode = 'r', encoding = self.encoding) as file_:
+            original_lines = file_.readlines()
+        with codecs.open(assert_file, mode = 'r', encoding = self.encoding) as file_:
+            assert_lines = file_.readlines()
 
-    def two_way_parser_test(self, tested_parser, head_lines = 0):
+        if remove_empty_lines:
+            while os.linesep in original_lines:
+                original_lines.remove(os.linesep)
+            while os.linesep in assert_lines:
+                assert_lines.remove(os.linesep)
+
+        self.assertEqual(original_lines, assert_lines)
+        
+
+    def two_way_parser_test(self, tested_parser, original_file, remove_empty_lines = False):
         test_file = "subs/Test_%s.%s" % (tested_parser.__OPT__, tested_parser.__EXT__)
-        assert_file = "subs/Assert_%s.subc" % tested_parser.__OPT__
-        lines = []
 
-        conv = tested_parser(self.original_file, self.fps, self.encoding)
-        lines = self.convert(conv, self.original_file, test_file)
+        conv = tested_parser(original_file, self.fps, self.encoding)
+        self.convert(conv, original_file, test_file)
 
-        self.assertEqual(self.subs_no, len(lines) - head_lines)
-
-        with codecs.open(test_file, mode='r', encoding=self.encoding) as file_:
-            test_file_input = file_.readlines()
-
-        conv = Parsers.MicroDVD(test_file, self.fps, self.encoding)
-        lines = self.convert(conv, test_file, assert_file)
-        
-        with open(assert_file, mode='rb') as file_:
-            assert_md5 = hashlib.md5(file_.read())
-        
-        self.assertEqual(self.orig_md5.hexdigest(), assert_md5.hexdigest())
+        self.compare(original_file, test_file, remove_empty_lines)
 
     def test_subrip(self):
         log.info(" \n... running SubRip test")
-        self.two_way_parser_test(Parsers.SubRip)
+        self.two_way_parser_test(Parsers.SubRip, 'subs/SubSample.subrip', True)
 
     def test_microdvd(self):
         log.info(" \n... running MicroDVD test")
-        self.two_way_parser_test(Parsers.MicroDVD)
+        self.two_way_parser_test(Parsers.MicroDVD, 'subs/SubSample.microdvd')
 
     def test_subviewer(self):
         log.info(" \n... running SubViewer test")
-        self.two_way_parser_test(Parsers.SubViewer, 1)
+        self.two_way_parser_test(Parsers.SubViewer, 'subs/SubSample.subviewer')
         
     def test_tmp(self):
         log.info(" \n... running TMP test")
-        tested_parser = Parsers.TMP
-        test_file = "subs/Test_%s.%s" % (tested_parser.__OPT__, tested_parser.__EXT__)
-        parser = Parsers.MicroDVD(self.original_file, self.fps, self.encoding, self.file_input)
-        conv = tested_parser(self.original_file, self.fps, self.encoding)
-        lines = self.convert(conv, self.original_file, test_file)
-        self.assertEqual(self.subs_no, len(lines) ) # TMP will remove subs with incorrect timing
+        self.two_way_parser_test(Parsers.TMP, 'subs/SubSample.tmp')
         
 if __name__ == "__main__":
     log = logging.getLogger('SubConvert')
