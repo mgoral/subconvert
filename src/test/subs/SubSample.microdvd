@@ -1,5 +1,5 @@
 {0}{25}This is first subtitle.
-{30}{75}{y:i}This is a simple MicroDVD file
+{30}{75}{y:i}{y:u}{y:b}This is a simple MicroDVD file
 {100}{150}It is UTF8 encoded
 {151}{153}Strange timings
 {200}{400}This is a very, very, very long line|which moreover has a newline inside
