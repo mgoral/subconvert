@@ -45,6 +45,6 @@ do
     echo "+-------------------------------------------"
     grep -e 'ERROR: ' ${file}
     grep -e 'FAIL: ' ${file}
-    grep -e 'OK' ${file}
+    grep -e '^OK$' ${file}
     echo
 done
