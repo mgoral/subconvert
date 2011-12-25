@@ -9,6 +9,8 @@ Version history
 * FIX:  incorrect SubViewer miliseconds converting
 * FIX:  SubRip skipping last sub when no new line at the EOF (now Generic
         Parser forces parsing a section at the EOF)
+* FIX:  empty do not cause SubParsingErrors no more
+* RMV:  custom updater
 
 0.8.1   : 07.12.2011
 * ADD:  SubConvert updater
