@@ -72,6 +72,18 @@ class TestChardet(unittest.TestCase):
         original_file = 'subs/enc.iso88592'
         encoding = Convert.detect_encoding(original_file, 'iso-8859-2')
         self.assertEqual( encoding.lower(), 'iso-8859-2' )
+
+    def test_converting(self):
+        log.info(" \n... running encoding converter test")
+        original_file = 'subs/enc.utf8'
+        new_file = 'subs/Test_encoding'
+        encoding = Convert.detect_encoding(original_file, None)
+        with codecs.open(original_file, mode='r', encoding=encoding) as file_:
+            lines = file_.readlines()
+        with codecs.open(new_file, mode='w', encoding='utf-16') as file_:
+            file_.writelines(lines)
+        encoding = Convert.detect_encoding(new_file, None)
+        self.assertEqual( encoding.lower(), 'utf-16le' )
        
 if __name__ == "__main__":
     log = logging.getLogger('SubConvert')
