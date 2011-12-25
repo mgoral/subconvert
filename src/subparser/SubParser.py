@@ -120,12 +120,13 @@ class GenericSubParser(object):
                         atom['time_to'] = self.str_to_frametime(atom['time_to'])
                 except AttributeError, msg:
                     if i > 0:
-                        if sub_section in ('\n', '\r\n', '\r'):
+                        if sub_section in (r'\n', r'\r\n', r'\r'):
                             log.debug(self.message(line_no, _("Skipping empty line.")))
                             sub_section = ''
                             atom = {'time_from': '', 'time_to': '', 'text': '',}
                             continue
-                        raise SubParsingError, self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__)
+                        else:
+                            raise SubParsingError, self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__)
                     else:
                         log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
                         return 
