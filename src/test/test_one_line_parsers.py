@@ -62,6 +62,8 @@ class TestParsers(unittest.TestCase):
             lines.append(parsed)
             if parsed is not None:
                 self.assertEqual( parsed['sub']['time_from'], test_lines[i]['time_from'] )
+                self.assertEqual( parsed['sub']['time_to'], test_lines[i]['time_to'] )
+                self.assertEqual( parsed['sub']['text'], test_lines[i]['text'] )
 
         assert( 0 < len(lines) )
 
