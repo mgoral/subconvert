@@ -74,11 +74,14 @@ General options:
         Options which can be used to properly convert sub files.
 
     -e ENCODING, --encoding=ENCODING
-        Input (and output) file encoding. If no encoding is provided,
-        SubConvert will try to auto detect file encoding. For a list of
-        available encodings, see: 
+        Input file encoding. If no encoding is provided, SubConvert will try to
+        auto detect file encoding and switch to 'UTF-8' when unsuccessfull. For
+        a list of available encodings, see: 
         http://docs.python.org/library/codecs.html#standard-encodings
-        Examples: utf, cp1250, iso-8859-2
+        Examples: ascii, utf, cp1250, iso-8859-2
+    -E OUTPUT_ENCODING, --output-encoding=OUTPUT_ENCODING
+        Output file encoding. If no output encoding is provided, SubConvert
+        will save output files with the same encoding as input.
     -m FORMAT, --format=FORMAT
         Output file format. Default: subrip. See section 
         [ 1.2.2 Available formats ] for details.

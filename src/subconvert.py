@@ -52,13 +52,13 @@ def prepare_options():
         action='store_true', dest='debug_messages', default=False,
         help=_("Generate debug output"))
     group_conv.add_option('-e', '--encoding',
-        action='store', type='string', dest='encoding', default='ascii',
-        help=_("input file encoding. If no encoding is provided, SubConvert will try to automatically detect file encoding and switch to 'ascii' when unsuccessfull. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
+        action='store', type='string', dest='encoding', default=None,
+        help=_("input file encoding. If no encoding is provided, SubConvert will try to automatically detect file encoding and switch to 'UTF-8' when unsuccessfull. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
     group_conv.add_option('-E', '--output-encoding',
-        action='store', type='string', dest='output_encoding', default='',
+        action='store', type='string', dest='output_encoding', default=None,
         help=_("output file encoding. If no output encoding is provided, SubConvert will save output files with the same encoding as input."))
     group_conv.add_option('-m', '--format',
-        action='store', type='string', dest='format', default = 'subrip',
+        action='store', type='string', dest='format_', default = 'subrip',
         help=_("output file format. Default: subrip"))
     group_conv.add_option('-s', '--fps',
         action='store', type='float', dest='fps', default = 25,
@@ -93,7 +93,7 @@ def main():
 
     if len(args)  < 1:
         log.error(_("Incorrect number of arguments."))
-        return -1
+        return 1
 
     # A little hack to assure that translator won't make a mistake
     _choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q'), 'backup': _('b') }
@@ -119,15 +119,21 @@ def main():
 
         encoding = Convert.detect_encoding(arg, options.encoding)
 
-        if not options.output_encoding:
-            options.output_encoding = encoding
+        output_encoding = options.output_encoding
+        if output_encoding is None:
+            output_encoding = encoding
+        log.debug( _("Input file encoding: %s.") % encoding)
+        log.debug( _("Output file encoding: %s.") % output_encoding)
 
         try:
-            conv, lines = Convert.convert_file(arg, encoding, options.output_encoding, options.fps, options.format, options.ext)
+            conv, lines = Convert.convert_file(arg, encoding, output_encoding, options.fps, options.format_, options.ext)
         except NameError, msg:
-            log.error(_("'%s' format not supported (or mistyped).") % options.format)
+            log.error(_("'%s' format not supported (or mistyped).") % options.format_)
             log.debug(msg)  # in case some other Name Error occured (i.e. while refactoring)
-            return -1
+            return 1
+        except LookupError, msg:
+            log.error(msg)
+            return 1
         except UnicodeDecodeError:
             log.error(_("Couldn't handle '%s' given '%s' encoding.") % (arg, encoding))
             continue
@@ -160,7 +166,7 @@ def main():
                     log.info(_("Overwriting %s") % conv.filename)
                 elif choice == _choices['quit']:
                     log.info(_("Quitting converting work."))
-                    return 1
+                    return 0
             else:
                 log.info("Writing to %s" % conv.filename)
         

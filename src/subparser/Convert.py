@@ -81,18 +81,19 @@ def detect_encoding( filepath, encoding ):
     autodetect when '-e ascii' option is given. It seems that optparse
     creates a new object (which is logical) when given an option from
     shell and overrides a variable in program memory."""
-    if IS_CHARDET and encoding is 'ascii': 
+    if IS_CHARDET and encoding is None: 
         file_size = os.path.getsize(filepath)
         size = 2000 if file_size > 2000 else file_size
-        with open(filepath, mode='r',) as file_:
+        with open(filepath, mode='rb',) as file_:
             enc = chardet.detect(file_.read(size))
             log.debug(_("Detecting encoding from %d bytes") % size)
             log.debug(_(" ...chardet: %s") % enc)
-        if enc['confidence'] > 0.60:
+        if enc['confidence'] > 0.52:
             encoding = enc['encoding']
             log.debug(_(" ...detected %s encoding.") % enc['encoding'])
         else:
-            log.info(_("I am not too confident about encoding (most probably %s). Skipping check.") % enc['encoding'])
+            encoding = 'utf-8'
+            log.info(_("I am not too confident about encoding (most probably %s). Setting default UTF-8") % enc['encoding'])
     return encoding
 
 def convert_file(filepath, file_encoding, output_encoding, file_fps, output_format, output_extension = ''):
@@ -109,8 +110,11 @@ def convert_file(filepath, file_encoding, output_encoding, file_fps, output_form
             break
     if not conv:
         raise NameError
-    with codecs.open(filepath, mode='r', encoding=file_encoding) as file_:
-        file_input = file_.readlines()
+    try:
+        with codecs.open(filepath, mode='r', encoding=file_encoding) as file_:
+            file_input = file_.readlines()
+    except LookupError, msg:
+        raise LookupError, _("Unknown encoding name: '%s'.") % file_encoding
 
     lines = []
     log.info(_("Trying to parse %s...") % filepath)

@@ -218,8 +218,12 @@ class SubConvertGUI(QtGui.QWidget):
             else:
                 encoding = opt_encoding
 
+            # TODO: this is temporary solution: user should be given an option
+            # to change output encoding
+            output_encoding = encoding
+
             try:
-                conv, lines = Convert.convert_file(arg, encoding, fps, sub_format, out_extension)
+                conv, lines = Convert.convert_file(arg, encoding, output_encoding, fps, sub_format, out_extension)
             except NameError:
                 convert_info.append(_("'%s' format not supported (or mistyped).") % sub_format)
                 return -1
