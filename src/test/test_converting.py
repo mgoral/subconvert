@@ -81,15 +81,15 @@ class TestConverting(unittest.TestCase):
 
     def test_microdvd(self):
         log.info(" \n... running MicroDVD test")
-        self.two_way_parser_test(Parsers.MicroDVD, 'subs/SubSample.microdvd')
+        self.two_way_parser_test(Parsers.MicroDVD, 'subs/SubSample.microdvd', True)
 
     def test_subviewer(self):
         log.info(" \n... running SubViewer test")
-        self.two_way_parser_test(Parsers.SubViewer, 'subs/SubSample.subviewer')
+        self.two_way_parser_test(Parsers.SubViewer, 'subs/SubSample.subviewer', True)
         
     def test_tmp(self):
         log.info(" \n... running TMP test")
-        self.two_way_parser_test(Parsers.TMP, 'subs/SubSample.tmp')
+        self.two_way_parser_test(Parsers.TMP, 'subs/SubSample.tmp', True)
         
 if __name__ == "__main__":
     log = logging.getLogger('SubConvert')

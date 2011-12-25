@@ -2,6 +2,7 @@
 00:00:00,000 --> 00:00:01,000
 This is first subtitle.
 
+
 1
 00:00:01,199 --> 00:00:03,000
 <i><u><b>This is a simple subtitle file</b></u></i>
@@ -13,6 +14,9 @@ It is UTF8 encoded
 3
 00:00:06,040 --> 00:00:06,120
 Strange timings
+
+
+
 
 4
 00:00:08,000 --> 00:00:16,000

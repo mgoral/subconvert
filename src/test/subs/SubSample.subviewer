@@ -19,6 +19,9 @@ This is a simple MicroDVD file
 00:00:04.00,00:00:06.00
 It is UTF8 encoded
 
+
+
+
 00:00:06.04,00:00:06.12
 Strange timings
 
@@ -40,4 +43,3 @@ Will parser escape those? /t/r/n
 
 00:01:20.00,00:01:22.00
 This is last subtitle.
-
