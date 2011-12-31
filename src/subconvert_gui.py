@@ -42,6 +42,9 @@ _ = gettext.gettext
 
 MAX_MEGS = 5 * 1048576
 
+STR_ENCODING = _("[Detect]")
+STR_OUTPUT_ENCODING = _("[Don't change]")
+
 class BackupMessage(QtGui.QMessageBox):
     def __init__(self, filename):
         QtGui.QMessageBox.__init__(self)
@@ -72,6 +75,7 @@ class SubConvertGUI(QtGui.QWidget):
         self.remove_file = QtGui.QPushButton('-', self)
         self.start = QtGui.QPushButton(_('Start'), self)
         self.encodings = QtGui.QComboBox(self)
+        self.output_encodings = QtGui.QComboBox(self)
         self.output_formats = QtGui.QComboBox(self)
         self.output_extensions = QtGui.QComboBox(self)
         self.fps = QtGui.QComboBox(self)
@@ -80,6 +84,7 @@ class SubConvertGUI(QtGui.QWidget):
         self.auto_fps = QtGui.QCheckBox(_('Get FPS from movie.'), self)
         self.fps_label = QtGui.QLabel('Movie FPS:', self)
         self.encoding_label = QtGui.QLabel(_('File(s) encoding:'), self)
+        self.output_encoding_label = QtGui.QLabel(_('Output encoding:'), self)
         self.format_label = QtGui.QLabel(_('Output format:'), self)
         self.extension_label = QtGui.QLabel(_('File extension:'), self)
 
@@ -95,6 +100,8 @@ class SubConvertGUI(QtGui.QWidget):
         self.grid.setSpacing(10)
         self.encodings.addItem(_('[Detect]'))
         self.encodings.addItems(self.get_encodings())
+        self.output_encodings.addItem(_("[Don't change]"))
+        self.output_encodings.addItems(self.get_encodings())
         for fmt in self.formats:
             self.output_formats.addItem(fmt[0], fmt[1])
         self.output_extensions.addItems(sub_extensions)
@@ -111,17 +118,19 @@ class SubConvertGUI(QtGui.QWidget):
         self.grid.addWidget(self.encodings, 0, 1)
         self.grid.addWidget(self.fps_label, 0, 2)
         self.grid.addWidget(self.fps, 0, 3)
-        self.grid.addWidget(self.file_list, 1, 0, 4, 6)
-        self.grid.addWidget(self.add_file, 1, 6 )
-        self.grid.addWidget(self.remove_file, 2, 6)
-        self.grid.addWidget(self.movie_path, 5, 0, 1, 6)
-        self.grid.addWidget(self.add_movie_file, 5, 6)
-        self.grid.addWidget(self.auto_fps, 6, 0, 1, 2)
-        self.grid.addWidget(self.format_label, 7, 0)
-        self.grid.addWidget(self.output_formats, 7, 1)
-        self.grid.addWidget(self.extension_label, 8, 0)
-        self.grid.addWidget(self.output_extensions, 8, 1)
-        self.grid.addWidget(self.start, 8, 6)
+        self.grid.addWidget(self.output_encoding_label, 1, 0)
+        self.grid.addWidget(self.output_encodings, 1, 1)
+        self.grid.addWidget(self.file_list, 2, 0, 4, 6)
+        self.grid.addWidget(self.add_file, 2, 6 )
+        self.grid.addWidget(self.remove_file, 3, 6)
+        self.grid.addWidget(self.movie_path, 6, 0, 1, 6)
+        self.grid.addWidget(self.add_movie_file, 6, 6)
+        self.grid.addWidget(self.auto_fps, 7, 0, 1, 2)
+        self.grid.addWidget(self.format_label, 8, 0)
+        self.grid.addWidget(self.output_formats, 8, 1)
+        self.grid.addWidget(self.extension_label, 9, 0)
+        self.grid.addWidget(self.output_extensions, 9, 1)
+        self.grid.addWidget(self.start, 9, 6)
 
         self.setLayout(self.grid)
         self.setWindowTitle('SubConvert')
@@ -186,7 +195,6 @@ class SubConvertGUI(QtGui.QWidget):
     def convert_files(self):
         time_start = time.time()
         fps = str(self.fps.currentText())
-        opt_encoding = str(self.encodings.currentText())
         movie_file = str(self.movie_path.text())
         files = [str(self.file_list.item(i).text()) for i in xrange(self.file_list.count())]
         sub_format = str(self.output_formats.itemData(self.output_formats.currentIndex()).toString())
@@ -213,14 +221,17 @@ class SubConvertGUI(QtGui.QWidget):
                 else:
                     fps = Convert.mplayer_check(movie_file, fps)
 
-            if opt_encoding == '[Detect]':
+            if 1 > self.encodings.currentIndex():
                 opt_encoding = None
+            else:
+                opt_encoding = str(self.encodings.currentText())
             encoding = Convert.detect_encoding(arg, opt_encoding)
 
-            # TODO: this is temporary solution: user should be given an option
-            # to change output encoding
-            output_encoding = encoding
-
+            if 1 > self.output_encodings.currentIndex():
+                output_encoding = encoding
+            else:
+                output_encoding = str(self.output_encodings.currentText())
+            
             try:
                 conv, lines = Convert.convert_file(arg, encoding, output_encoding, fps, sub_format, out_extension)
             except NameError:
@@ -246,7 +257,7 @@ class SubConvertGUI(QtGui.QWidget):
                             log.info(_("%s backed up as %s") % (_mvd, arg))
                             convert_info.append(_("%s backed up as %s") % (_mvd, arg))
                         else:
-                            _bck = Conveert.backup(conv.filename)[0]
+                            _bck = Convert.backup(conv.filename)[0]
                             convert_info.append(_("%s backed up as %s") % (conv.filename, _bck))
                     elif choice == 2: # No
                         convert_info.append(_("Skipping %s") % arg)
@@ -272,7 +283,7 @@ class SubConvertGUI(QtGui.QWidget):
         l.addItem(spacer, l.rowCount(), 0, 1, l.columnCount())
         summary.setWindowTitle(_("Subconvert - finished"))
         summary.setText(_("Work finished."))
-        summary.setInformativeText(os.linesep.join([_("Sub FPS: %s") % fps, _("Converted in: %f") % elapsed_time]))
+        summary.setInformativeText(os.linesep.join([_("Sub FPS: %s") % fps, _("Input encoding: %s") % encoding.replace('_', '-').upper(), _("Output encoding: %s") % output_encoding.replace('_', '-').upper(), _("Converted in: %f") % elapsed_time]))
         summary.setDetailedText(os.linesep.join(convert_info))
         summary.exec_()
 
