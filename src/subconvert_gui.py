@@ -214,9 +214,8 @@ class SubConvertGUI(QtGui.QWidget):
                     fps = Convert.mplayer_check(movie_file, fps)
 
             if opt_encoding == '[Detect]':
-                encoding = Convert.detect_encoding( arg, 'ascii' )
-            else:
-                encoding = opt_encoding
+                opt_encoding = None
+            encoding = Convert.detect_encoding(arg, opt_encoding)
 
             # TODO: this is temporary solution: user should be given an option
             # to change output encoding
