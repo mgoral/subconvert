@@ -42,9 +42,6 @@ _ = gettext.gettext
 
 MAX_MEGS = 5 * 1048576
 
-STR_ENCODING = _("[Detect]")
-STR_OUTPUT_ENCODING = _("[Don't change]")
-
 class BackupMessage(QtGui.QMessageBox):
     def __init__(self, filename):
         QtGui.QMessageBox.__init__(self)
