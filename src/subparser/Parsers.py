@@ -30,6 +30,7 @@ class MicroDVD(GenericSubParser):
     __SUB_TYPE__ = 'Micro DVD'
     __OPT__ = 'microdvd'
     __FMT__ = 'frame'
+    __EXT__ = 'sub'
     pattern = r'''
         ^
         \{(?P<time_from>\d+)\}  # {digits} 
@@ -294,6 +295,7 @@ class MPL2(GenericSubParser):
     __SUB_TYPE__ = 'MPL2'
     __OPT__ = 'mpl2'
     __FMT__ = 'time'
+    __EXT__ = 'txt'
     pattern = r'''
         ^
         \[(?P<time_from>\d+)\]  # {digits} 
@@ -314,24 +316,21 @@ class MPL2(GenericSubParser):
         GenericSubParser.__init__(self, filename, fps, encoding, lines)
     
     def str_to_frametime(self, string):
-        return FrameTime(fps=self.fps, value_type=self.__FMT__, frame=string)
+        ms = int(string[-1]) / 10.0
+        seconds = int(string[:-1])
+        return FrameTime(fps=self.fps, value_type='full_seconds', seconds=seconds)
 
     def format_text(self, string):
         string = string.replace('{', '{{').replace('}', '}}')
         lines = string.split('|')
         for i, line in enumerate(lines):
-            if '{{y:b}}' in line:
-                line = line.replace('{{y:b}}', '{gsp_b_}')
-                line += '{_gsp_b}'
-            if '{{y:i}}' in line:
-                line = line.replace('{{y:i}}', '{gsp_i_}')
-                line += '{_gsp_i}'
-            if '{{y:u}}' in line:
-                line = line.replace('{{y:u}}', '{gsp_u_}')
-                line += '{_gsp_u}'
-            lines[i] = line
+            if line.startswith('/'):
+                line = ''.join(['{gsp_i_}', line[1:]])
+                lines[i] = line
         string = '{gsp_nl}'.join(lines)
         return string
 
     def get_time(self, frametime, which):
-        return frametime.frame
+        time = str(frametime.full_seconds).split('.')
+        time = ''.join([time[0], time[1][0]])
+        return time
