@@ -77,6 +77,11 @@ class TestParsers(unittest.TestCase):
         original_file = 'subs/Line.microdvd'
         self.parse( Parsers.MicroDVD, original_file )
 
+    def test_mpl2(self):
+        log.info(" \n... running MPL2 test")
+        original_file = 'subs/Line.mpl2'
+        self.parse( Parsers.MPL2, original_file )
+
     def test_subviewer(self):
         log.info(" \n... running SubViewer test")
         original_file = 'subs/Line.subviewer'

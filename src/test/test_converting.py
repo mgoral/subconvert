@@ -83,6 +83,10 @@ class TestConverting(unittest.TestCase):
         log.info(" \n... running MicroDVD test")
         self.two_way_parser_test(Parsers.MicroDVD, 'subs/SubSample.microdvd', True)
 
+    def test_mpl2(self):
+        log.info(" \n... running MPL2 test")
+        self.two_way_parser_test(Parsers.MPL2, 'subs/SubSample.mpl2', True)
+
     def test_subviewer(self):
         log.info(" \n... running SubViewer test")
         self.two_way_parser_test(Parsers.SubViewer, 'subs/SubSample.subviewer', True)
