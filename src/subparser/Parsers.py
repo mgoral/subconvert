@@ -325,7 +325,7 @@ class MPL2(GenericSubParser):
         lines = string.split('|')
         for i, line in enumerate(lines):
             if line.startswith('/'):
-                line = ''.join(['{gsp_i_}', line[1:]])
+                line = ''.join(['{gsp_i_}', line[1:], '{_gsp_i}'])
                 lines[i] = line
         string = '{gsp_nl}'.join(lines)
         return string
