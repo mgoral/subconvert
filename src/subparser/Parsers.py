@@ -288,3 +288,50 @@ class TMP(GenericSubParser):
         if which == 'time_from':
             return '%02d:%02d:%02d' % (int(frametime.hours), int(frametime.minutes), int(frametime.seconds))
 
+class MPL2(GenericSubParser):
+    """See a GenericSubParser for a documentation."""
+
+    __SUB_TYPE__ = 'MPL2'
+    __OPT__ = 'mpl2'
+    __FMT__ = 'time'
+    pattern = r'''
+        ^
+        \[(?P<time_from>\d+)\]  # {digits} 
+        \[(?P<time_to>\d+)\]    # {digits}
+        (?P<text>[^\r\n]*)
+        '''
+    end_pattern = r'(?P<end>(?:\r?\n)|(?:\r))$' # \r on mac, \n on linux, \r\n on windows
+    sub_fmt = "[{gsp_from}][{gsp_to}]{gsp_text}%s" % os.linesep # Looks weird but escaping '{}' curly braces requires to double them
+    # Once I had subs with <i> but I haven't found any official note about it
+    sub_formatting = {
+        'gsp_b_':   r'', '_gsp_b':     r'',
+        'gsp_i_':   r'/', '_gsp_i':     r'',
+        'gsp_u_':   r'', '_gsp_u':     r'',
+        'gsp_nl':   r'|',
+    }
+    
+    def __init__(self, filename, fps, encoding, lines = None):
+        GenericSubParser.__init__(self, filename, fps, encoding, lines)
+    
+    def str_to_frametime(self, string):
+        return FrameTime(fps=self.fps, value_type=self.__FMT__, frame=string)
+
+    def format_text(self, string):
+        string = string.replace('{', '{{').replace('}', '}}')
+        lines = string.split('|')
+        for i, line in enumerate(lines):
+            if '{{y:b}}' in line:
+                line = line.replace('{{y:b}}', '{gsp_b_}')
+                line += '{_gsp_b}'
+            if '{{y:i}}' in line:
+                line = line.replace('{{y:i}}', '{gsp_i_}')
+                line += '{_gsp_i}'
+            if '{{y:u}}' in line:
+                line = line.replace('{{y:u}}', '{gsp_u_}')
+                line += '{_gsp_u}'
+            lines[i] = line
+        string = '{gsp_nl}'.join(lines)
+        return string
+
+    def get_time(self, frametime, which):
+        return frametime.frame
