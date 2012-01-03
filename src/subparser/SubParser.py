@@ -119,19 +119,18 @@ class GenericSubParser(object):
                             self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
                         atom['time_to'] = self.str_to_frametime(atom['time_to'])
                 except AttributeError, msg:
-                    if i > 0:
-                        if sub_section in ('\n', '\r\n', '\r'):
-                            log.debug(self.message(line_no, _("Skipping empty line.")))
-                            sub_section = ''
-                            atom = {'time_from': '', 'time_to': '', 'text': '',}
-                            continue
-                        else:
-                            raise SubParsingError, self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__)
+                    if sub_section in ('\n', '\r\n', '\r'):
+                        log.debug(self.message(line_no, _("Skipping empty line.")))
+                        sub_section = ''
+                        atom = {'time_from': '', 'time_to': '', 'text': '',}
+                        continue
+                    elif i > 0:
+                        raise SubParsingError, self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__)
                     else:
                         log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
                         return 
                 except IndexError, msg:
-                    log.debug(self.message(line_no, msg))
+                    log.debug(self.message(line_no, _("IndexError: %s") % msg))
                 try:
                     # There should be no more AttributeErrors as parse()
                     # should return on it last time. If there is - we want
