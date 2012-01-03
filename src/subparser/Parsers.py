@@ -317,7 +317,7 @@ class MPL2(GenericSubParser):
     
     def str_to_frametime(self, string):
         ms = int(string[-1]) / 10.0
-        seconds = int(string[:-1])
+        seconds = int(string[:-1]) + ms
         return FrameTime(fps=self.fps, value_type='full_seconds', seconds=seconds)
 
     def format_text(self, string):

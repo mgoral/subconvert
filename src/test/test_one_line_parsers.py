@@ -80,7 +80,10 @@ class TestParsers(unittest.TestCase):
     def test_mpl2(self):
         log.info(" \n... running MPL2 test")
         original_file = 'subs/Line.mpl2'
-        self.parse( Parsers.MPL2, original_file )
+        local_parsed = self.parsed.copy()
+        local_parsed['time_to'] = FrameTime.FrameTime(25, 'full_seconds', seconds=3.0)
+        local_parsed['time_from'] = FrameTime.FrameTime(25, 'full_seconds', seconds=1.1)
+        self.parse( Parsers.MPL2, original_file, [local_parsed] )
 
     def test_subviewer(self):
         log.info(" \n... running SubViewer test")
@@ -90,11 +93,11 @@ class TestParsers(unittest.TestCase):
     def test_tmp(self):
         log.info(" \n... running TMP test")
         original_file = 'subs/Line.tmp'
-        test_lines = self.test_lines[:]
-        test_lines[0]['time_to'] = ''
-        test_lines[0]['time_from'] = FrameTime.FrameTime(25, 'frame', frame=25)
+        local_parsed = self.parsed.copy()
+        local_parsed['time_to'] = ''
+        local_parsed['time_from'] = FrameTime.FrameTime(25, 'frame', frame=25)
         
-        self.parse( Parsers.TMP, original_file, test_lines )
+        self.parse( Parsers.TMP, original_file, [local_parsed] )
         
 if __name__ == "__main__":
     log = logging.getLogger('SubConvert')
