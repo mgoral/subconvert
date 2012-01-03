@@ -126,6 +126,7 @@ EXAMPLES:
     * subrip
     * tmp
     * subviewer
+    * mpl2
 
 [ 2 Programmer manual ]
 Generally main program uses GenericSubParser class and it subclasses which are

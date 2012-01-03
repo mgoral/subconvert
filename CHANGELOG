@@ -3,13 +3,14 @@ Version history
 0.8.2   :
 * ADD:  Unit tests
 * ADD:  option to specify output file(s) encoding
+* ADD:  MPL2 format support
 * FIX:  HUGE code refactoring
 * FIX:  ugly converting error (which doubled first subtitle and removed the 
         last one)
 * FIX:  incorrect SubViewer miliseconds converting
 * FIX:  SubRip skipping last sub when no new line at the EOF (now Generic
         Parser forces parsing a section at the EOF)
-* FIX:  empty do not cause SubParsingErrors no more
+* FIX:  smart skipping of incorrect empty lines
 * RMV:  custom updater
 
 0.8.1   : 07.12.2011
