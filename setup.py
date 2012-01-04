@@ -34,5 +34,17 @@ setup(
             'subconvert-gui = subconvert_gui:main',
         ]
     },
+
+    classifiers = [
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Environment :: X11 Applications :: Qt',
+        'Intended Audience :: End Users/Desktop',
+        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'Natural Language :: English',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python :: 2.6',
+        'Topic :: Utilities',
+    ],
 )
 
