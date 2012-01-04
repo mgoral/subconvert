@@ -239,7 +239,7 @@ class SubConvertGUI(QtGui.QWidget):
                 continue
             except SubParser.SubParsingError, msg:
                 convert_info.append(str(msg))
-                continue;
+                continue
             if lines:
                 log.debug(_("%s parsed.") % arg)
                 convert_info.append(_("%s parsed.") % arg)
