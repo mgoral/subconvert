@@ -10,7 +10,11 @@ from setuptools import setup, find_packages
 setup(
     name = "subconvert",
     description = "Movie subtitles converter",
+    long_description = "SubConvert is a movie subtitle converter that supports\
+    many different formats, guessing file(s) encoding and fetching movie FPS.\
+    For more details refer to README file.",
     author = "Michał Góral",
+    maintainer = "Michał Góral",
     version = "0.8.2",
     author_email = "michal.goral@mgoral.org",
     url = "https://github.com/virgoerns/subconvert",
