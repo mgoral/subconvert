@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-from ez_setup import use_setuptools
-use_setuptools()
+try:
+    from ez_setup import use_setuptools
+    use_setuptools()
+except:
+    print "I will not be able to automatically install setuptools. You have to install it manually if it's not present in your system (usually try 'aptitude install python-setuptools'"
 
 from setuptools import setup, find_packages
 
