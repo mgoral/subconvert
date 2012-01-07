@@ -36,7 +36,7 @@ from optparse import OptionParser, OptionGroup
 
 log = logging.getLogger('SubConvert')
 
-gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
+gettext.bindtextdomain('subconvert', '/usr/share/locale')
 gettext.textdomain('subconvert')
 _ = gettext.gettext
 

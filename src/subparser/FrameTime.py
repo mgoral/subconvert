@@ -19,7 +19,7 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 import gettext
 
-gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
+gettext.bindtextdomain('subconvert', '/usr/share/locale')
 gettext.textdomain('subconvert')
 _ = gettext.gettext
 

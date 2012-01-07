@@ -29,7 +29,7 @@ import subparser.SubParser as SubParser
 import subparser.Convert as Convert
 import subparser.version as version
 
-gettext.bindtextdomain('subconvert', '/usr/lib/subconvert/locale')
+gettext.bindtextdomain('subconvert', '/usr/share/locale')
 gettext.textdomain('subconvert')
 _ = gettext.gettext
 
