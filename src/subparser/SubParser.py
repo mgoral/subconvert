@@ -168,7 +168,7 @@ class GenericSubParser(object):
         try:
             sub_text = sub['sub']['text'].format(**self.sub_formatting)
         except KeyError:
-            log.warning(_("Key exception occured when trying to format sub: %s" %sub['sub']['text']))
+            log.warning(_("Key exception occured when trying to format sub: %s") % sub['sub']['text'])
             sub_text = sub['sub']['text']
         return self.sub_fmt.format(gsp_no = sub['sub_no'], \
             gsp_from = self.get_time(sub['sub']['time_from'], 'time_from'), \
