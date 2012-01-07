@@ -20,7 +20,7 @@
 
 import os
 import sys
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 import pkgutil
 import encodings
 import codecs
@@ -110,6 +110,9 @@ class SubConvertGUI(QtGui.QWidget):
         self.remove_file.clicked.connect(self.remove_from_list)
         self.auto_fps.clicked.connect(self.change_auto_fps)
         self.start.clicked.connect(self.convert_files)
+
+        self.auto_fps.setCheckState(QtCore.Qt.Checked)
+        self.change_auto_fps()
         
         self.grid.addWidget(self.encoding_label, 0, 0)
         self.grid.addWidget(self.encodings, 0, 1)
