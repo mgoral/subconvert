@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: SubConvert\n"
-"POT-Creation-Date: 2012-01-07 14:33+CET\n"
-"PO-Revision-Date: 2012-01-07 19:44+0100\n"
+"POT-Creation-Date: 2012-01-07 20:08+CET\n"
+"PO-Revision-Date: 2012-01-07 20:08+0100\n"
 "Last-Translator: Michał Góral <michal.goral@mgoral.org>\n"
 "Language-Team: \n"
 "Language: \n"
@@ -188,7 +188,11 @@ msgstr "Start"
 
 #: subconvert_gui.py:81
 msgid "Get FPS from movie."
-msgstr "Pobierz FPS z pliku"
+msgstr "Pobierz FPS z filmu."
+
+#: subconvert_gui.py:82
+msgid "Movie FPS:"
+msgstr "FPS filmu:"
 
 #: subconvert_gui.py:83
 msgid "File(s) encoding:"
@@ -208,11 +212,15 @@ msgstr "Rozszerzenie:"
 
 #: subconvert_gui.py:98
 msgid "[Detect]"
-msgstr "[Wykryj]"
+msgstr "[Wykryj kodowanie]"
 
 #: subconvert_gui.py:100
 msgid "[Don't change]"
-msgstr "[Bez zmian]"
+msgstr "[Pozostaw kodowanie]"
+
+#: subconvert_gui.py:152
+msgid "Default"
+msgstr "Domyślne"
 
 #: subconvert_gui.py:162
 #: subconvert_gui.py:175
@@ -264,110 +272,110 @@ msgstr "FPS napisów: %s"
 msgid "Usage: %prog [options]"
 msgstr "Użycie: %prog [opcje]"
 
-#: subparser/Convert.py:56
+#: subparser/Convert.py:52
 msgid "'%s' exists and needs to be removed before backing up."
 msgstr "'%s' istnieje i musi zostać usunięty przed utworzeniem kopii."
 
-#: subparser/Convert.py:71
+#: subparser/Convert.py:67
 msgid "Couldn't run mplayer. It has to be installed and placed in your $PATH in order to use auto_fps option."
 msgstr "MPlayer nie mógł być uruchomiony. Aby móc używać opcji auto_fps, musi on być zainstalowany i znajdować się w zmiennej $PATH."
 
-#: subparser/Convert.py:73
+#: subparser/Convert.py:69
 msgid "Couldn't get FPS info from mplayer."
 msgstr "Informacje o FPS nie mogły zostać pobrane z MPlayera."
 
-#: subparser/Convert.py:75
+#: subparser/Convert.py:71
 msgid "Got %s FPS from '%s'."
 msgstr "Pobrano %s FPS z '%s'."
 
-#: subparser/Convert.py:89
+#: subparser/Convert.py:85
 msgid "Detecting encoding from %d bytes"
 msgstr "Sprawdzanie kodowania z %d bajtów."
 
-#: subparser/Convert.py:90
+#: subparser/Convert.py:86
 msgid " ...chardet: %s"
 msgstr " ...chardet: %s"
 
-#: subparser/Convert.py:93
+#: subparser/Convert.py:89
 msgid " ...detected %s encoding."
 msgstr " ...ustalono kodowanie %s."
 
-#: subparser/Convert.py:96
+#: subparser/Convert.py:92
 msgid "I am not too confident about encoding (most probably %s). Setting default UTF-8"
 msgstr "Nie można ustalić kodowania z wystarczającą pewnością (prawdopodobnie %s). Ustawianie domyślnego UTF-8"
 
-#: subparser/Convert.py:117
+#: subparser/Convert.py:113
 msgid "Unknown encoding name: '%s'."
 msgstr "Nieznane kodowanie: '%s'."
 
-#: subparser/Convert.py:120
+#: subparser/Convert.py:116
 msgid "Trying to parse %s..."
 msgstr "Parsowanie %s..."
 
-#: subparser/Convert.py:153
+#: subparser/Convert.py:149
 msgid "Correct time not asserted for subtitle %d. Skipping it..."
 msgstr "Poprawny czas nie jest zapewniony dla napisów nr %d. Pomijanie..."
 
-#: subparser/Convert.py:154
+#: subparser/Convert.py:150
 msgid ".. incorrect subtitle pair times: (%s, %s)"
 msgstr ".. nieprawidłowa para czasów: (%s, %s)"
 
-#: subparser/FrameTime.py:37
+#: subparser/FrameTime.py:33
 msgid "Incorrect fps argument."
 msgstr "Niepoprawna wartość FPS."
 
-#: subparser/FrameTime.py:54
+#: subparser/FrameTime.py:50
 msgid "Not supported FrameTime type: '%s'"
 msgstr "Biepoprawny typ FrameTime: '%s'"
 
-#: subparser/FrameTime.py:74
+#: subparser/FrameTime.py:70
 msgid "Incorrect seconds value."
 msgstr "Niepoprawna wartość sekund."
 
-#: subparser/FrameTime.py:88
+#: subparser/FrameTime.py:84
 msgid "Incorrect frame value."
 msgstr "Niepoprawna wartość klatek."
 
-#: subparser/SubParser.py:80
+#: subparser/SubParser.py:76
 msgid "%s:%d %s"
 msgstr "%s:%d %s"
 
-#: subparser/SubParser.py:92
+#: subparser/SubParser.py:88
 msgid "No lines read from file. Skipping"
 msgstr "Nic nie odczytano z pliku. Pomijanie"
 
-#: subparser/SubParser.py:96
+#: subparser/SubParser.py:92
 msgid "%s waited too long. Skipping."
 msgstr "%s czekał zbyt długo. Pomijanie."
 
-#: subparser/SubParser.py:102
-#: subparser/SubParser.py:130
-#: subparser/SubParser.py:155
+#: subparser/SubParser.py:98
+#: subparser/SubParser.py:126
+#: subparser/SubParser.py:151
 msgid "Not a %s file."
 msgstr "Plik nie jest formatu %s."
 
-#: subparser/SubParser.py:123
+#: subparser/SubParser.py:119
 msgid "Skipping empty line."
 msgstr "Pomijanie pustego pliku"
 
-#: subparser/SubParser.py:128
-#: subparser/SubParser.py:153
+#: subparser/SubParser.py:124
+#: subparser/SubParser.py:149
 msgid "%s parsing error."
 msgstr "Błąd parsowania %s."
 
-#: subparser/SubParser.py:133
+#: subparser/SubParser.py:129
 msgid "IndexError: %s"
 msgstr "IndexError: %s"
 
-#: subparser/SubParser.py:150
+#: subparser/SubParser.py:146
 msgid "No subtitle text found. Skipping that section."
 msgstr "Nie znaleziono treści napisu. Pomijanie tej sekcji."
 
-#: subparser/SubParser.py:160
+#: subparser/SubParser.py:156
 msgid "Recognised %s."
 msgstr "Rozpoznano typ %s."
 
-#: subparser/SubParser.py:171
+#: subparser/SubParser.py:167
 msgid "Key exception occured when trying to format sub: %s"
 msgstr "Wystąpił wyjątek podczas próby formatowania napisów: %s"
 

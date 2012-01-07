@@ -79,7 +79,7 @@ class SubConvertGUI(QtGui.QWidget):
         self.file_list = QtGui.QListWidget(self)
         self.movie_path = QtGui.QLineEdit(self)
         self.auto_fps = QtGui.QCheckBox(_('Get FPS from movie.'), self)
-        self.fps_label = QtGui.QLabel('Movie FPS:', self)
+        self.fps_label = QtGui.QLabel(_('Movie FPS:'), self)
         self.encoding_label = QtGui.QLabel(_('File(s) encoding:'), self)
         self.output_encoding_label = QtGui.QLabel(_('Output encoding:'), self)
         self.format_label = QtGui.QLabel(_('Output format:'), self)
@@ -149,7 +149,7 @@ class SubConvertGUI(QtGui.QWidget):
 
     def get_extensions(self):
         cls = SubParser.GenericSubParser.__subclasses__()
-        exts = ['Default']
+        exts = [_('Default')]
         exts.extend(set([ c.__EXT__ for c in cls ]))
         exts.sort()
         return exts

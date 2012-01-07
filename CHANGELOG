@@ -1,5 +1,8 @@
 Version history
 
+0.8.3   :
+* ADD:  Polish translation
+
 0.8.2   : 05.12.2012 (Working Student)
 * ADD:  Unit tests
 * ADD:  option to specify output file(s) encoding

@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-01-07 14:33+CET\n"
+"POT-Creation-Date: 2012-01-07 20:08+CET\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -176,6 +176,10 @@ msgstr ""
 msgid "Get FPS from movie."
 msgstr ""
 
+#: subconvert_gui.py:82
+msgid "Movie FPS:"
+msgstr ""
+
 #: subconvert_gui.py:83
 msgid "File(s) encoding:"
 msgstr ""
@@ -198,6 +202,10 @@ msgstr ""
 
 #: subconvert_gui.py:100
 msgid "[Don't change]"
+msgstr ""
+
+#: subconvert_gui.py:152
+msgid "Default"
 msgstr ""
 
 #: subconvert_gui.py:162 subconvert_gui.py:175
@@ -248,108 +256,108 @@ msgstr ""
 msgid "Usage: %prog [options]"
 msgstr ""
 
-#: subparser/Convert.py:56
+#: subparser/Convert.py:52
 msgid "'%s' exists and needs to be removed before backing up."
 msgstr ""
 
-#: subparser/Convert.py:71
+#: subparser/Convert.py:67
 msgid "Couldn't run mplayer. It has to be installed and placed in your $PATH in order to use auto_fps option."
 msgstr ""
 
-#: subparser/Convert.py:73
+#: subparser/Convert.py:69
 msgid "Couldn't get FPS info from mplayer."
 msgstr ""
 
-#: subparser/Convert.py:75
+#: subparser/Convert.py:71
 msgid "Got %s FPS from '%s'."
 msgstr ""
 
-#: subparser/Convert.py:89
+#: subparser/Convert.py:85
 msgid "Detecting encoding from %d bytes"
 msgstr ""
 
-#: subparser/Convert.py:90
+#: subparser/Convert.py:86
 msgid " ...chardet: %s"
 msgstr ""
 
-#: subparser/Convert.py:93
+#: subparser/Convert.py:89
 msgid " ...detected %s encoding."
 msgstr ""
 
-#: subparser/Convert.py:96
+#: subparser/Convert.py:92
 msgid "I am not too confident about encoding (most probably %s). Setting default UTF-8"
 msgstr ""
 
-#: subparser/Convert.py:117
+#: subparser/Convert.py:113
 msgid "Unknown encoding name: '%s'."
 msgstr ""
 
-#: subparser/Convert.py:120
+#: subparser/Convert.py:116
 msgid "Trying to parse %s..."
 msgstr ""
 
-#: subparser/Convert.py:153
+#: subparser/Convert.py:149
 msgid "Correct time not asserted for subtitle %d. Skipping it..."
 msgstr ""
 
-#: subparser/Convert.py:154
+#: subparser/Convert.py:150
 msgid ".. incorrect subtitle pair times: (%s, %s)"
 msgstr ""
 
-#: subparser/FrameTime.py:37
+#: subparser/FrameTime.py:33
 msgid "Incorrect fps argument."
 msgstr ""
 
-#: subparser/FrameTime.py:54
+#: subparser/FrameTime.py:50
 msgid "Not supported FrameTime type: '%s'"
 msgstr ""
 
-#: subparser/FrameTime.py:74
+#: subparser/FrameTime.py:70
 msgid "Incorrect seconds value."
 msgstr ""
 
-#: subparser/FrameTime.py:88
+#: subparser/FrameTime.py:84
 msgid "Incorrect frame value."
 msgstr ""
 
-#: subparser/SubParser.py:80
+#: subparser/SubParser.py:76
 msgid "%s:%d %s"
 msgstr ""
 
-#: subparser/SubParser.py:92
+#: subparser/SubParser.py:88
 msgid "No lines read from file. Skipping"
 msgstr ""
 
-#: subparser/SubParser.py:96
+#: subparser/SubParser.py:92
 msgid "%s waited too long. Skipping."
 msgstr ""
 
-#: subparser/SubParser.py:102 subparser/SubParser.py:130
-#: subparser/SubParser.py:155
+#: subparser/SubParser.py:98 subparser/SubParser.py:126
+#: subparser/SubParser.py:151
 msgid "Not a %s file."
 msgstr ""
 
-#: subparser/SubParser.py:123
+#: subparser/SubParser.py:119
 msgid "Skipping empty line."
 msgstr ""
 
-#: subparser/SubParser.py:128 subparser/SubParser.py:153
+#: subparser/SubParser.py:124 subparser/SubParser.py:149
 msgid "%s parsing error."
 msgstr ""
 
-#: subparser/SubParser.py:133
+#: subparser/SubParser.py:129
 msgid "IndexError: %s"
 msgstr ""
 
-#: subparser/SubParser.py:150
+#: subparser/SubParser.py:146
 msgid "No subtitle text found. Skipping that section."
 msgstr ""
 
-#: subparser/SubParser.py:160
+#: subparser/SubParser.py:156
 msgid "Recognised %s."
 msgstr ""
 
-#: subparser/SubParser.py:171
+#: subparser/SubParser.py:167
 msgid "Key exception occured when trying to format sub: %s"
 msgstr ""
 
