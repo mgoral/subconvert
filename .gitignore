@@ -4,7 +4,7 @@
 *.srt
 *.sub
 *.egg-info
+*.mo
+.pypirc
 build/*
 dist/*
-*.mo
-
