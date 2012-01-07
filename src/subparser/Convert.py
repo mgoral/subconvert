@@ -41,10 +41,6 @@ except ImportError:
 
 log = logging.getLogger('SubConvert.%s' % __name__)
 
-gettext.bindtextdomain('subconvert', '/usr/share/locale')
-gettext.textdomain('subconvert')
-_ = gettext.gettext
-
 
 def backup( filename ):
     """Backup a file to filename_strftime (by moving it, not copying).

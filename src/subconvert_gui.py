@@ -36,9 +36,9 @@ from optparse import OptionParser, OptionGroup
 
 log = logging.getLogger('SubConvert')
 
-gettext.bindtextdomain('subconvert', '/usr/share/locale')
-gettext.textdomain('subconvert')
-_ = gettext.gettext
+t = gettext.translation('subconvert', '/usr/share/locale')
+gettext.install('subconvert')
+_ = t.ugettext
 
 MAX_MEGS = 5 * 1048576
 

@@ -19,10 +19,6 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 import gettext
 
-gettext.bindtextdomain('subconvert', '/usr/share/locale')
-gettext.textdomain('subconvert')
-_ = gettext.gettext
-
 class FrameTime(object):
     """Class defining a FrameTime object which consists of frame and time
     metrics (and fps as well)."""

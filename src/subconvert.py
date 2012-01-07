@@ -29,9 +29,9 @@ import subparser.SubParser as SubParser
 import subparser.Convert as Convert
 import subparser.version as version
 
-gettext.bindtextdomain('subconvert', '/usr/share/locale')
-gettext.textdomain('subconvert')
-_ = gettext.gettext
+t = gettext.translation('subconvert', '/usr/share/locale')
+gettext.install('subconvert')
+_ = t.ugettext
 
 MAX_MEGS = 5 * 1048576
 
