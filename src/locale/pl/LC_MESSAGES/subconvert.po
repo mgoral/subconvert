@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: SubConvert\n"
 "POT-Creation-Date: 2012-01-07 20:08+CET\n"
-"PO-Revision-Date: 2012-01-07 20:08+0100\n"
+"PO-Revision-Date: 2012-01-07 20:32+0100\n"
 "Last-Translator: Michał Góral <michal.goral@mgoral.org>\n"
 "Language-Team: \n"
 "Language: \n"
@@ -216,7 +216,7 @@ msgstr "[Wykryj kodowanie]"
 
 #: subconvert_gui.py:100
 msgid "[Don't change]"
-msgstr "[Pozostaw kodowanie]"
+msgstr "[Pozostaw bez zmian]"
 
 #: subconvert_gui.py:152
 msgid "Default"
