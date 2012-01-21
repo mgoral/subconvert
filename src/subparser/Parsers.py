@@ -58,13 +58,13 @@ class MicroDVD(GenericSubParser):
         for i, line in enumerate(lines):
             if '{{y:b}}' in line:
                 line = line.replace('{{y:b}}', '{gsp_b_}')
-                line += '{_gsp_b}'
+                line = ''.join([line, '{_gsp_b}'])
             if '{{y:i}}' in line:
                 line = line.replace('{{y:i}}', '{gsp_i_}')
-                line += '{_gsp_i}'
+                line = ''.join([line, '{_gsp_i}'])
             if '{{y:u}}' in line:
                 line = line.replace('{{y:u}}', '{gsp_u_}')
-                line += '{_gsp_u}'
+                line = ''.join([line, '{_gsp_u}'])
             lines[i] = line
         string = '{gsp_nl}'.join(lines)
         return string

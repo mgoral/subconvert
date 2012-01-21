@@ -31,6 +31,7 @@ import subparser.Parsers as Parsers
 import subparser.Convert as Convert
 import subparser.version as version
 
+from subconvert import _
 
 
 class TestConverting(unittest.TestCase):

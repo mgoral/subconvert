@@ -18,7 +18,7 @@ setup(
     For more details refer to README file.",
     author = "Michał Góral",
     maintainer = "Michał Góral",
-    version = "0.8.2",
+    version = "0.8.3",
     author_email = "michal.goral@mgoral.org",
     url = "https://github.com/virgoerns/subconvert",
     download_url = "https://github.com/virgoerns/subconvert/zipball/master",
