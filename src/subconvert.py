@@ -151,7 +151,7 @@ def main():
                 if options.force:
                     choice = _choices['yes']
                 while( choice not in (_choices['yes'], _choices['no'], _choices['backup'], _choices['quit'])):
-                    choice = raw_input( _("File '%s' exists. Overwrite? [y/n/b/q] ") % conv.filename)
+                    choice = raw_input( _("File '%s' exists. Overwrite? [y/n/b/q] ").encode('UTF-8') % conv.filename)
                 if choice == _choices['backup']:
                     if conv.filename == arg:
                         arg, _mvd = Convert.backup(arg) # We will read from backed up file
