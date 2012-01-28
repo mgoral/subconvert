@@ -101,11 +101,6 @@ General options:
     -x EXT, --extension=EXT
         Specify the output file(s) extension.
     
-You can specify the output_file to which converted subs will be created. If
-output_file is not specified, the new file will be located in the directory
-with the old subtitles differing only an extension which is specific for
-each subtitle format.
-
 EXAMPLES:
     subconvert subtitles.txt
         Create subtitles.srt encoded in ascii (subrip wit srt extension is
