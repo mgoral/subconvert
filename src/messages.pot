@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-01-07 20:08+CET\n"
+"POT-Creation-Date: 2012-01-28 15:05+CET\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,132 +15,132 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: subconvert.py:41
+#: subconvert.py:42
 msgid "Usage: %prog [options] input_file [input_file(s)]"
 msgstr ""
 
-#: subconvert.py:43
+#: subconvert.py:44
 msgid "Convert options"
 msgstr ""
 
-#: subconvert.py:44
+#: subconvert.py:45
 msgid "Options which can be used to properly convert sub files."
 msgstr ""
 
-#: subconvert.py:47
+#: subconvert.py:48
 msgid "force all operations without asking (assuming yes)"
 msgstr ""
 
-#: subconvert.py:50
+#: subconvert.py:51
 msgid "quiet output"
 msgstr ""
 
-#: subconvert.py:53 subconvert_gui.py:293
+#: subconvert.py:54 subconvert_gui.py:296
 msgid "Generate debug output"
 msgstr ""
 
-#: subconvert.py:56
+#: subconvert.py:57
 msgid "input file encoding. If no encoding is provided, SubConvert will try to automatically detect file encoding and switch to 'UTF-8' when unsuccessfull. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"
 msgstr ""
 
-#: subconvert.py:59
+#: subconvert.py:60
 msgid "output file encoding. If no output encoding is provided, SubConvert will save output files with the same encoding as input."
 msgstr ""
 
-#: subconvert.py:62
+#: subconvert.py:63
 msgid "output file format. Default: subrip"
 msgstr ""
 
-#: subconvert.py:65
+#: subconvert.py:66
 msgid "select movie/subtitles frames per second. Default: 25"
 msgstr ""
 
-#: subconvert.py:68
+#: subconvert.py:69
 msgid "automatically try to get fps from mplayer"
 msgstr ""
 
-#: subconvert.py:71
+#: subconvert.py:72
 msgid "movie file to get fps info from"
 msgstr ""
 
-#: subconvert.py:74
+#: subconvert.py:75
 msgid "specify extension of the output file if the default one is not what you like."
 msgstr ""
 
-#: subconvert.py:95
+#: subconvert.py:96
 msgid "Incorrect number of arguments."
 msgstr ""
 
-#: subconvert.py:99
+#: subconvert.py:100
 msgid "b"
 msgstr ""
 
-#: subconvert.py:99
+#: subconvert.py:100
 msgid "n"
 msgstr ""
 
-#: subconvert.py:99
+#: subconvert.py:100
 msgid "q"
 msgstr ""
 
-#: subconvert.py:99
+#: subconvert.py:100
 msgid "y"
 msgstr ""
 
-#: subconvert.py:103
+#: subconvert.py:104
 msgid "No such file: %s"
 msgstr ""
 
-#: subconvert.py:107 subconvert_gui.py:207
+#: subconvert.py:108 subconvert_gui.py:210
 msgid "File '%s' too large."
 msgstr ""
 
-#: subconvert.py:125
+#: subconvert.py:126
 msgid "Input file encoding: %s."
 msgstr ""
 
-#: subconvert.py:126
+#: subconvert.py:127
 msgid "Output file encoding: %s."
 msgstr ""
 
-#: subconvert.py:131 subconvert_gui.py:235
+#: subconvert.py:132 subconvert_gui.py:238
 msgid "'%s' format not supported (or mistyped)."
 msgstr ""
 
-#: subconvert.py:138 subconvert_gui.py:238
+#: subconvert.py:139 subconvert_gui.py:241
 msgid "Couldn't handle '%s' given '%s' encoding."
 msgstr ""
 
-#: subconvert.py:141
+#: subconvert.py:142
 msgid "Couldnt convert from '%s' encoding to '%s'"
 msgstr ""
 
-#: subconvert.py:148
+#: subconvert.py:149
 msgid "Parsed."
 msgstr ""
 
-#: subconvert.py:154
-msgid "File '%s' exists. Overwrite? [y/n/b/q] "
+#: subconvert.py:156
+msgid "File '%s' exists. Overwrite? [%s/%s/%s/%s] "
 msgstr ""
 
-#: subconvert.py:158 subconvert.py:161 subconvert_gui.py:254
-#: subconvert_gui.py:255 subconvert_gui.py:258
+#: subconvert.py:166 subconvert.py:169 subconvert_gui.py:257
+#: subconvert_gui.py:258 subconvert_gui.py:261
 msgid "%s backed up as %s"
 msgstr ""
 
-#: subconvert.py:163 subconvert_gui.py:260
+#: subconvert.py:171 subconvert_gui.py:263
 msgid "Skipping %s"
 msgstr ""
 
-#: subconvert.py:166 subconvert_gui.py:263
+#: subconvert.py:174 subconvert_gui.py:266
 msgid "Overwriting %s"
 msgstr ""
 
-#: subconvert.py:168 subconvert_gui.py:265
+#: subconvert.py:176 subconvert_gui.py:268
 msgid "Quitting converting work."
 msgstr ""
 
-#: subconvert.py:176 subconvert_gui.py:273 subconvert_gui.py:274
+#: subconvert.py:184 subconvert_gui.py:276 subconvert_gui.py:277
 msgid "%s not parsed."
 msgstr ""
 
@@ -204,55 +204,55 @@ msgstr ""
 msgid "[Don't change]"
 msgstr ""
 
-#: subconvert_gui.py:152
+#: subconvert_gui.py:155
 msgid "Default"
 msgstr ""
 
-#: subconvert_gui.py:162 subconvert_gui.py:175
+#: subconvert_gui.py:165 subconvert_gui.py:178
 msgid "Open file"
 msgstr ""
 
-#: subconvert_gui.py:164
+#: subconvert_gui.py:167
 msgid "Subtitle files (%s);;All files (*.*)"
 msgstr ""
 
-#: subconvert_gui.py:177
+#: subconvert_gui.py:180
 msgid "Movie files (%s);;All files (*.*)"
 msgstr ""
 
-#: subconvert_gui.py:205
+#: subconvert_gui.py:208
 msgid "----- [ %d. %s ] -----"
 msgstr ""
 
-#: subconvert_gui.py:244 subconvert_gui.py:245
+#: subconvert_gui.py:247 subconvert_gui.py:248
 msgid "%s parsed."
 msgstr ""
 
-#: subconvert_gui.py:281
+#: subconvert_gui.py:284
 msgid "Subconvert - finished"
 msgstr ""
 
-#: subconvert_gui.py:282
+#: subconvert_gui.py:285
 msgid "Work finished."
 msgstr ""
 
-#: subconvert_gui.py:283
+#: subconvert_gui.py:286
 msgid "Converted in: %f"
 msgstr ""
 
-#: subconvert_gui.py:283
+#: subconvert_gui.py:286
 msgid "Input encoding: %s"
 msgstr ""
 
-#: subconvert_gui.py:283
+#: subconvert_gui.py:286
 msgid "Output encoding: %s"
 msgstr ""
 
-#: subconvert_gui.py:283
+#: subconvert_gui.py:286
 msgid "Sub FPS: %s"
 msgstr ""
 
-#: subconvert_gui.py:289
+#: subconvert_gui.py:292
 msgid "Usage: %prog [options]"
 msgstr ""
 

@@ -20,6 +20,7 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import os
+import sys
 import codecs
 import logging
 from optparse import OptionParser, OptionGroup
@@ -38,7 +39,7 @@ MAX_MEGS = 5 * 1048576
 
 def prepare_options():
     """Define optparse options."""
-    optp = OptionParser(usage = _('Usage: %prog [options] input_file [input_file(s)]'), \
+    optp = OptionParser(usage = _('Usage: %prog [options] input_file [input_file(s)]'),
         version = '%s' % version.__version__ )
     group_conv = OptionGroup(optp, _('Convert options'),
         _("Options which can be used to properly convert sub files."))
@@ -151,7 +152,14 @@ def main():
                 if options.force:
                     choice = _choices['yes']
                 while( choice not in (_choices['yes'], _choices['no'], _choices['backup'], _choices['quit'])):
-                    choice = raw_input( _("File '%s' exists. Overwrite? [y/n/b/q] ").encode('UTF-8') % conv.filename)
+                    choice = raw_input(
+                        _("File '%s' exists. Overwrite? [%s/%s/%s/%s] ").encode(sys.stdin.encoding) %
+                        ( conv.filename,
+                        _choices['yes'].encode(sys.stdin.encoding),
+                        _choices['no'].encode(sys.stdin.encoding),
+                        _choices['backup'].encode(sys.stdin.encoding),
+                        _choices['quit'].encode(sys.stdin.encoding) )
+                        )
                 if choice == _choices['backup']:
                     if conv.filename == arg:
                         arg, _mvd = Convert.backup(arg) # We will read from backed up file
