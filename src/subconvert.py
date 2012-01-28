@@ -108,12 +108,15 @@ def main():
             log.warning(_("File '%s' too large.") % arg)
             continue
         
-        if options.auto_fps:
+        if options.auto_fps or options.movie_file:
             if not options.movie_file:
                 filename = os.path.splitext(arg)[0]
-                for ext in ('.avi', '.mkv', '.mpg', '.mp4', '.wmv'):
+                for ext in ('.avi', '.mkv', '.mpg', '.mp4', '.wmv', '.rmvb', '.mov', '.mpeg'):
                     if os.path.isfile(''.join((filename, ext))):
                         options.fps = Convert.mplayer_check(''.join((filename, ext)), options.fps)
+                        break
+                    elif os.path.isfile(''.join((filename, ext.upper()))):
+                        options.fps = Convert.mplayer_check(''.join((filename, ext.upper())), options.fps)
                         break
             else:
                 options.fps = Convert.mplayer_check(options.movie_file, options.fps)

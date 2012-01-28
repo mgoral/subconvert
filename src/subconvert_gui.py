@@ -74,7 +74,6 @@ class SubConvertGUI(QtGui.QWidget):
         self.encodings = QtGui.QComboBox(self)
         self.output_encodings = QtGui.QComboBox(self)
         self.output_formats = QtGui.QComboBox(self)
-        self.output_extensions = QtGui.QComboBox(self)
         self.fps = QtGui.QComboBox(self)
         self.file_list = QtGui.QListWidget(self)
         self.movie_path = QtGui.QLineEdit(self)
@@ -83,13 +82,12 @@ class SubConvertGUI(QtGui.QWidget):
         self.encoding_label = QtGui.QLabel(_('File(s) encoding:'), self)
         self.output_encoding_label = QtGui.QLabel(_('Output encoding:'), self)
         self.format_label = QtGui.QLabel(_('Output format:'), self)
-        self.extension_label = QtGui.QLabel(_('File extension:'), self)
 
         self.file_dialog = QtGui.QFileDialog
         sub_extensions = self.get_extensions()
 
         self.formats = self.get_formats()
-        self.movie_exts = ('.avi', '.mkv', '.mpg', '.mp4', '.wmv')
+        self.movie_exts = ('.avi', '.mkv', '.mpg', '.mp4', '.wmv', '.rmvb', '.mov', '.mpeg')
         self.str_sub_exts = ' '.join(['*.%s' % ext for ext in sub_extensions[1:]])
         self.str_movie_exts = ' '.join(['*%s' % fmt for fmt in self.movie_exts])
         self.directory = ''
@@ -101,7 +99,6 @@ class SubConvertGUI(QtGui.QWidget):
         self.output_encodings.addItems(self.get_encodings())
         for fmt in self.formats:
             self.output_formats.addItem(fmt[0], fmt[1])
-        self.output_extensions.addItems(sub_extensions)
         self.fps.addItems(['23.976', '24', '25', '29.97', '30'])
 
 
@@ -128,9 +125,7 @@ class SubConvertGUI(QtGui.QWidget):
         self.grid.addWidget(self.auto_fps, 7, 0, 1, 2)
         self.grid.addWidget(self.format_label, 8, 0)
         self.grid.addWidget(self.output_formats, 8, 1)
-        self.grid.addWidget(self.extension_label, 9, 0)
-        self.grid.addWidget(self.output_extensions, 9, 1)
-        self.grid.addWidget(self.start, 9, 6)
+        self.grid.addWidget(self.start, 8, 6)
 
         self.setLayout(self.grid)
         self.setWindowTitle('SubConvert')
@@ -198,7 +193,6 @@ class SubConvertGUI(QtGui.QWidget):
         movie_file = str(self.movie_path.text())
         files = [str(self.file_list.item(i).text()) for i in xrange(self.file_list.count())]
         sub_format = str(self.output_formats.itemData(self.output_formats.currentIndex()).toString())
-        out_extension = str(self.output_extensions.itemText(self.output_extensions.currentIndex())) if self.output_extensions.currentIndex() > 0 else ''
 
         convert_info = []
 
@@ -214,9 +208,11 @@ class SubConvertGUI(QtGui.QWidget):
                 if not movie_file:
                     filename, extension = os.path.splitext(arg)
                     for ext in self.movie_exts:
-                        f = ''.join((filename, ext))
-                        if os.path.isfile(f):
-                            fps = Convert.mplayer_check(f, fps)
+                        if os.path.isfile(''.join((filename, ext))):
+                            fps = Convert.mplayer_check(''.join((filename, ext)), fps)
+                            break
+                        elif os.path.isfile(''.join((filename, ext.upper()))):
+                            fps = Convert.mplayer_check(''.join((filename, ext.upper())), fps)
                             break
                 else:
                     fps = Convert.mplayer_check(movie_file, fps)
@@ -233,7 +229,7 @@ class SubConvertGUI(QtGui.QWidget):
                 output_encoding = str(self.output_encodings.currentText())
             
             try:
-                conv, lines = Convert.convert_file(arg, encoding, output_encoding, fps, sub_format, out_extension)
+                conv, lines = Convert.convert_file(arg, encoding, output_encoding, fps, sub_format)
             except NameError:
                 convert_info.append(_("'%s' format not supported (or mistyped).") % sub_format)
                 return -1
