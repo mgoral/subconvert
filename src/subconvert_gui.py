@@ -61,11 +61,11 @@ class BackupMessage(QtGui.QMessageBox):
 class SubConvertGUI(QtGui.QWidget):
     """Graphical User Interface for Subconvert."""
 
-    def __init__(self):
+    def __init__(self, args = None, options = None):
         super(SubConvertGUI, self).__init__()
-        self.init_gui()
+        self.init_gui(args, options)
     
-    def init_gui(self):
+    def init_gui(self, args = None, options = None):
         self.grid = QtGui.QGridLayout(self)
         self.add_file = QtGui.QPushButton('+', self)
         self.add_movie_file = QtGui.QPushButton('...', self)
@@ -129,6 +129,13 @@ class SubConvertGUI(QtGui.QWidget):
 
         self.setLayout(self.grid)
         self.setWindowTitle('SubConvert')
+
+        # Handle args
+        if args is not None:
+            for arg in args:
+                item = QtGui.QListWidgetItem(arg)
+                self.file_list.addItem(item)
+
         self.show()
 
     def get_encodings(self):
@@ -200,6 +207,10 @@ class SubConvertGUI(QtGui.QWidget):
 
         for job, arg in enumerate(files): # Call it 'arg' to keep a consistency with cli version
             convert_info.append(_("----- [ %d. %s ] -----") % (job, os.path.split(arg)[1]))
+            if not os.path.isfile(arg):
+                convert_info.append(_("No such file: %s") % arg)
+                continue
+
             if os.path.getsize(arg) > MAX_MEGS:
                 convert_info.append(_("File '%s' too large.") % arg)
                 continue
@@ -227,6 +238,11 @@ class SubConvertGUI(QtGui.QWidget):
                 output_encoding = encoding
             else:
                 output_encoding = str(self.output_encodings.currentText())
+
+            convert_info.append(os.linesep.join((
+                _("Input encoding: %s") % encoding.replace('_', '-').upper(),
+                _("Output encoding: %s") % output_encoding.replace('_', '-').upper()
+                )))
             
             try:
                 conv, lines = Convert.convert_file(arg, encoding, output_encoding, fps, sub_format)
@@ -279,7 +295,9 @@ class SubConvertGUI(QtGui.QWidget):
         l.addItem(spacer, l.rowCount(), 0, 1, l.columnCount())
         summary.setWindowTitle(_("Subconvert - finished"))
         summary.setText(_("Work finished."))
-        summary.setInformativeText(os.linesep.join([_("Sub FPS: %s") % fps, _("Input encoding: %s") % encoding.replace('_', '-').upper(), _("Output encoding: %s") % output_encoding.replace('_', '-').upper(), _("Converted in: %f") % elapsed_time]))
+        summary.setInformativeText(os.linesep.join((
+            _("Sub FPS: %s") % fps,
+            _("Converted in: %f") % elapsed_time)))
         summary.setDetailedText(os.linesep.join(convert_info))
         summary.exec_()
 
@@ -305,7 +323,7 @@ def main():
     log.addHandler(logging.StreamHandler())
 
     app = QtGui.QApplication(sys.argv)
-    gui = SubConvertGUI()
+    gui = SubConvertGUI(args, options)
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
