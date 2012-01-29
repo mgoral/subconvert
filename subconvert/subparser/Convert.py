@@ -28,9 +28,9 @@ import shutil
 
 from subprocess import Popen, PIPE
 
-import subparser.SubParser as SubParser
-import subparser.FrameTime as FrameTime
-import subparser.Parsers
+import SubParser
+import FrameTime
+import Parsers
 
 try:
     import chardet

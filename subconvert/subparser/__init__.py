@@ -18,4 +18,4 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
-__all__ = ['Convert', 'FrameTime', 'SubParser', 'Parsers']
+__all__ = ['Convert', 'FrameTime', 'SubParser', 'Parsers', 'version']

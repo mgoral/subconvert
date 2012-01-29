@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
 """
@@ -185,6 +184,3 @@ def main():
                 output_file.writelines(lines)
         else:
             log.warning(_("%s not parsed.") % arg)
-
-if __name__ == '__main__':
-    main()
