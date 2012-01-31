@@ -40,7 +40,7 @@ You can always check out the following command for installer built-in help:
 
 [ 1.1.1 Dependencies ]
     + Python 2.6+
-    + python-setuptools (optional)
+    + python-qt4
     + python-chardet (optional, recommended)
     + MPlayer (optional, recommended)
 
