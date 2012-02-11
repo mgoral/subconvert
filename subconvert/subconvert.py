@@ -28,12 +28,17 @@ import gettext
 import subparser.SubParser as SubParser
 import subparser.Convert as Convert
 import subparser.version as version
+import subconvertutils
 
-t = gettext.translation('subconvert', '/usr/share/locale')
+t = gettext.translation(
+    domain='subconvert',
+    localedir=subconvertutils.get_locale_path(__file__),
+    fallback=True)
 gettext.install('subconvert')
 _ = t.ugettext
 
 MAX_MEGS = 5 * 1048576
+
 
 
 def prepare_options():

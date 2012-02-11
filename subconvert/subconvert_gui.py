@@ -31,12 +31,16 @@ import time
 import subparser.SubParser as SubParser
 import subparser.Convert as Convert
 import subparser.version as version
+import subconvertutils
 
 from optparse import OptionParser, OptionGroup
 
 log = logging.getLogger('SubConvert')
 
-t = gettext.translation('subconvert', '/usr/share/locale')
+t = gettext.translation(
+    domain='subconvert',
+    localedir=subconvertutils.get_locale_path(__file__),
+    fallback=True)
 gettext.install('subconvert')
 _ = t.ugettext
 
