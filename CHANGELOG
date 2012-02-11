@@ -3,12 +3,14 @@ Version history
 0.8.3   :
 * ADD:  Polish translation
 * ADD:  Auto detection of more movie formats (both GUI and CLI)
+* ADD:  New install script
 * FIX:  SubConvert detects both upper case and lower case movie extensions
 * FIX:  with '-v' option, SubConvert will not require any additional parameters
         and will simply try to get FPS from a given file
 * FIX:  #25: changed string concat method in MicroDVD
 * FIX:  Tests work again
 * FIX:  Crash when input string contained non-ascii characters
+* FIX:  SubConvert will now try to auto detect locale path
 * MOD:  'Auto FPS' checkbox is now checked on GUI start
 * RMV:  Combo box from GUI with an output sub extension
 
