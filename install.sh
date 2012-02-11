@@ -4,7 +4,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function printUsage {
     echo "Usage:"
-    echo "   install.sh install | uninstall | reinstall"
+    echo "   install.sh install|uninstall|reinstall [install_path]"
 }
 
 function remove {
