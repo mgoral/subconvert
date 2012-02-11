@@ -1,6 +1,6 @@
 Version history
 
-0.8.3   :
+0.8.3   : 11.02.2012 (Talkative Hiker)
 * ADD:  Polish translation
 * ADD:  Auto detection of more movie formats (both GUI and CLI)
 * ADD:  New install script
@@ -14,7 +14,7 @@ Version history
 * MOD:  'Auto FPS' checkbox is now checked on GUI start
 * RMV:  Combo box from GUI with an output sub extension
 
-0.8.2   : 05.12.2012 (Working Student)
+0.8.2   : 05.01.2012 (Working Student)
 * ADD:  Unit tests
 * ADD:  option to specify output file(s) encoding
 * ADD:  MPL2 format support
