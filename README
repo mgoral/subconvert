@@ -172,7 +172,7 @@ sub_fmt
     Each of the allowed tags will be replaced by a specific sub part.
     Allowed tags: {gsp_no}, {gsp_from}, {gsp_to}, {gsp_text}
 sub_formatting
-    A dictionary containing subtitle text formatting tags. Those tags indicates
+    A dictionary containing subtitle text formatting tags. Those tags indicate
     formatting which some sub formats allow (or, telling the truth, some movie
     players allow as for example not all players support subrip text formatting).
     There are both opening and closing tags to indicate formatted parts of text.
