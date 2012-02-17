@@ -137,8 +137,12 @@ class SubConvertGUI(QtGui.QWidget):
         # Handle args
         if args is not None:
             for arg in args:
-                item = QtGui.QListWidgetItem(arg)
-                self.file_list.addItem(item)
+                filepath = os.path.realpath(arg)
+                if os.path.isfile(filepath):
+                    item = QtGui.QListWidgetItem(os.path.realpath(arg))
+                    self.file_list.addItem(item)
+                else:
+                    log.error(_("No such file: %s") % arg)
 
         self.show()
 
