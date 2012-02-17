@@ -22,6 +22,7 @@ import os
 import logging
 import gettext
 import re
+import codecs
 
 log = logging.getLogger('SubConvert.%s' % __name__)
 
@@ -74,6 +75,15 @@ class GenericSubParser(object):
     def message(self, line_no, msg = "parsing error."):
         '''Uniform error message.'''
         return _("%s:%d %s") % (self.filename, line_no + 1, msg)
+
+    def initial_line_prepare(self, line, line_no):
+        '''Do NOT override this method unless you know
+        what you are doing! It's responsible for initial preparing
+        of line parsing which should be common for all parsers'''
+
+        if line_no == 0 and line.startswith( codecs.BOM_UTF8.decode("utf8") ):
+            line = line[1:]
+        return line
     
     def parse(self):
         '''Actual parser.
@@ -88,6 +98,7 @@ class GenericSubParser(object):
             log.debug(_("No lines read from file. Skipping"))
             return
         for line_no, line in enumerate(self.lines):
+            line = self.initial_line_prepare(line, line_no)
             if not self.__WITH_HEADER__ and not self.__PARSED__ and line_no > 35:
                 log.debug(self.message(line_no, _("%s waited too long. Skipping.") % self.__SUB_TYPE__))
                 return 
