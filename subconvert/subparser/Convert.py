@@ -61,7 +61,9 @@ def mplayer_check( filename, fps ):
     command = ['mplayer', '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify',]
     command.append(filename)
     try:
-        mp_out = Popen(command, stdout=PIPE).communicate()[0]
+        mp_out, mp_err = Popen(command, stdout=PIPE, stderr=PIPE).communicate()
+        log.debug(mp_err)
+        log.debug(mp_out)
         fps = re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', mp_out).group(1)
     except OSError:
         log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH in order to use auto_fps option."))
