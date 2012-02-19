@@ -27,6 +27,15 @@ Python standard library.
 
 
 import optparse
+import gettext
+import path as subpath
+
+t = gettext.translation(
+    domain='subconvert',
+    localedir=subpath.get_locale_path(__file__),
+    fallback=True)
+gettext.install('subconvert')
+_ = t.ugettext
 
 class SubOptionParser(optparse.OptionParser):
     """Customized implementation of optparse module"""
