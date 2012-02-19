@@ -22,17 +22,18 @@ import os
 import sys
 import codecs
 import logging
-from optparse import OptionParser, OptionGroup
+import optparse
 import gettext
 
 import subparser.SubParser as SubParser
 import subparser.Convert as Convert
-import subparser.version as version
-import subconvertutils
+import subutils.version as version
+import subutils.path as subpath
+import subutils.suboptparse as suboptparse
 
 t = gettext.translation(
     domain='subconvert',
-    localedir=subconvertutils.get_locale_path(__file__),
+    localedir=subpath.get_locale_path(__file__),
     fallback=True)
 gettext.install('subconvert')
 _ = t.ugettext
@@ -43,42 +44,54 @@ MAX_MEGS = 5 * 1048576
 
 def prepare_options():
     """Define optparse options."""
-    optp = OptionParser(usage = _('Usage: %prog [options] input_file [input_file(s)]'),
-        version = '%s' % version.__version__ )
-    group_conv = OptionGroup(optp, _('Convert options'),
-        _("Options which can be used to properly convert sub files."))
-    optp.add_option('-f', '--force',
-        action='store_true', dest='force', default=False,
-        help=_("force all operations without asking (assuming yes)"))
-    optp.add_option('-q', '--quiet',
-        action='store_true', dest='quiet', default=False,
-        help=_("quiet output"))
-    optp.add_option('--debug',
-        action='store_true', dest='debug_messages', default=False,
-        help=_("Generate debug output"))
-    group_conv.add_option('-e', '--encoding',
-        action='store', type='string', dest='encoding', default=None,
-        help=_("input file encoding. If no encoding is provided, SubConvert will try to automatically detect file encoding and switch to 'UTF-8' when unsuccessfull. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"))
-    group_conv.add_option('-E', '--output-encoding',
-        action='store', type='string', dest='output_encoding', default=None,
-        help=_("output file encoding. If no output encoding is provided, SubConvert will save output files with the same encoding as input."))
-    group_conv.add_option('-m', '--format',
-        action='store', type='string', dest='format_', default = 'subrip',
-        help=_("output file format. Default: subrip"))
-    group_conv.add_option('-s', '--fps',
-        action='store', type='float', dest='fps', default = 25,
-        help=_("select movie/subtitles frames per second. Default: 25"))
-    group_conv.add_option('-S', '--auto-fps',
-        action='store_true', dest='auto_fps', default=False,
-        help=_("automatically try to get fps from mplayer"))
-    group_conv.add_option('-v', '--video-file', default = '',
-        action='store', type='string', dest='movie_file',
-        help=_("movie file to get fps info from"))
-    group_conv.add_option('-x', '--extension',
-        action='store', type='string', dest='ext',
-        help=_("specify extension of the output file if the default one is not what you like."))
 
-    optp.add_option_group(group_conv)
+    optp = suboptparse.SubOptionParser(
+        usage = _('Usage: %prog [options] input_file [input_file(s)]'),
+        version = '%s' % version.__version__,
+        formatter = suboptparse.SubHelpFormatter()
+    )
+
+    group_file = optparse.OptionGroup(optp, _('File options'),
+        _("Options that describe how subtitle files should be handled."))
+    group_movie = optparse.OptionGroup(optp, _('Movie options'),
+        _("Options that describe the corelations between subtitle and movie files."))
+
+    optp.group_general.add_option('-f', '--force',
+        action='store_true', dest='force', default=False,
+        help=_("Force all operations without asking (assuming yes)."))
+    optp.group_general.add_option('-q', '--quiet',
+        action='store_true', dest='quiet', default=False,
+        help=_("Silence SubConvert output."))
+    optp.group_general.add_option('--debug',
+        action='store_true', dest='debug_messages', default=False,
+        help=_("Generate debug output."))
+
+    group_file.add_option('-e', '--encoding',
+        action='store', type='string', dest='encoding', default=None,
+        help=_("Input file encoding. If no encoding is provided, SubConvert will try to automatically detect file encoding and switch to 'UTF-8' when unsuccessfull. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings."))
+    group_file.add_option('--output-encoding',
+        action='store', type='string', dest='output_encoding', default=None,
+        help=_("Output file encoding. If no output encoding is provided, SubConvert will save output files with the same encoding as input."))
+    group_file.add_option('-t', '--format',
+        action='store', type='string', dest='format_', default = 'subrip',
+        help=_("Output subtitle format. Default: subrip."))
+    group_file.add_option('-x', '--extension',
+        action='store', type='string', dest='ext',
+        help=_("Specify extension of the output file if the default one is not what you like."))
+
+    group_movie.add_option('--fps',
+        action='store', type='float', dest='fps', default = 25,
+        help=_("Movie/subtitles frames per second. Default: 25."))
+    group_movie.add_option('-A', '--auto-fps',
+        action='store_true', dest='auto_fps', default=False,
+        help=_("Automatically try to get fps from MPlayer."))
+    group_movie.add_option('-v', '--video', default = '',
+        action='store', type='string', dest='movie_file',
+        help=_("Movie file to get FPS info from."))
+
+    optp.add_option_group(optp.group_general)
+    optp.add_option_group(group_file)
+    optp.add_option_group(group_movie)
     return optp
 
 def main():
@@ -100,7 +113,7 @@ def main():
         log.error(_("Incorrect number of arguments."))
         return 1
 
-    # A little hack to assure that translator won't make a mistake
+    # A little hack to ensure that translator won't make a mistake
     _choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q'), 'backup': _('b') }
 
     for arg in args:

@@ -19,3 +19,11 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 __author__ = "Michał Góral"
 __version__ = "0.8.3"
+
+
+# Those are translatable strings got from optparse.py module,
+# v. 1.5.3. They are added here to be automatically generated
+# during 'msessages' file generation. Consider this a hack.
+translatable_strings = (
+    
+)

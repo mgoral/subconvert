@@ -30,8 +30,9 @@ import time
 
 import subparser.SubParser as SubParser
 import subparser.Convert as Convert
-import subparser.version as version
-import subconvertutils
+import subutils.version as version
+import subutils.path as subpath
+import subutils.suboptparse as suboptparse
 
 from optparse import OptionParser, OptionGroup
 
@@ -39,7 +40,7 @@ log = logging.getLogger('SubConvert')
 
 t = gettext.translation(
     domain='subconvert',
-    localedir=subconvertutils.get_locale_path(__file__),
+    localedir=subpath.get_locale_path(__file__),
     fallback=True)
 gettext.install('subconvert')
 _ = t.ugettext
@@ -311,11 +312,16 @@ class SubConvertGUI(QtGui.QWidget):
 
 def prepare_options():
     """Define optparse options."""
-    optp = OptionParser(usage = _('Usage: %prog [options]'), \
-        version = '%s' % version.__version__ )
-    optp.add_option('--debug',
+    optp = suboptparse.SubOptionParser(
+        usage = _('Usage: %prog [options]'), \
+        version = '%s' % version.__version__,
+        formatter = suboptparse.SubHelpFormatter()
+    )
+    optp.group_general.add_option('--debug',
         action='store_true', dest='debug_messages', default=False,
         help=_("Generate debug output"))
+
+    optp.add_option_group(optp.group_general)
 
     return optp
 

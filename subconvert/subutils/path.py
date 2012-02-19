@@ -34,4 +34,4 @@ def get_locale_path(given_path, locale_name='subconvert'):
     if install_path:
         return "%s/%s" % ( install_path, "locale")
     return "./locale/"
-        
+
