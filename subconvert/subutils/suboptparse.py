@@ -64,5 +64,5 @@ class SubHelpFormatter(optparse.IndentedHelpFormatter):
         optparse.IndentedHelpFormatter.__init__(self, *args, **kwargs)
 
     def format_usage(self, usage):
-        return _("%s\n") % usage
+        return "%s\n" % usage
 

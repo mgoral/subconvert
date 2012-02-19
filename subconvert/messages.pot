@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-01-29 21:40+CET\n"
+"POT-Creation-Date: 2012-02-19 20:21+CET\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,288 +15,300 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: subconvert.py:41
+#: subconvert.py:49
 msgid "Usage: %prog [options] input_file [input_file(s)]"
 msgstr ""
 
-#: subconvert.py:43
-msgid "Convert options"
+#: subconvert.py:54
+msgid "File options"
 msgstr ""
 
-#: subconvert.py:44
-msgid "Options which can be used to properly convert sub files."
-msgstr ""
-
-#: subconvert.py:47
-msgid "force all operations without asking (assuming yes)"
-msgstr ""
-
-#: subconvert.py:50
-msgid "quiet output"
-msgstr ""
-
-#: subconvert.py:53 subconvert_gui.py:310
-msgid "Generate debug output"
+#: subconvert.py:55
+msgid "Options that describe how subtitle files should be handled."
 msgstr ""
 
 #: subconvert.py:56
-msgid "input file encoding. If no encoding is provided, SubConvert will try to automatically detect file encoding and switch to 'UTF-8' when unsuccessfull. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings"
+msgid "Movie options"
 msgstr ""
 
-#: subconvert.py:59
-msgid "output file encoding. If no output encoding is provided, SubConvert will save output files with the same encoding as input."
+#: subconvert.py:57
+msgid "Options that describe the corelations between subtitle and movie files."
 msgstr ""
 
-#: subconvert.py:62
-msgid "output file format. Default: subrip"
+#: subconvert.py:61
+msgid "Force all operations without asking (assuming yes)."
 msgstr ""
 
-#: subconvert.py:65
-msgid "select movie/subtitles frames per second. Default: 25"
+#: subconvert.py:64
+msgid "Silence SubConvert output."
 msgstr ""
 
-#: subconvert.py:68
-msgid "automatically try to get fps from mplayer"
+#: subconvert.py:67
+msgid "Generate debug output."
 msgstr ""
 
 #: subconvert.py:71
-msgid "movie file to get fps info from"
+msgid "Input file encoding. If no encoding is provided, SubConvert will try to automatically detect file encoding and switch to 'UTF-8' when unsuccessfull. For a list of available encodings, see: http://docs.python.org/library/codecs.html#standard-encodings."
 msgstr ""
 
 #: subconvert.py:74
-msgid "specify extension of the output file if the default one is not what you like."
+msgid "Output file encoding. If no output encoding is provided, SubConvert will save output files with the same encoding as input."
 msgstr ""
 
-#: subconvert.py:95
+#: subconvert.py:77
+msgid "Output subtitle format. Default: subrip."
+msgstr ""
+
+#: subconvert.py:80
+msgid "Specify extension of the output file if the default one is not what you like."
+msgstr ""
+
+#: subconvert.py:84
+msgid "Movie/subtitles frames per second. Default: 25."
+msgstr ""
+
+#: subconvert.py:87
+msgid "Automatically try to get fps from MPlayer."
+msgstr ""
+
+#: subconvert.py:90
+msgid "Movie file to get FPS info from."
+msgstr ""
+
+#: subconvert.py:113
 msgid "Incorrect number of arguments."
 msgstr ""
 
-#: subconvert.py:99
+#: subconvert.py:117
 msgid "b"
 msgstr ""
 
-#: subconvert.py:99
+#: subconvert.py:117
 msgid "n"
 msgstr ""
 
-#: subconvert.py:99
+#: subconvert.py:117
 msgid "q"
 msgstr ""
 
-#: subconvert.py:99
+#: subconvert.py:117
 msgid "y"
 msgstr ""
 
-#: subconvert.py:103 subconvert_gui.py:211
+#: subconvert.py:121 subconvert_gui.py:146 subconvert_gui.py:220
 msgid "No such file: %s"
 msgstr ""
 
-#: subconvert.py:107 subconvert_gui.py:215
+#: subconvert.py:125 subconvert_gui.py:224
 msgid "File '%s' too large."
 msgstr ""
 
-#: subconvert.py:128
+#: subconvert.py:146
 msgid "Input file encoding: %s."
 msgstr ""
 
-#: subconvert.py:129
+#: subconvert.py:147
 msgid "Output file encoding: %s."
 msgstr ""
 
-#: subconvert.py:134 subconvert_gui.py:250
+#: subconvert.py:152 subconvert_gui.py:259
 msgid "'%s' format not supported (or mistyped)."
 msgstr ""
 
-#: subconvert.py:141 subconvert_gui.py:253
+#: subconvert.py:159 subconvert_gui.py:262
 msgid "Couldn't handle '%s' given '%s' encoding."
 msgstr ""
 
-#: subconvert.py:144
+#: subconvert.py:162
 msgid "Couldnt convert from '%s' encoding to '%s'"
 msgstr ""
 
-#: subconvert.py:151
+#: subconvert.py:169
 msgid "Parsed."
 msgstr ""
 
-#: subconvert.py:158
+#: subconvert.py:176
 msgid "File '%s' exists. Overwrite? [%s/%s/%s/%s] "
 msgstr ""
 
-#: subconvert.py:168 subconvert.py:171 subconvert_gui.py:269
-#: subconvert_gui.py:270 subconvert_gui.py:273
+#: subconvert.py:186 subconvert.py:189 subconvert_gui.py:278
+#: subconvert_gui.py:279 subconvert_gui.py:282
 msgid "%s backed up as %s"
 msgstr ""
 
-#: subconvert.py:173 subconvert_gui.py:275
+#: subconvert.py:191 subconvert_gui.py:284
 msgid "Skipping %s"
 msgstr ""
 
-#: subconvert.py:176 subconvert_gui.py:278
+#: subconvert.py:194 subconvert_gui.py:287
 msgid "Overwriting %s"
 msgstr ""
 
-#: subconvert.py:178 subconvert_gui.py:280
+#: subconvert.py:196 subconvert_gui.py:289
 msgid "Quitting converting work."
 msgstr ""
 
-#: subconvert.py:186 subconvert_gui.py:288 subconvert_gui.py:289
+#: subconvert.py:204 subconvert_gui.py:297 subconvert_gui.py:298
 msgid "%s not parsed."
 msgstr ""
 
-#: subconvert_gui.py:48
+#: subconvert_gui.py:53
 msgid "File %s exists."
 msgstr ""
 
-#: subconvert_gui.py:51
+#: subconvert_gui.py:56
 msgid "Backup file"
 msgstr ""
 
-#: subconvert_gui.py:52
+#: subconvert_gui.py:57
 msgid "Yes"
 msgstr ""
 
-#: subconvert_gui.py:53
+#: subconvert_gui.py:58
 msgid "No"
 msgstr ""
 
-#: subconvert_gui.py:54
+#: subconvert_gui.py:59
 msgid "Cancel"
 msgstr ""
 
-#: subconvert_gui.py:55
+#: subconvert_gui.py:60
 msgid "To all"
 msgstr ""
 
-#: subconvert_gui.py:73
+#: subconvert_gui.py:78
 msgid "Start"
 msgstr ""
 
-#: subconvert_gui.py:80
+#: subconvert_gui.py:85
 msgid "Get FPS from movie."
 msgstr ""
 
-#: subconvert_gui.py:81
+#: subconvert_gui.py:86
 msgid "Movie FPS:"
 msgstr ""
 
-#: subconvert_gui.py:82
+#: subconvert_gui.py:87
 msgid "File(s) encoding:"
 msgstr ""
 
-#: subconvert_gui.py:83
+#: subconvert_gui.py:88
 msgid "Output encoding:"
 msgstr ""
 
-#: subconvert_gui.py:84
+#: subconvert_gui.py:89
 msgid "Output format:"
 msgstr ""
 
-#: subconvert_gui.py:96
+#: subconvert_gui.py:101
 msgid "[Detect]"
 msgstr ""
 
-#: subconvert_gui.py:98
+#: subconvert_gui.py:103
 msgid "[Don't change]"
 msgstr ""
 
-#: subconvert_gui.py:157
+#: subconvert_gui.py:166
 msgid "Default"
 msgstr ""
 
-#: subconvert_gui.py:167 subconvert_gui.py:180
+#: subconvert_gui.py:176 subconvert_gui.py:189
 msgid "Open file"
 msgstr ""
 
-#: subconvert_gui.py:169
+#: subconvert_gui.py:178
 msgid "Subtitle files (%s);;All files (*.*)"
 msgstr ""
 
-#: subconvert_gui.py:182
+#: subconvert_gui.py:191
 msgid "Movie files (%s);;All files (*.*)"
 msgstr ""
 
-#: subconvert_gui.py:209
+#: subconvert_gui.py:218
 msgid "----- [ %d. %s ] -----"
 msgstr ""
 
-#: subconvert_gui.py:243
+#: subconvert_gui.py:252
 msgid "Input encoding: %s"
 msgstr ""
 
-#: subconvert_gui.py:244
+#: subconvert_gui.py:253
 msgid "Output encoding: %s"
 msgstr ""
 
-#: subconvert_gui.py:259 subconvert_gui.py:260
+#: subconvert_gui.py:268 subconvert_gui.py:269
 msgid "%s parsed."
 msgstr ""
 
-#: subconvert_gui.py:296
+#: subconvert_gui.py:305
 msgid "Subconvert - finished"
 msgstr ""
 
-#: subconvert_gui.py:297
+#: subconvert_gui.py:306
 msgid "Work finished."
 msgstr ""
 
-#: subconvert_gui.py:299
+#: subconvert_gui.py:308
 msgid "Sub FPS: %s"
 msgstr ""
 
-#: subconvert_gui.py:300
+#: subconvert_gui.py:309
 msgid "Converted in: %f"
 msgstr ""
 
-#: subconvert_gui.py:306
+#: subconvert_gui.py:316
 msgid "Usage: %prog [options]"
+msgstr ""
+
+#: subconvert_gui.py:322
+msgid "Generate debug output"
 msgstr ""
 
 #: subparser/Convert.py:52
 msgid "'%s' exists and needs to be removed before backing up."
 msgstr ""
 
-#: subparser/Convert.py:67
+#: subparser/Convert.py:69
 msgid "Couldn't run mplayer. It has to be installed and placed in your $PATH in order to use auto_fps option."
 msgstr ""
 
-#: subparser/Convert.py:69
+#: subparser/Convert.py:71
 msgid "Couldn't get FPS info from mplayer."
 msgstr ""
 
-#: subparser/Convert.py:71
+#: subparser/Convert.py:73
 msgid "Got %s FPS from '%s'."
 msgstr ""
 
-#: subparser/Convert.py:85
+#: subparser/Convert.py:87
 msgid "Detecting encoding from %d bytes"
 msgstr ""
 
-#: subparser/Convert.py:86
+#: subparser/Convert.py:88
 msgid " ...chardet: %s"
 msgstr ""
 
-#: subparser/Convert.py:89
+#: subparser/Convert.py:91
 msgid " ...detected %s encoding."
 msgstr ""
 
-#: subparser/Convert.py:92
+#: subparser/Convert.py:94
 msgid "I am not too confident about encoding (most probably %s). Setting default UTF-8"
 msgstr ""
 
-#: subparser/Convert.py:113
+#: subparser/Convert.py:115
 msgid "Unknown encoding name: '%s'."
 msgstr ""
 
-#: subparser/Convert.py:116
+#: subparser/Convert.py:118
 msgid "Trying to parse %s..."
 msgstr ""
 
-#: subparser/Convert.py:149
+#: subparser/Convert.py:151
 msgid "Correct time not asserted for subtitle %d. Skipping it..."
 msgstr ""
 
-#: subparser/Convert.py:150
+#: subparser/Convert.py:152
 msgid ".. incorrect subtitle pair times: (%s, %s)"
 msgstr ""
 
@@ -316,44 +328,60 @@ msgstr ""
 msgid "Incorrect frame value."
 msgstr ""
 
-#: subparser/SubParser.py:76
+#: subparser/SubParser.py:77
 msgid "%s:%d %s"
 msgstr ""
 
-#: subparser/SubParser.py:88
+#: subparser/SubParser.py:98
 msgid "No lines read from file. Skipping"
 msgstr ""
 
-#: subparser/SubParser.py:92
+#: subparser/SubParser.py:103
 msgid "%s waited too long. Skipping."
 msgstr ""
 
-#: subparser/SubParser.py:98 subparser/SubParser.py:126
-#: subparser/SubParser.py:151
+#: subparser/SubParser.py:109 subparser/SubParser.py:137
+#: subparser/SubParser.py:162
 msgid "Not a %s file."
 msgstr ""
 
-#: subparser/SubParser.py:119
+#: subparser/SubParser.py:130
 msgid "Skipping empty line."
 msgstr ""
 
-#: subparser/SubParser.py:124 subparser/SubParser.py:149
+#: subparser/SubParser.py:135 subparser/SubParser.py:160
 msgid "%s parsing error."
 msgstr ""
 
-#: subparser/SubParser.py:129
+#: subparser/SubParser.py:140
 msgid "IndexError: %s"
 msgstr ""
 
-#: subparser/SubParser.py:146
+#: subparser/SubParser.py:157
 msgid "No subtitle text found. Skipping that section."
 msgstr ""
 
-#: subparser/SubParser.py:156
+#: subparser/SubParser.py:167
 msgid "Recognised %s."
 msgstr ""
 
-#: subparser/SubParser.py:167
+#: subparser/SubParser.py:178
 msgid "Key exception occured when trying to format sub: %s"
+msgstr ""
+
+#: subutils/suboptparse.py:40 subutils/suboptparse.py:47
+msgid "General options"
+msgstr ""
+
+#: subutils/suboptparse.py:43
+msgid "Show this help message and exit."
+msgstr ""
+
+#: subutils/suboptparse.py:50
+msgid "Show program's version number and exit."
+msgstr ""
+
+#: subutils/suboptparse.py:54
+msgid "%prog [options]"
 msgstr ""
 
