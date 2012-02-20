@@ -18,5 +18,5 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 __author__ = "Michał Góral"
-__version__ = "0.8.3"
+__version__ = "0.9"
 
