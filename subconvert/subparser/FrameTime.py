@@ -27,10 +27,10 @@ class FrameTime(object):
         """Construct and convert value(s) given in kwargs.
         Kwargs should describe either 'frame' or 'h', 'm',
         's' and 'ms'."""
-        if fps >= 0:
+        if fps > 0:
             self.fps = float(fps)
         else:
-            raise ValueError, _("Incorrect fps argument.")
+            raise ValueError, _("Incorrect FPS value: %s.") % fps
         if value_type == 'frame':
             self.__set_time__( int(kwargs['frame']) / self.fps)
         elif value_type == 'time':

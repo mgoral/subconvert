@@ -137,6 +137,9 @@ def main():
                         break
             else:
                 options.fps = Convert.mplayer_check(options.movie_file, options.fps)
+        elif options.fps <= 0:
+            log.warning(_("Incorrect FPS value: %s. Switching back to default") % options.fps)
+            options.fps = 25;
 
         encoding = Convert.detect_encoding(arg, options.encoding)
 
