@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-02-19 20:21+CET\n"
+"POT-Creation-Date: 2012-02-23 23:07+CET\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -103,52 +103,56 @@ msgstr ""
 msgid "File '%s' too large."
 msgstr ""
 
-#: subconvert.py:146
+#: subconvert.py:141
+msgid "Incorrect FPS value: %s. Switching back to default"
+msgstr ""
+
+#: subconvert.py:149
 msgid "Input file encoding: %s."
 msgstr ""
 
-#: subconvert.py:147
+#: subconvert.py:150
 msgid "Output file encoding: %s."
 msgstr ""
 
-#: subconvert.py:152 subconvert_gui.py:259
+#: subconvert.py:155 subconvert_gui.py:259
 msgid "'%s' format not supported (or mistyped)."
 msgstr ""
 
-#: subconvert.py:159 subconvert_gui.py:262
+#: subconvert.py:162 subconvert_gui.py:262
 msgid "Couldn't handle '%s' given '%s' encoding."
 msgstr ""
 
-#: subconvert.py:162
+#: subconvert.py:165
 msgid "Couldnt convert from '%s' encoding to '%s'"
 msgstr ""
 
-#: subconvert.py:169
+#: subconvert.py:172
 msgid "Parsed."
 msgstr ""
 
-#: subconvert.py:176
+#: subconvert.py:179
 msgid "File '%s' exists. Overwrite? [%s/%s/%s/%s] "
 msgstr ""
 
-#: subconvert.py:186 subconvert.py:189 subconvert_gui.py:278
+#: subconvert.py:189 subconvert.py:192 subconvert_gui.py:278
 #: subconvert_gui.py:279 subconvert_gui.py:282
 msgid "%s backed up as %s"
 msgstr ""
 
-#: subconvert.py:191 subconvert_gui.py:284
+#: subconvert.py:194 subconvert_gui.py:284
 msgid "Skipping %s"
 msgstr ""
 
-#: subconvert.py:194 subconvert_gui.py:287
+#: subconvert.py:197 subconvert_gui.py:287
 msgid "Overwriting %s"
 msgstr ""
 
-#: subconvert.py:196 subconvert_gui.py:289
+#: subconvert.py:199 subconvert_gui.py:289
 msgid "Quitting converting work."
 msgstr ""
 
-#: subconvert.py:204 subconvert_gui.py:297 subconvert_gui.py:298
+#: subconvert.py:207 subconvert_gui.py:297 subconvert_gui.py:298
 msgid "%s not parsed."
 msgstr ""
 
@@ -313,7 +317,7 @@ msgid ".. incorrect subtitle pair times: (%s, %s)"
 msgstr ""
 
 #: subparser/FrameTime.py:33
-msgid "Incorrect fps argument."
+msgid "Incorrect FPS value: %s."
 msgstr ""
 
 #: subparser/FrameTime.py:50
@@ -369,19 +373,19 @@ msgstr ""
 msgid "Key exception occured when trying to format sub: %s"
 msgstr ""
 
-#: subutils/suboptparse.py:40 subutils/suboptparse.py:47
+#: subutils/suboptparse.py:49 subutils/suboptparse.py:56
 msgid "General options"
 msgstr ""
 
-#: subutils/suboptparse.py:43
+#: subutils/suboptparse.py:52
 msgid "Show this help message and exit."
 msgstr ""
 
-#: subutils/suboptparse.py:50
+#: subutils/suboptparse.py:59
 msgid "Show program's version number and exit."
 msgstr ""
 
-#: subutils/suboptparse.py:54
+#: subutils/suboptparse.py:63
 msgid "%prog [options]"
 msgstr ""
 

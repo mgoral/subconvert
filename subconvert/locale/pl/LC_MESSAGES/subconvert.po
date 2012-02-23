@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: SubConvert\n"
-"POT-Creation-Date: 2012-02-19 20:11+CET\n"
-"PO-Revision-Date: 2012-02-19 20:21+0100\n"
+"POT-Creation-Date: 2012-02-23 23:07+CET\n"
+"PO-Revision-Date: 2012-02-23 23:10+0100\n"
 "Last-Translator: Michał Góral <michal.goral@mgoral.org>\n"
 "Language-Team: \n"
 "Language: \n"
@@ -108,60 +108,64 @@ msgstr "Podany plik nie istnieje: %s"
 msgid "File '%s' too large."
 msgstr "Plik '%s' jest zbyt duży."
 
-#: subconvert.py:146
+#: subconvert.py:141
+msgid "Incorrect FPS value: %s. Switching back to default"
+msgstr "Nieprawidłowa wartość FPS: %s. Zostanie użyta wartość domyślna"
+
+#: subconvert.py:149
 msgid "Input file encoding: %s."
 msgstr "Kodowanie pliku wejściowego: %s."
 
-#: subconvert.py:147
+#: subconvert.py:150
 msgid "Output file encoding: %s."
 msgstr "Kodowanie pliku wyjściowego: %s."
 
-#: subconvert.py:152
+#: subconvert.py:155
 #: subconvert_gui.py:259
 msgid "'%s' format not supported (or mistyped)."
 msgstr "Format '%s' nie jest wspierany (lub został błędnie wpisany)."
 
-#: subconvert.py:159
+#: subconvert.py:162
 #: subconvert_gui.py:262
 msgid "Couldn't handle '%s' given '%s' encoding."
 msgstr "Plik '%s' nie mógł zostać otwarty z kodowaniem '%s'."
 
-#: subconvert.py:162
+#: subconvert.py:165
 msgid "Couldnt convert from '%s' encoding to '%s'"
 msgstr "Nie udało się skonwertować z kodowania '%s' do '%s'."
 
-#: subconvert.py:169
+#: subconvert.py:172
 msgid "Parsed."
 msgstr "Zakończono parsowanie."
 
-#: subconvert.py:176
+#: subconvert.py:179
 msgid "File '%s' exists. Overwrite? [%s/%s/%s/%s] "
 msgstr "Plik '%s' istnieje. Nadpisać? [%s/%s/%s/%s] "
 
-#: subconvert.py:186
 #: subconvert.py:189
+#: subconvert.py:192
 #: subconvert_gui.py:278
 #: subconvert_gui.py:279
 #: subconvert_gui.py:282
 msgid "%s backed up as %s"
 msgstr "%s skopiowano jako %s"
 
-#: subconvert.py:191
+#: subconvert.py:194
 #: subconvert_gui.py:284
 msgid "Skipping %s"
 msgstr "Pomijanie %s"
 
-#: subconvert.py:194
+#: subconvert.py:197
 #: subconvert_gui.py:287
 msgid "Overwriting %s"
 msgstr "Nadpisywanie %s"
 
-#: subconvert.py:196
+#: subconvert.py:199
 #: subconvert_gui.py:289
 msgid "Quitting converting work."
 msgstr "Kończenie konwersji plików."
 
-#: subconvert.py:204
+#: subconvert.py:207
 #: subconvert_gui.py:297
 #: subconvert_gui.py:298
 msgid "%s not parsed."
@@ -330,8 +334,8 @@ msgid ".. incorrect subtitle pair times: (%s, %s)"
 msgstr ".. nieprawidłowa para czasów: (%s, %s)"
 
 #: subparser/FrameTime.py:33
-msgid "Incorrect fps argument."
-msgstr "Niepoprawna wartość FPS."
+msgid "Incorrect FPS value: %s."
+msgstr "Nieprawidłowa wartość FPS: %s."
 
 #: subparser/FrameTime.py:50
 msgid "Not supported FrameTime type: '%s'"
@@ -388,26 +392,25 @@ msgstr "Rozpoznano typ %s."
 msgid "Key exception occured when trying to format sub: %s"
 msgstr "Wystąpił wyjątek podczas próby formatowania napisów: %s"
 
-#: subutils/suboptparse.py:40
-#: subutils/suboptparse.py:47
+#: subutils/suboptparse.py:49
+#: subutils/suboptparse.py:56
 msgid "General options"
 msgstr "Ogólne opcje"
 
-#: subutils/suboptparse.py:43
+#: subutils/suboptparse.py:52
 msgid "Show this help message and exit."
 msgstr "Pokazanie tej wiadomości i wyjście z programu."
 
-#: subutils/suboptparse.py:50
+#: subutils/suboptparse.py:59
 msgid "Show program's version number and exit."
 msgstr "Pokazanie numeru wersji i wyjście z programu"
 
-#: subutils/suboptparse.py:54
+#: subutils/suboptparse.py:63
 msgid "%prog [options]"
 msgstr "%prog [opcje]"
 
-#: subutils/suboptparse.py:67
-msgid "%s\n"
-msgstr ""
+#~ msgid "Incorrect fps argument."
+#~ msgstr "Niepoprawna wartość FPS."
 
 #~ msgid "Options which can be used to properly convert sub files."
 #~ msgstr ""
