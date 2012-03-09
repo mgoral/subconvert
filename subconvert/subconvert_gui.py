@@ -289,7 +289,7 @@ class SubConvertGUI(QtGui.QWidget):
                         convert_info.append(_("Quitting converting work."))
                         return 1
                 else:
-                    convert_info.append("Writing to %s" % conv.filename)
+                    convert_info.append(_("Writing to %s" % conv.filename))
             
                 with codecs.open(conv.filename, 'w', encoding=conv.encoding) as cf:
                     cf.writelines(lines)

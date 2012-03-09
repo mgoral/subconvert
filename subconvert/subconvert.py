@@ -199,7 +199,7 @@ def main():
                     log.info(_("Quitting converting work."))
                     return 0
             else:
-                log.info("Writing to %s" % conv.filename)
+                log.info(_("Writing to %s" % conv.filename))
         
             with codecs.open(conv.filename, 'w', encoding=conv.encoding) as output_file:
                 output_file.writelines(lines)
