@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: SubConvert\n"
-"POT-Creation-Date: 2012-02-23 23:07+CET\n"
-"PO-Revision-Date: 2012-02-23 23:10+0100\n"
+"POT-Creation-Date: 2012-03-09 20:44+CET\n"
+"PO-Revision-Date: 2012-03-09 20:46+0100\n"
 "Last-Translator: Michał Góral <michal.goral@mgoral.org>\n"
 "Language-Team: \n"
 "Language: \n"
@@ -164,6 +164,11 @@ msgstr "Nadpisywanie %s"
 #: subconvert_gui.py:289
 msgid "Quitting converting work."
 msgstr "Kończenie konwersji plików."
+
+#: subconvert.py:202
+#: subconvert_gui.py:292
+msgid "Writing to %s"
+msgstr "Zapisywanie do %s"
 
 #: subconvert.py:207
 #: subconvert_gui.py:297

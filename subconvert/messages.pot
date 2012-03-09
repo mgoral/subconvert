@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-02-23 23:07+CET\n"
+"POT-Creation-Date: 2012-03-09 20:44+CET\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -150,6 +150,10 @@ msgstr ""
 
 #: subconvert.py:199 subconvert_gui.py:289
 msgid "Quitting converting work."
+msgstr ""
+
+#: subconvert.py:202 subconvert_gui.py:292
+msgid "Writing to %s"
 msgstr ""
 
 #: subconvert.py:207 subconvert_gui.py:297 subconvert_gui.py:298
