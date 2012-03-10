@@ -138,6 +138,7 @@ class SubConvertGUI(QtGui.QWidget):
         # Handle args
         if args is not None:
             for arg in args:
+                arg = arg.decode(sys.stdout.encoding)
                 filepath = os.path.realpath(arg)
                 if os.path.isfile(filepath):
                     self.addListItem(filepath)
@@ -197,7 +198,7 @@ class SubConvertGUI(QtGui.QWidget):
                 directory = self.directory,
                 filter = _("Subtitle files (%s);;All files (*.*)") % self.str_sub_exts)
             try:
-                self.directory = os.path.split(str(filenames[0]))[0]
+                self.directory = os.path.split(unicode(filenames[0]))[0]
             except IndexError:
                 pass    # Normal error when hitting "Cancel"
             for f in filenames:
@@ -210,7 +211,7 @@ class SubConvertGUI(QtGui.QWidget):
                 filter = _("Movie files (%s);;All files (*.*)") % self.str_movie_exts)
             if filename:
                 self.movie_path.setText(filename)
-                self.directory = os.path.split(str(filename))[0]
+                self.directory = os.path.split(unicode(filename))[0]
 
     def remove_from_list(self):
         item = self.file_list.takeItem(self.file_list.currentRow())
@@ -225,7 +226,7 @@ class SubConvertGUI(QtGui.QWidget):
     def convert_files(self):
         time_start = time.time()
         fps = str(self.fps.currentText())
-        movie_file = str(self.movie_path.text())
+        movie_file = unicode(self.movie_path.text())
         sub_format = str(self.output_formats.itemData(self.output_formats.currentIndex()).toString())
 
         convert_info = []
@@ -234,8 +235,8 @@ class SubConvertGUI(QtGui.QWidget):
 
         for job in xrange(self.file_list.count()):
             item = self.file_list.item(job)
-            filepath = str(item.text())
-            convert_info.append(_("----- [ %d. %s ] -----") % (job, os.path.split(filepath)))
+            filepath = unicode(item.text())
+            convert_info.append(_("----- [ %d. %s ] -----") % (job, os.path.split(filepath)[1]))
             if not os.path.isfile(filepath):
                 convert_info.append(_("No such file: %s") % filepath)
                 self.change_item_icon(item, 1)
@@ -286,7 +287,7 @@ class SubConvertGUI(QtGui.QWidget):
                 self.change_item_icon(item, 1)
                 continue
             except SubParser.SubParsingError, msg:
-                convert_info.append(str(msg))
+                convert_info.append(unicode(msg))
                 self.change_item_icon(item, 1)
                 continue
             if lines:

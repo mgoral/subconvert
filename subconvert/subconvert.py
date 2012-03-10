@@ -117,6 +117,7 @@ def main():
     _choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q'), 'backup': _('b') }
 
     for arg in args:
+        arg = arg.decode(sys.stdout.encoding)
         if not os.path.isfile(arg):
             log.error(_("No such file: %s") % arg)
             continue
@@ -177,7 +178,7 @@ def main():
                 while( choice not in (_choices['yes'], _choices['no'], _choices['backup'], _choices['quit'])):
                     choice = raw_input(
                         _("File '%s' exists. Overwrite? [%s/%s/%s/%s] ").encode(sys.stdin.encoding) %
-                        ( conv.filename,
+                        ( conv.filename.encode(sys.stdin.encoding),
                         _choices['yes'].encode(sys.stdin.encoding),
                         _choices['no'].encode(sys.stdin.encoding),
                         _choices['backup'].encode(sys.stdin.encoding),
