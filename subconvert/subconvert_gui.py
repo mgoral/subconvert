@@ -140,8 +140,7 @@ class SubConvertGUI(QtGui.QWidget):
             for arg in args:
                 filepath = os.path.realpath(arg)
                 if os.path.isfile(filepath):
-                    item = QtGui.QListWidgetItem(os.path.realpath(arg))
-                    self.file_list.addItem(item)
+                    self.addListItem(filepath)
                 else:
                     log.error(_("No such file: %s") % arg)
 
@@ -168,6 +167,27 @@ class SubConvertGUI(QtGui.QWidget):
         exts.sort()
         return exts
 
+    def addListItem(self, filepath):
+        icon = QtGui.QIcon("img/initial_list.png")
+        item = QtGui.QListWidgetItem(icon, filepath)
+        self.file_list.addItem(item)
+
+    def change_item_icon(self, item, success):
+        """Change file icon according to parsing success status:
+        0: succeeded
+        1: failed
+        2: postponed (skipped)"""
+
+        if 0 == success:
+            icon = QtGui.QIcon("img/ok.png")
+        elif 1 == success:
+            icon = QtGui.QIcon("img/nook.png")
+        elif 2 == success:
+            icon = QtGui.QIcon("img/skipped.png")
+        else:
+            raise AttributeError
+        item.setIcon(icon)
+
     def open_dialog(self):
         button = self.sender()
         if button == self.add_file:
@@ -181,8 +201,7 @@ class SubConvertGUI(QtGui.QWidget):
             except IndexError:
                 pass    # Normal error when hitting "Cancel"
             for f in filenames:
-                item = QtGui.QListWidgetItem(f)
-                self.file_list.addItem(item)
+                self.addListItem(f)
         elif button == self.add_movie_file:
             filename = QtGui.QFileDialog.getOpenFileName(
                 parent = self,
@@ -207,26 +226,29 @@ class SubConvertGUI(QtGui.QWidget):
         time_start = time.time()
         fps = str(self.fps.currentText())
         movie_file = str(self.movie_path.text())
-        files = [str(self.file_list.item(i).text()) for i in xrange(self.file_list.count())]
         sub_format = str(self.output_formats.itemData(self.output_formats.currentIndex()).toString())
 
         convert_info = []
 
         to_all = False
 
-        for job, arg in enumerate(files): # Call it 'arg' to keep a consistency with cli version
-            convert_info.append(_("----- [ %d. %s ] -----") % (job, os.path.split(arg)[1]))
-            if not os.path.isfile(arg):
-                convert_info.append(_("No such file: %s") % arg)
+        for job in xrange(self.file_list.count()):
+            item = self.file_list.item(job)
+            filepath = str(item.text())
+            convert_info.append(_("----- [ %d. %s ] -----") % (job, os.path.split(filepath)))
+            if not os.path.isfile(filepath):
+                convert_info.append(_("No such file: %s") % filepath)
+                self.change_item_icon(item, 1)
                 continue
 
-            if os.path.getsize(arg) > MAX_MEGS:
-                convert_info.append(_("File '%s' too large.") % arg)
+            if os.path.getsize(filepath) > MAX_MEGS:
+                convert_info.append(_("File '%s' too large.") % filepath)
+                self.change_item_icon(item, 1)
                 continue
 
             if self.auto_fps.isChecked():
                 if not movie_file:
-                    filename, extension = os.path.splitext(arg)
+                    filename, extension = os.path.splitext(filepath)
                     for ext in self.movie_exts:
                         if os.path.isfile(''.join((filename, ext))):
                             fps = Convert.mplayer_check(''.join((filename, ext)), fps)
@@ -241,7 +263,7 @@ class SubConvertGUI(QtGui.QWidget):
                 opt_encoding = None
             else:
                 opt_encoding = str(self.encodings.currentText())
-            encoding = Convert.detect_encoding(arg, opt_encoding)
+            encoding = Convert.detect_encoding(filepath, opt_encoding)
 
             if 1 > self.output_encodings.currentIndex():
                 output_encoding = encoding
@@ -254,34 +276,38 @@ class SubConvertGUI(QtGui.QWidget):
                 )))
             
             try:
-                conv, lines = Convert.convert_file(arg, encoding, output_encoding, fps, sub_format)
+                conv, lines = Convert.convert_file(filepath, encoding, output_encoding, fps, sub_format)
             except NameError:
                 convert_info.append(_("'%s' format not supported (or mistyped).") % sub_format)
+                self.change_item_icon(item, 1)
                 return -1
             except UnicodeDecodeError:
-                convert_info.append(_("Couldn't handle '%s' given '%s' encoding.") % (arg, encoding))
+                convert_info.append(_("Couldn't handle '%s' given '%s' encoding.") % (filepath, encoding))
+                self.change_item_icon(item, 1)
                 continue
             except SubParser.SubParsingError, msg:
                 convert_info.append(str(msg))
+                self.change_item_icon(item, 1)
                 continue
             if lines:
-                log.debug(_("%s parsed.") % arg)
-                convert_info.append(_("%s parsed.") % arg)
+                log.debug(_("%s parsed.") % filepath)
+                convert_info.append(_("%s parsed.") % filepath)
                 if os.path.isfile(conv.filename):
                     if not to_all:
                         bbox = BackupMessage(conv.filename)
                         choice = bbox.exec_()
                         to_all = bbox.get_to_all()
                     if choice == 0: # backup
-                        if conv.filename == arg:
-                            arg, _mvd = Convert.backup(arg)  # We will read from backed up file
-                            log.info(_("%s backed up as %s") % (_mvd, arg))
-                            convert_info.append(_("%s backed up as %s") % (_mvd, arg))
+                        if conv.filename == filepath:
+                            filepath, _mvd = Convert.backup(filepath)  # We will read from backed up file
+                            log.info(_("%s backed up as %s") % (_mvd, filepath))
+                            convert_info.append(_("%s backed up as %s") % (_mvd, filepath))
                         else:
                             _bck = Convert.backup(conv.filename)[0]
                             convert_info.append(_("%s backed up as %s") % (conv.filename, _bck))
                     elif choice == 2: # No
-                        convert_info.append(_("Skipping %s") % arg)
+                        convert_info.append(_("Skipping %s") % filepath)
+                        self.change_item_icon(item, 2)
                         continue
                     elif choice == 1: # Yes
                         convert_info.append(_("Overwriting %s") % conv.filename)
@@ -293,9 +319,11 @@ class SubConvertGUI(QtGui.QWidget):
             
                 with codecs.open(conv.filename, 'w', encoding=conv.encoding) as cf:
                     cf.writelines(lines)
+                    self.change_item_icon(item, 0)
             else:
-                log.debug(_("%s not parsed.") % arg)
-                convert_info.append(_("%s not parsed.") % arg)
+                log.debug(_("%s not parsed.") % filepath)
+                convert_info.append(_("%s not parsed.") % filepath)
+                self.change_item_icon(item, 1)
 
         elapsed_time = time.time() - time_start
         summary = QtGui.QMessageBox()
