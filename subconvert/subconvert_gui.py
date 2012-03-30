@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-"""
-    This file is part of Subconvert.
+""" This file is part of Subconvert.
 
     Subconvert is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,6 +23,7 @@ from PyQt4 import QtGui, QtCore
 import pkgutil
 import encodings
 import codecs
+
 import logging
 import gettext
 import time
@@ -50,7 +50,7 @@ MAX_MEGS = 5 * 1048576
 class BackupMessage(QtGui.QMessageBox):
     def __init__(self, filename):
         QtGui.QMessageBox.__init__(self)
-        self.setText(_("File %s exists.") % filename) 
+        self.setText(_("File %s exists.") % filename)
         self.setInformativeText("Do you want to overwrite it?.")
         self.setIcon(self.Question)
         self.addButton(_("Backup file"), QtGui.QMessageBox.ActionRole)
@@ -69,7 +69,7 @@ class SubConvertGUI(QtGui.QWidget):
     def __init__(self, args = None, options = None):
         super(SubConvertGUI, self).__init__()
         self.init_gui(args, options)
-    
+
     def init_gui(self, args = None, options = None):
         self.grid = QtGui.QGridLayout(self)
         self.add_file = QtGui.QPushButton('+', self)
@@ -115,7 +115,7 @@ class SubConvertGUI(QtGui.QWidget):
 
         self.auto_fps.setCheckState(QtCore.Qt.Checked)
         self.change_auto_fps()
-        
+
         self.grid.addWidget(self.encoding_label, 0, 0)
         self.grid.addWidget(self.encodings, 0, 1)
         self.grid.addWidget(self.fps_label, 0, 2)
@@ -169,7 +169,8 @@ class SubConvertGUI(QtGui.QWidget):
         return exts
 
     def addListItem(self, filepath):
-        icon = QtGui.QIcon("img/initial_list.png")
+        self_path = subpath.get_dirname(__file__)
+        icon = QtGui.QIcon(os.path.join(self_path, "img/initial_list.png"))
         item = QtGui.QListWidgetItem(icon, filepath)
         self.file_list.addItem(item)
 
@@ -179,12 +180,14 @@ class SubConvertGUI(QtGui.QWidget):
         1: failed
         2: postponed (skipped)"""
 
+        self_path = subpath.get_dirname(__file__)
+
         if 0 == success:
-            icon = QtGui.QIcon("img/ok.png")
+            icon = QtGui.QIcon(os.path.join(self_path, "img/ok.png"))
         elif 1 == success:
-            icon = QtGui.QIcon("img/nook.png")
+            icon = QtGui.QIcon(os.path.join(self_path, "img/nook.png"))
         elif 2 == success:
-            icon = QtGui.QIcon("img/skipped.png")
+            icon = QtGui.QIcon(os.path.join(self_path, "img/skipped.png"))
         else:
             raise AttributeError
         item.setIcon(icon)
@@ -193,7 +196,7 @@ class SubConvertGUI(QtGui.QWidget):
         button = self.sender()
         if button == self.add_file:
             filenames = self.file_dialog.getOpenFileNames(
-                parent = self, 
+                parent = self,
                 caption = _('Open file'),
                 directory = self.directory,
                 filter = _("Subtitle files (%s);;All files (*.*)") % self.str_sub_exts)
@@ -275,7 +278,7 @@ class SubConvertGUI(QtGui.QWidget):
                 _("Input encoding: %s") % encoding.replace('_', '-').upper(),
                 _("Output encoding: %s") % output_encoding.replace('_', '-').upper()
                 )))
-            
+
             try:
                 conv, lines = Convert.convert_file(filepath, encoding, output_encoding, fps, sub_format)
             except NameError:
@@ -312,12 +315,12 @@ class SubConvertGUI(QtGui.QWidget):
                         continue
                     elif choice == 1: # Yes
                         convert_info.append(_("Overwriting %s") % conv.filename)
-                    elif choice == 3: # Cancel 
+                    elif choice == 3: # Cancel
                         convert_info.append(_("Quitting converting work."))
                         return 1
                 else:
                     convert_info.append(_("Writing to %s") % conv.filename)
-            
+
                 with codecs.open(conv.filename, 'w', encoding=conv.encoding) as cf:
                     cf.writelines(lines)
                     self.change_item_icon(item, 0)

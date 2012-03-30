@@ -89,7 +89,8 @@ function installSubConvert {
     cp ${DIR}/{subconvert.py,subconvert-gui.py,install.sh} ${SUBC_SHARE} || exit 1
     cp ${DIR}/subconvert/*.py ${SUBC_SHARE}/subconvert
     cp -r ${DIR}/subconvert/subparser ${SUBC_SHARE}/subconvert
-    cp -r ${DIR}/subconvert/subutils ${SUBC_SHARE}/subutils
+    cp -r ${DIR}/subconvert/subutils ${SUBC_SHARE}/subconvert
+    cp -r ${DIR}/subconvert/img ${SUBC_SHARE}/subconvert
     chmod +x ${SUBC_SHARE}/{subconvert.py,subconvert-gui.py,install.sh}
     echo "Copying files to ${SUBC_DOC}..."
     if [[ ! -e ${SUBC_DOC} ]]; then
