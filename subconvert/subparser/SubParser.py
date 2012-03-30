@@ -19,6 +19,7 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import os
+import sys
 import logging
 import gettext
 import re
@@ -38,7 +39,7 @@ class GenericSubParser(object):
     in subclasses.'''
 
     # Overwrite these in inherited classes
-    # Note that start_pattern is checked independently to 
+    # Note that start_pattern is checked independently to
     # time_pattern and text_pattern (which are OR-ed)
     __SUB_TYPE__ = 'Generic'
     __OPT__ = 'none'
@@ -55,7 +56,7 @@ class GenericSubParser(object):
         'gsp_u_':   r'', '_gsp_u':  r'',
         'gsp_nl':   os.linesep,
         }
-    
+
     # Do not overwrite further
     __PARSED__ = False
     __HEADER_FOUND__ = False
@@ -74,7 +75,7 @@ class GenericSubParser(object):
 
     def message(self, line_no, msg = "parsing error."):
         '''Uniform error message.'''
-        return _("%s:%d %s") % (self.filename, line_no + 1, msg)
+        return _("%s:%d %s") % (self.filename.encode(sys.stdout.encoding), line_no + 1, msg)
 
     def initial_line_prepare(self, line, line_no):
         '''Do NOT override this method unless you know
@@ -84,10 +85,10 @@ class GenericSubParser(object):
         if line_no == 0 and line.startswith( codecs.BOM_UTF8.decode("utf8") ):
             line = line[1:]
         return line
-    
+
     def parse(self):
         '''Actual parser.
-        Please note that time_to is not required 
+        Please note that time_to is not required
         to process as not all subtitles provide it.'''
 
         atom = self.atom_t.copy()
@@ -101,7 +102,7 @@ class GenericSubParser(object):
             line = self.initial_line_prepare(line, line_no)
             if not self.__WITH_HEADER__ and not self.__PARSED__ and line_no > 35:
                 log.debug(self.message(line_no, _("%s waited too long. Skipping.") % self.__SUB_TYPE__))
-                return 
+                return
             sub_section = ''.join([sub_section, line])
             end = self.end_pattern.search(line)
             if self.__WITH_HEADER__ and not self.__HEADER_FOUND__:
@@ -135,7 +136,7 @@ class GenericSubParser(object):
                         raise SubParsingError, self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__)
                     else:
                         log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
-                        return 
+                        return
                 except IndexError, msg:
                     log.debug(self.message(line_no, _("IndexError: %s") % msg))
                 try:
@@ -160,7 +161,7 @@ class GenericSubParser(object):
                         raise SubParsingError, self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__)
                     else:
                         log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
-                        return 
+                        return
                 sub_section = ''
                 atom = {'time_from': '', 'time_to': '', 'text': '',}
         if i > 0:
@@ -168,7 +169,7 @@ class GenericSubParser(object):
             yield None  # Last element is None so we can adjust sub converting
 
     def convert(self, sub):
-        '''A function which gets dictionary containing single 
+        '''A function which gets dictionary containing single
         sub info and returns appropriately formated string
         according to the passed sub format specification.
         First sub might also contain header info.'''
@@ -181,7 +182,7 @@ class GenericSubParser(object):
             gsp_from = self.get_time(sub['sub']['time_from'], 'time_from'), \
             gsp_to = self.get_time(sub['sub']['time_to'], 'time_to'), \
             gsp_text = sub_text.encode(self.encoding))
-    
+
     # Following methods should probably be polymorphed
     def get_header(self, sub_section , atom):
         '''Try to find header in a given sub_section. For example
@@ -191,9 +192,9 @@ class GenericSubParser(object):
         atom['header']. After it returns True, it will not be called again.'''
         atom['header'] = {'info': sub_section.strip()}
         return True
-    
+
     def convert_header(self, header):
-        '''Convert parsed header keys and values to the string 
+        '''Convert parsed header keys and values to the string
         that can be saved to file.'''
         header_str = ''
         for key, val in header.items():
@@ -213,7 +214,7 @@ class GenericSubParser(object):
         to the other GenericSubParser subclass which can then
         recognize it and operate on it.'''
         return string
-    
+
     def format_text(self, string):
         '''Convert sub-type specific formatting to the one known
         to GenericSubParser. Supported tags:

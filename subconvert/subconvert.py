@@ -41,7 +41,6 @@ _ = t.ugettext
 MAX_MEGS = 5 * 1048576
 
 
-
 def prepare_options():
     """Define optparse options."""
 
@@ -125,7 +124,7 @@ def main():
         if os.path.getsize(arg) > MAX_MEGS:
             log.warning(_("File '%s' too large.") % arg)
             continue
-        
+
         if options.auto_fps or options.movie_file:
             if not options.movie_file:
                 filename = os.path.splitext(arg)[0]
@@ -201,7 +200,7 @@ def main():
                     return 0
             else:
                 log.info(_("Writing to %s") % conv.filename)
-        
+
             with codecs.open(conv.filename, 'w', encoding=conv.encoding) as output_file:
                 output_file.writelines(lines)
         else:
