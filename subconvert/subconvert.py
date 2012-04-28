@@ -61,6 +61,9 @@ def prepare_options():
     optp.group_general.add_option('-q', '--quiet',
         action='store_true', dest='quiet', default=False,
         help=_("Silence SubConvert output."))
+    optp.group_general.add_option('-g', '--gui',
+        action='store_true', dest='run_gui', default=False,
+        help=_("Execute Subconvert in graphical mode."))
     optp.group_general.add_option('--debug',
         action='store_true', dest='debug_messages', default=False,
         help=_("Generate debug output."))
@@ -107,6 +110,11 @@ def main():
     if options.debug_messages:
         log.setLevel(logging.DEBUG)
     log.addHandler(logging.StreamHandler())
+
+    if options.run_gui is True:
+        import subconvert_gui
+        subconvert_gui.start_app(args, None)
+        return 0
 
     if len(args)  < 1:
         log.error(_("Incorrect number of arguments."))
