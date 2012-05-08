@@ -248,7 +248,8 @@ class SubConvertGUI(QtGui.QWidget):
             item = self.file_list.item(job)
             filepath = unicode(item.text())
             item.job_counter = item.job_counter + 1
-            if self.options is not None and self.options.keep_logs is False:
+            if (self.options is None) or (self.options is not None and self.options.keep_logs is False):
+                # Don't keep logs when started through "subconvert -g" or without --keep-logs option
                 item.log = []
             item.log.append(_("----- [ %s: %s ] -----") % (os.path.basename(filepath), item.job_counter))
             if not os.path.isfile(filepath):
@@ -387,6 +388,7 @@ def prepare_options():
 def start_app(args, options):
     app = QtGui.QApplication(sys.argv)
     gui = SubConvertGUI(args, options)
+    print options
     sys.exit(app.exec_())
 
 def main():
