@@ -33,7 +33,7 @@ class MicroDVD(GenericSubParser):
     __EXT__ = 'sub'
     pattern = r'''
         ^
-        \{(?P<time_from>\d+)\}  # {digits} 
+        \{(?P<time_from>\d+)\}  # {digits}
         \{(?P<time_to>\d+)\}    # {digits}
         (?P<text>[^\r\n]*)
         '''
@@ -45,10 +45,10 @@ class MicroDVD(GenericSubParser):
         'gsp_u_':   r'{y:u}', '_gsp_u':     r'',
         'gsp_nl':   r'|',
     }
-    
+
     def __init__(self, filename, fps, encoding, lines = None):
         GenericSubParser.__init__(self, filename, fps, encoding, lines)
-    
+
     def str_to_frametime(self, string):
         return FrameTime(fps=self.fps, value_type=self.__FMT__, frame=string)
 
@@ -97,17 +97,17 @@ class SubRip(GenericSubParser):
         'gsp_u_':   r'<u>', '_gsp_u':   r'</u>',
         'gsp_nl':   os.linesep,
     }
-    
+
     def __init__(self, filename, fps, encoding, lines = None):
         self.time_fmt = re.compile(self.time_fmt)
         GenericSubParser.__init__(self, filename, fps, encoding, lines)
-    
+
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
         return FrameTime(fps=self.fps, value_type=self.__FMT__, \
             h=time.group('h'), m=time.group('m'), \
             s=time.group('s'), ms=time.group('ms'))
-    
+
     def format_text(self, string):
         string = string.strip()
         string = string.replace('{', '{{').replace('}', '}}')
@@ -127,7 +127,7 @@ class SubRip(GenericSubParser):
         elif '\r' in string:
             string = string.replace('\r', '{gsp_nl}') # Mac
         return string
-    
+
     def get_time(self, frametime, which):
         return '%02d:%02d:%02d,%03d' % (int(frametime.hours), int(frametime.minutes), int(frametime.seconds), int(frametime.miliseconds))
 
@@ -156,11 +156,11 @@ class SubViewer(GenericSubParser):
         'gsp_u_':   r'', '_gsp_u':  r'',
         'gsp_nl':   os.linesep,
     }
-    
+
     def __init__(self, filename, fps, encoding, lines = None):
         self.time_fmt = re.compile(self.time_fmt)
         GenericSubParser.__init__(self, filename, fps, encoding, lines)
-    
+
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
         return FrameTime(fps=self.fps, value_type=self.__FMT__, \
@@ -190,7 +190,7 @@ class SubViewer(GenericSubParser):
                 end = header.lower().find('[subtitle]')
                 if -1 == end:
                     return True
-            
+
             tag_list = header[:end].splitlines()
             for tag in tag_list:
                 if tag.strip().startswith('['):
@@ -215,7 +215,7 @@ class SubViewer(GenericSubParser):
             return True
         else:
             return False
-    
+
     def convert_header(self, header):
         keys = header.keys()
         filename = os.path.split(self.filename)[-1]
@@ -254,7 +254,7 @@ class TMP(GenericSubParser):
     '''
     end_pattern = r'(?P<end>(?:\r?\n)|(?:\r))$' # \r on mac, \n on linux, \r\n on windows
     time_fmt = r'^(?P<h>\d+):(?P<m>\d{2}):(?P<s>\d{2})$'
-    sub_fmt = "{gsp_from}:{gsp_text}%s" % os.linesep    
+    sub_fmt = "{gsp_from}:{gsp_text}%s" % os.linesep
     sub_formatting = {
         'gsp_b_':   r'', '_gsp_b':      r'',
         'gsp_i_':   r'', '_gsp_i':      r'',
@@ -298,7 +298,7 @@ class MPL2(GenericSubParser):
     __EXT__ = 'txt'
     pattern = r'''
         ^
-        \[(?P<time_from>\d+)\]  # {digits} 
+        \[(?P<time_from>\d+)\]  # {digits}
         \[(?P<time_to>\d+)\]    # {digits}
         (?P<text>[^\r\n]*)
         '''
@@ -311,11 +311,12 @@ class MPL2(GenericSubParser):
         'gsp_u_':   r'', '_gsp_u':     r'',
         'gsp_nl':   r'|',
     }
-    
+
     def __init__(self, filename, fps, encoding, lines = None):
         GenericSubParser.__init__(self, filename, fps, encoding, lines)
-    
+
     def str_to_frametime(self, string):
+        string = ''.join(['0', string]) # Parsing "[0][5] sub" would cause an error without this
         ms = int(string[-1]) / 10.0
         seconds = int(string[:-1]) + ms
         return FrameTime(fps=self.fps, value_type='full_seconds', seconds=seconds)
@@ -332,5 +333,5 @@ class MPL2(GenericSubParser):
 
     def get_time(self, frametime, which):
         time = str(frametime.full_seconds).split('.')
-        time = ''.join([time[0], time[1][0]])
+        time = ''.join([time[0].lstrip('0'), time[1][0]])
         return time
