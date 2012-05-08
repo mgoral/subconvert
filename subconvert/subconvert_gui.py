@@ -388,7 +388,6 @@ def prepare_options():
 def start_app(args, options):
     app = QtGui.QApplication(sys.argv)
     gui = SubConvertGUI(args, options)
-    print options
     sys.exit(app.exec_())
 
 def main():
