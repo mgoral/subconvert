@@ -1,5 +1,22 @@
 Version history
 
+0.9     : 12.05.2012 (Code Injector)
+* ADD:  "-g" option to SubConvert CLI version
+* ADD:  #32: added icon for the GUI file list which indicates a status of a job
+        for that file
+* FIX:  #42: MPL2 error with one-digit time indicators
+* FIX:  A lot of (hopefully all) filename encoding issues are now fixed
+* FIX:  Two untranslated strings are now translatable
+* FIX:  SubOptParser gettext issues
+* FIX:  Help text unification
+* FIX:  #35: silence MPlayer error
+* FIX:  #33: omit Byte Order Mark in UTF8 files
+* FIX:  proper arguments parsing in GUI
+* MOD:  Rewritten command line options
+* MOD:  #40: GUI: change the way that logging is handled. Most significant
+        change are individual logs for each file on the list (available after
+        double-click on that file)
+
 0.8.3   : 11.02.2012 (Talkative Hiker)
 * ADD:  Polish translation
 * ADD:  Auto detection of more movie formats (both GUI and CLI)
@@ -19,7 +36,7 @@ Version history
 * ADD:  option to specify output file(s) encoding
 * ADD:  MPL2 format support
 * FIX:  HUGE code refactoring
-* FIX:  ugly converting error (which doubled first subtitle and removed the 
+* FIX:  ugly converting error (which doubled first subtitle and removed the
         last one)
 * FIX:  incorrect SubViewer miliseconds converting
 * FIX:  SubRip skipping last sub when no new line at the EOF (now Generic

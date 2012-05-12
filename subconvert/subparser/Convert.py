@@ -19,6 +19,7 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import os
+import sys
 import logging
 import re
 import gettext
@@ -46,10 +47,10 @@ def backup( filename ):
     """Backup a file to filename_strftime (by moving it, not copying).
     Return a tuple (backed_up_filename, old_filename)"""
 
-    new_arg = filename + datetime.datetime.now().strftime('_%y%m%d%H%M%S')
+    new_arg = ''.join([filename, datetime.datetime.now().strftime('_%y%m%d%H%M%S')])
     try:
         os.remove(new_arg)
-        log.debug(_("'%s' exists and needs to be removed before backing up.") % new_arg)
+        log.debug(_("'%s' exists and needs to be removed before backing up.") % new_arg.encode(sys.stdout.encoding))
     except OSError:
         pass
     shutil.move(filename, new_arg)
@@ -61,7 +62,9 @@ def mplayer_check( filename, fps ):
     command = ['mplayer', '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify',]
     command.append(filename)
     try:
-        mp_out = Popen(command, stdout=PIPE).communicate()[0]
+        mp_out, mp_err = Popen(command, stdout=PIPE, stderr=PIPE).communicate()
+        log.debug(mp_err)
+        log.debug(mp_out)
         fps = re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', mp_out).group(1)
     except OSError:
         log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH in order to use auto_fps option."))
@@ -77,7 +80,7 @@ def detect_encoding( filepath, encoding ):
     autodetect when '-e ascii' option is given. It seems that optparse
     creates a new object (which is logical) when given an option from
     shell and overrides a variable in program memory."""
-    if IS_CHARDET and encoding is None: 
+    if IS_CHARDET and encoding is None:
         file_size = os.path.getsize(filepath)
         size = 2000 if file_size > 2000 else file_size
         with open(filepath, mode='rb',) as file_:

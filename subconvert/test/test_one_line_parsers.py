@@ -28,7 +28,7 @@ import datetime
 import subparser.SubParser as SubParser
 import subparser.Parsers as Parsers
 import subparser.Convert as Convert
-import subparser.version as version
+import subutils.version as version
 import subparser.FrameTime as FrameTime
 
 from subconvert import _

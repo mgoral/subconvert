@@ -17,5 +17,24 @@ You should have received a copy of the GNU General Public License
 along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-__author__ = "Michał Góral"
-__version__ = "0.8.3"
+
+import os
+
+def get_install_path(given_path, split_string='subconvert'):
+    try:
+        ret_list = os.path.dirname(given_path).split(split_string)
+    except AttributeError:
+        return ''
+    if len(ret_list) < 2:
+        return os.path.dirname(given_path)
+    return ret_list[0]
+
+def get_locale_path(given_path, locale_name='subconvert'):
+    install_path = get_install_path(given_path, locale_name)
+    if install_path:
+        return "%s/%s" % ( install_path, "locale")
+    return "./locale/"
+
+def get_dirname(filename):
+    return os.path.split(os.path.abspath(filename))[0]
+

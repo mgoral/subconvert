@@ -29,7 +29,7 @@ import re
 import subparser.SubParser as SubParser
 import subparser.Parsers as Parsers
 import subparser.Convert as Convert
-import subparser.version as version
+import subutils.version as version
 
 from subconvert import _
 
