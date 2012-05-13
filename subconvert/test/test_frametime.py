@@ -20,6 +20,7 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import logging
 import datetime
+import random
 
 from subparser.FrameTime import FrameTime
 import subutils.version as version
@@ -34,9 +35,10 @@ class TestFrameTime(unittest.TestCase):
     fps = 25.0
 
     def compare(self, ft_object, fps, frame, full_seconds, hours, minutes, seconds, miliseconds):
-        frame = round(frame)    # Someone's too lazy to write this in every test
+        delta = 1
         self.assertEqual(ft_object.fps, fps)
-        self.assertEqual(ft_object.frame, frame)
+        log.info("* Asserting frame is almost equal with delta=%s for %s =?= %s" % (delta, ft_object.frame, frame))
+        self.assertAlmostEqual(ft_object.frame, frame, delta=1)
         self.assertEqual(ft_object.full_seconds, full_seconds)
         self.assertEqual(ft_object.hours, hours)
         self.assertEqual(ft_object.minutes, minutes)
@@ -62,6 +64,7 @@ class TestFrameTime(unittest.TestCase):
         frames = full_seconds * self.fps
         self.compare(fto, self.fps, frames, full_seconds, 0, 0, 4, 0)
 
+
     def test_set_time(self):
         log.info(" \n... running FrameTime __set_time__() test")
         fto = FrameTime(self.fps, "frame", frame=0)
@@ -71,16 +74,36 @@ class TestFrameTime(unittest.TestCase):
         frames = full_seconds * self.fps
         fto.__set_time__(full_seconds)
         self.compare(fto, self.fps, frames, full_seconds, 1, 1, 1, 1)
+
         # 2
         full_seconds = 3661.010
         frames = full_seconds * self.fps
         fto.__set_time__(full_seconds)
         self.compare(fto, self.fps, frames, full_seconds, 1, 1, 1, 10)
+
         # 3
         full_seconds = 3661.1
         frames = full_seconds * self.fps
         fto.__set_time__(full_seconds)
         self.compare(fto, self.fps, frames, full_seconds, 1, 1, 1, 100)
+
+        #4 - some random numbers
+        full_seconds = random.uniform(1000, 10000)
+        frames = full_seconds * self.fps
+        fto.__set_time__(full_seconds)
+
+        sseconds = int(full_seconds)
+        str_full_seconds = "%.3f" % full_seconds
+        dot_place = str_full_seconds.find(".") + 1
+        miliseconds = int(str_full_seconds[dot_place:])
+        hours = sseconds / 3600
+        sseconds -= 3600 * hours
+        minutes = sseconds / 60
+        seconds = sseconds - 60 * minutes
+        log.info("* Testing random full_seconds: %s" % full_seconds)
+        log.info("  which is %s frames, %s hours, %s minutes, %s seconds and %s miliseconds" % \
+            (frames, hours, minutes, seconds, miliseconds))
+        self.compare(fto, self.fps, frames, full_seconds, hours, minutes, seconds, miliseconds)
 
     def test_set_frame(self):
         log.info(" \n... running FrameTime __set_frame__() test")
