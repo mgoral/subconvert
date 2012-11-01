@@ -148,6 +148,9 @@ class SubConvertGUI(QtGui.QWidget):
                 else:
                     log.error(_("No such file: %s") % arg)
 
+        self_path = subpath.get_dirname(__file__)
+        print self_path
+        self.setWindowIcon(QtGui.QIcon(os.path.join(self_path, "img/icons/256x256/subconvert.png")))
         self.show()
 
     def get_encodings(self):
