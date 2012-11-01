@@ -209,10 +209,49 @@ function installSubConvert {
     fi
     ln -s ${SUBC_SHARE}/subconvert.py ${SUBC_BIN}/subconvert
     ln -s ${SUBC_SHARE}/subconvert-gui.py ${SUBC_BIN}/subconvert-gui
+
+    if [[ ! -e ${INSTALL_DIR}/share/applications ]]; then
+        echo "[INF] ${INSTALL_DIR}/share/applications doesn't exist. Creating it."
+        mkdir -p ${INSTALL_DIR}/share/applications
+    fi
+    cp ${DIR}/subconvert.desktop ${INSTALL_DIR}/share/applications
+
+    if [[ ! -e ${INSTALL_DIR}/share/icons/hicolor ]]; then
+        echo "[WRN] ${INSTALL_DIR}/share/icons/hicolor doesn't exist."
+        mkdir -p ${INSTALL_DIR}/share/icons/hicolor/{128x128,16x16,192x192,22x22,24x24,256x256,32x32,36x36,48x48,64x64,72x72,96x96,scalable}
+
+        echo "[INF] Downloading hicolor theme."
+        wget http://www.freedesktop.org/software/icon-theme/releases/hicolor-icon-theme-0.5.tar.gz
+        if [[ $? -ne 0 ]]; then
+            echo "[ERR] Installation of hicolor theme unsuccessfull! Stopping installation."
+            exit 1
+        fi
+
+        echo "[INF] Installing hicolor theme."
+        mkdir -p ${DIR}/hicolor_install
+        mv hicolor-icon-theme-0.5.tar.gz ${DIR}/hicolor_install
+        pushd .
+        cd ${DIR}/hicolor_install
+        tar -xzf hicolor-icon-theme-0.5.tar.gz
+        cd hicolor-icon-theme-0.5
+        cp index.theme ${INSTALL_DIR}/share/icons/hicolor/
+
+        popd
+        rm -rf ${DIR}/hicolor_install
+    fi
+    cp -r ${DIR}/subconvert/img/icons/* ${INSTALL_DIR}/share/icons/hicolor/
+
+    if [[ ! -e ${INSTALL_DIR}/share/pixmaps ]]; then
+        echo "[INF] ${INSTALL_DIR}/share/pixmaps doesn't exist. Creating it."
+        mkdir -p ${INSTALL_DIR}/share/pixmaps
+    fi
+    ln -s ${INSTALL_DIR}/share/icons/hicolor/scalable/subconvert.svg ${INSTALL_DIR}/share/pixmaps/subconvert.svg
+    ln -s ${INSTALL_DIR}/share/icons/hicolor/48x48/subconvert.png ${INSTALL_DIR}/share/pixmaps/subconvert-48.png
+    ln -s ${INSTALL_DIR}/share/icons/hicolor/32x32/subconvert.png ${INSTALL_DIR}/share/pixmaps/subconvert-32.png
+
     echo "[INF] Creating and copying locales..."
     installLocales
     echo "Installation finished succesfully!"
-
 }
 
 function uninstallSubConvert {
@@ -220,6 +259,18 @@ function uninstallSubConvert {
     remove ${SUBC_BIN}/subconvert-gui
     remove ${SUBC_SHARE} "dir"
     remove ${SUBC_DOC} "dir"
+    remove ${INSTALL_DIR}/share/pixmaps/subconvert.svg
+    remove ${INSTALL_DIR}/share/pixmaps/subconvert-48.png
+    remove ${INSTALL_DIR}/share/pixmaps/subconvert-32.png
+
+    for SIZE in ${INSTALL_DIR}/share/icons/hicolor/*;
+    do
+        if [[ -d ${SIZE} && -e ${SIZE}/subconvert.png ]]; then
+            remove ${SIZE}/subconvert.png
+        elif [[ -d ${SIZE} && -e ${SIZE}/subconvert.svg ]]; then
+            remove ${SIZE}/subconvert.svg
+        fi
+    done
 
     for LANG in ${INSTALL_DIR}/share/locale/*;
     do
