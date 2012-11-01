@@ -7,7 +7,9 @@ Table of contents:
 0 Capabilities
 1 User manual
     1.1 Installation
-        1.1.1 Dependencies
+        1.1.1 Uninstalling
+        1.1.2 Reinstalling
+        1.1.3 Dependencies
     1.2 Usage
         1.2.1 Available options
         1.2.2 Available formats
@@ -30,15 +32,45 @@ Table of contents:
 This section describes installation and usage of subconvert.
 
 [ 1.1 Installation ]
-Simply:
-    # ./setup.py install
-This should install subconvert to your $PATH. If you do not have root privileges
-(or want to install subconvert only for one user) you can do it by:
-    $ ./setup.py install --home=/home/user-name
-You can always check out the following command for installer built-in help:
-    ./setup.py --help
+Since 0.8.3, a new Linux installer has been added. It is located in the main
+SubConvert directory and you can run it as follows:
+    $ ./install.sh install
 
-[ 1.1.1 Dependencies ]
+The installer will then ask you about install path. It should be a directory
+where 'bin', 'share', 'share/doc' and 'share/locale' subdirectories reside.
+Usually it will be simply '/usr' directory (you can choose it by pressing enter
+on your keyboard on that step of installation), but you can also choose another
+directory, like your home. SubConvert will work fine as long as
+'chosen_path/bin' will be in your $PATH.
+
+You can specify install directory in script invocation (note the second
+argument in a command below):
+    $ ./install.sh install user/specified/path
+
+Remember that if you want to install SubConvert outside your Home directory,
+you'd need root privileges.
+
+[ 1.1.2 Uninstalling ]
+Install script allows you to remove SubConvert the very same way, with optional
+path argument:
+    $ ./install.sh uninstall [user/specified/path]
+
+At the moment the script will REQUIRE specifying earlier or later install path
+(or -- being more specific -- PREFIX). This is a feature that might change 
+in next releases. If you don't remember where SubConver is installed, you can
+test it with common Unix command, 'which':
+    $ which subconvert
+
+It will show you path to symbolic links placed in bin directory, but together with 
+knowledge of things contained in this chapter it should give you a hint about
+SubConvert installation path.
+
+[ 1.1.3 Reinstalling ]
+Reinstalling is very similar to installing and reinstalling. In fact, install
+script simply executes those two actions one after the other:
+    $ ./install.sh reinstall [user/specified/path]
+
+[ 1.1.4 Dependencies ]
     + Python 2.6+
     + python-qt4
     + python-chardet (optional, recommended)
