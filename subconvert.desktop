@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name=Subconvert
+GenericName=Subtitle Converter
+GenericName[pl]=Konwerter napisów
+Comment=Convert movie subtitles
+Comment[pl]=Konwersja napisów do filmów
+TryExec=subconvert-gui
+Exec=subconvert-gui %F
+Terminal=false
+Type=Application
+Icon=subconvert
+Categories=Utility;TextTools;Qt
+StartupNotify=true
+MimeType=text/plain;application/x-subrip;text/x-subviewer
