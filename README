@@ -278,7 +278,7 @@ def str_to_frametime(self, string)
     and operated on by various GenericSubParser subclasses (subtitle formats).
 
 def get_time(self, ft, which)
-    Opposit operation to 'str_to_frametime'. Extracts time (time_from and
+    Opposite operation to 'str_to_frametime'. Extracts time (time_from and
     time_to) from a given FrameTime object to properly formatted string which
     represents a time format specific for an output subtitle format. There is
     also a possibility to specify different formats for 'time_from' and
