@@ -20,6 +20,7 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import sys
+import locale
 import logging
 import re
 import gettext
@@ -50,7 +51,7 @@ def backup( filename ):
     new_arg = ''.join([filename, datetime.datetime.now().strftime('_%y%m%d%H%M%S')])
     try:
         os.remove(new_arg)
-        log.debug(_("'%s' exists and needs to be removed before backing up.") % new_arg.encode(sys.stdout.encoding))
+        log.debug(_("'%s' exists and needs to be removed before backing up.") % new_arg.encode(locale.getpreferredencoding()))
     except OSError:
         pass
     shutil.move(filename, new_arg)

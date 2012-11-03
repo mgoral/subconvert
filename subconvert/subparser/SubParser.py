@@ -19,7 +19,7 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import os
-import sys
+import locale
 import logging
 import gettext
 import re
@@ -75,7 +75,7 @@ class GenericSubParser(object):
 
     def message(self, line_no, msg = "parsing error."):
         '''Uniform error message.'''
-        return _("%s:%d %s") % (self.filename.encode(sys.stdout.encoding), line_no + 1, msg)
+        return _("%s:%d %s") % (self.filename.encode(locale.getpreferredencoding()), line_no + 1, msg)
 
     def initial_line_prepare(self, line, line_no):
         '''Do NOT override this method unless you know

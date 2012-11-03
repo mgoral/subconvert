@@ -21,6 +21,7 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import sys
 import codecs
+import locale
 import logging
 import optparse
 import gettext
@@ -124,7 +125,7 @@ def main():
     _choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q'), 'backup': _('b') }
 
     for arg in args:
-        arg = arg.decode(sys.stdout.encoding)
+        arg = arg.decode(locale.getpreferredencoding())
         if not os.path.isfile(arg):
             log.error(_("No such file: %s") % arg)
             continue

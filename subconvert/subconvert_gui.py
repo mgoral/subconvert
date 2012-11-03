@@ -24,6 +24,7 @@ from PyQt4 import QtGui, QtCore
 import pkgutil
 import encodings
 import codecs
+import locale
 
 import logging
 import gettext
@@ -141,7 +142,7 @@ class SubConvertGUI(QtGui.QWidget):
         # Handle args
         if args is not None:
             for arg in args:
-                arg = arg.decode(sys.stdout.encoding)
+                arg = arg.decode(locale.getpreferredencoding())
                 filepath = os.path.realpath(arg)
                 if os.path.isfile(filepath):
                     self.add_list_item(filepath)
