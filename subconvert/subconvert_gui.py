@@ -306,7 +306,7 @@ class SubConvertGUI(QtGui.QWidget):
                 self.change_item_icon(item, 1)
                 continue
             except SubParser.SubParsingError, msg:
-                item.log.append(str(msg).decode(sys.stdin.encoding))
+                item.log.append(str(msg).decode(locale.getpreferredencoding()))
                 self.change_item_icon(item, 1)
                 continue
             if lines:
