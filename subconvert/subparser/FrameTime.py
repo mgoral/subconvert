@@ -30,14 +30,14 @@ class FrameTime(object):
         if fps > 0:
             self.fps = float(fps)
         else:
-            raise ValueError, _("Incorrect FPS value: %s.") % fps
+            raise ValueError(_("Incorrect FPS value: %s.") % fps)
         if value_type == 'frame':
             self.__set_time__( int(kwargs['frame']) / self.fps)
         elif value_type == 'time':
             if int(kwargs['h']) < 0 or int(kwargs['m']) > 59 or int(kwargs['m']) < 0 \
             or int(kwargs['s']) > 59 or int(kwargs['s']) < 0 or int(kwargs['ms']) > 999 \
             or int(kwargs['ms']) < 0:
-                raise ValueError, "Arguments not in allowed ranges."
+                raise ValueError("Arguments not in allowed ranges.")
             self.miliseconds = int(kwargs['ms'])
             self.seconds = int(kwargs['s'])
             self.minutes = int(kwargs['m'])
@@ -47,7 +47,7 @@ class FrameTime(object):
         elif value_type == 'full_seconds':
             self.__set_time__( kwargs['seconds'] )
         else:
-            raise AttributeError, _("Not supported FrameTime type: '%s'") % value_type
+            raise AttributeError(_("Not supported FrameTime type: '%s'") % value_type)
 
     def get_frame(self):
         """Get Frame (and FPS) value)"""
@@ -68,14 +68,14 @@ class FrameTime(object):
             self.full_seconds = float(seconds)
             self.frame = int(round(self.full_seconds * self.fps))
         else:
-            raise ValueError, _("Incorrect seconds value.")
+            raise ValueError(_("Incorrect seconds value."))
         seconds = int(seconds)
         str_full_seconds = "%.3f" % self.full_seconds   # hack for inaccurate float arithmetics
         dot_place = str_full_seconds.find(".") + 1
         self.miliseconds = int(str_full_seconds[dot_place:])
-        self.hours = seconds / 3600
+        self.hours = int(seconds / 3600)
         seconds -= 3600 * self.hours
-        self.minutes = seconds / 60
+        self.minutes = int(seconds / 60)
         self.seconds = seconds - 60 * self.minutes
 
     def __set_frame__(self, frame):
@@ -83,17 +83,23 @@ class FrameTime(object):
         if frame >= 0:
             self.__set_time__(frame / self.fps)
         else:
-            raise ValueError, _("Incorrect frame value.")
+            raise ValueError(_("Incorrect frame value."))
 
-    def __cmp__(self, other):
-        """Define FrameTime comparing"""
+    def __eq__(self, other):
         assert(self.fps == other.fps)
-        if self.full_seconds < other.full_seconds:
-            return -1
-        elif self.full_seconds == other.full_seconds:
-            return 0
-        elif self.full_seconds > other.full_seconds:
-            return 1
+        return self.full_seconds == other.full_seconds
+
+    def __ne__(self, other):
+        assert(self.fps == other.fps)
+        return self.full_seconds != other.full_seconds
+
+    def __lt__(self, other):
+        assert(self.fps == other.fps)
+        return self.full_seconds < other.full_seconds
+
+    def __gt__(self, other):
+        assert(self.fps == other.fps)
+        return self.full_seconds > other.full_seconds
 
     def __add__(self, other):
         """Define FrameTime + FrameTime"""

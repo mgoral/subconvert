@@ -43,7 +43,7 @@ class TestParsers(unittest.TestCase):
     parsed = {
         'time_from': FrameTime.FrameTime(25, 'frame', frame=28),
         'time_to': FrameTime.FrameTime(25, 'frame', frame=75),
-        'text': u'Very simple subtitle parsing test.',
+        'text': "Very simple subtitle parsing test.",
     }
 
     test_lines = [parsed.copy()]

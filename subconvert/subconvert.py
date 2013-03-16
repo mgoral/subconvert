@@ -31,8 +31,8 @@ import gettext
 #import subparser.SubParser as SubParser
 #import subparser.Convert as Convert
 #import subutils.version as version
-import subconvert.subutils.path as SubPath
-import subconvert.gui.MainWindow as MainWindow
+import subutils.path as SubPath
+import gui.MainWindow as MainWindow
 
 t = gettext.translation(
     domain='subconvert',

@@ -38,17 +38,21 @@ class TestConverting(unittest.TestCase):
     """Parsers UnitTest"""
 
     original_file = "subs/SubSample.microdvd"
-    encoding = "utf8"
+    encoding = "utf-8"
     fps = 25
     with codecs.open(original_file, mode='r', encoding=encoding) as file_:
         file_input = file_.readlines()
     with codecs.open(original_file, mode='rb', encoding=encoding) as file_:
-        orig_md5 = hashlib.md5(file_.read())
+        orig_md5 = hashlib.md5(file_.read().encode(encoding))
     subs_no = len(file_input)
 
     def convert(self, converter, file_to_parse, output_filename):
         lines = []
-        conv, lines = Convert.convert_file(file_to_parse, self.encoding, self.encoding, self.fps, converter.__OPT__)
+
+        conv = Convert.SubConverter(file_to_parse)
+        conv.changeFps(self.fps).changeEncoding(self.encoding).parse()
+        lines = conv.toFormat(converter.__OPT__)
+
         with codecs.open(output_filename, mode='w', encoding=self.encoding) as file_:
             file_.writelines(lines)
         return lines
@@ -66,7 +70,7 @@ class TestConverting(unittest.TestCase):
                 assert_lines.remove(os.linesep)
 
         self.assertEqual(original_lines, assert_lines)
-        
+
 
     def two_way_parser_test(self, tested_parser, original_file, remove_empty_lines = False):
         test_file = "subs/Test_%s.%s" % (tested_parser.__OPT__, tested_parser.__EXT__)
@@ -91,11 +95,11 @@ class TestConverting(unittest.TestCase):
     def test_subviewer(self):
         log.info(" \n... running SubViewer test")
         self.two_way_parser_test(Parsers.SubViewer, 'subs/SubSample.subviewer', True)
-        
+
     def test_tmp(self):
         log.info(" \n... running TMP test")
         self.two_way_parser_test(Parsers.TMP, 'subs/SubSample.tmp', True)
-        
+
 if __name__ == "__main__":
     log = logging.getLogger('SubConvert')
     log.setLevel(logging.DEBUG)
@@ -103,4 +107,4 @@ if __name__ == "__main__":
     log.info("Testing SubConvert, version %s." % version.__version__)
     log.info(datetime.datetime.now().isoformat())
     unittest.main()
-        
+

@@ -64,7 +64,6 @@ class TestFrameTime(unittest.TestCase):
         frames = full_seconds * self.fps
         self.compare(fto, self.fps, frames, full_seconds, 0, 0, 4, 0)
 
-
     def test_set_time(self):
         log.info(" \n... running FrameTime __set_time__() test")
         fto = FrameTime(self.fps, "frame", frame=0)
@@ -96,9 +95,9 @@ class TestFrameTime(unittest.TestCase):
         str_full_seconds = "%.3f" % full_seconds
         dot_place = str_full_seconds.find(".") + 1
         miliseconds = int(str_full_seconds[dot_place:])
-        hours = sseconds / 3600
+        hours = int(sseconds / 3600)
         sseconds -= 3600 * hours
-        minutes = sseconds / 60
+        minutes = int(sseconds / 60)
         seconds = sseconds - 60 * minutes
         log.info("* Testing random full_seconds: %s" % full_seconds)
         log.info("  which is %s frames, %s hours, %s minutes, %s seconds and %s miliseconds" % \
@@ -139,11 +138,11 @@ class TestFrameTime(unittest.TestCase):
         # First check if all test-defined fields are in returned dictionary
         for key in true_time_dict:
             if not key in returned_dict.keys():
-                raise AssertionError, "Key %s not in returned dictionary" % key
+                raise AssertionError("Key %s not in returned dictionary" % key)
 
         for key in returned_dict:
             if not key in true_time_dict.keys():
-                raise AssertionError, "Surplus key in returned dictionary"
+                raise AssertionError("Surplus key in returned dictionary")
             self.assertEqual(returned_dict[key], true_time_dict[key])
 
     def test_cmp(self):

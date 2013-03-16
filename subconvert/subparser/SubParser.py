@@ -128,7 +128,7 @@ class GenericSubParser(object):
                         if self.__FMT__ not in ('frame', 'time'):
                             self.__FMT__ = 'time' if re.search(r'[^A-Za-z0-9]', atom['time_to']) else 'frame'
                         atom['time_to'] = self.str_to_frametime(atom['time_to'])
-                except AttributeError, msg:
+                except AttributeError as msg:
                     if sub_section in ('\n', '\r\n', '\r'):
                         log.debug(self.message(line_no, _("Skipping empty line.")))
                         sub_section = ''
@@ -136,11 +136,11 @@ class GenericSubParser(object):
                         continue
                     elif i > 0:
                         self.parsing_results = []
-                        raise SubParsingError, self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__)
+                        raise SubParsingError(self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__))
                     else:
                         log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
                         return
-                except IndexError, msg:
+                except IndexError as msg:
                     log.debug(self.message(line_no, _("IndexError: %s") % msg))
                 try:
                     # There should be no more AttributeErrors as parse()
@@ -148,7 +148,7 @@ class GenericSubParser(object):
                     # to know about it and fix it.
                     if matched.group('text'):
                         atom['text'] = matched.group('text')
-                except IndexError, msg:
+                except IndexError as msg:
                     log.debug(self.message(line_no, msg))
 
                 # store parsing result if new end marker occurred, then clear results
@@ -164,7 +164,7 @@ class GenericSubParser(object):
                 else:
                     if i > 0:
                         self.parsing_results = []
-                        raise SubParsingError, self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__)
+                        raise SubParsingError(self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__))
                     else:
                         log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
                         return
@@ -191,7 +191,8 @@ class GenericSubParser(object):
         return self.sub_fmt.format(gsp_no = sub['sub_no'], \
             gsp_from = self.get_time(sub['sub']['time_from'], 'time_from'), \
             gsp_to = self.get_time(sub['sub']['time_to'], 'time_to'), \
-            gsp_text = sub_text.encode(self.encoding))
+            gsp_text = sub_text)
+            #gsp_text = sub_text.encode(self.encoding))
 
     # Following methods should probably be polymorphed
     def get_header(self, sub_section , atom):
@@ -209,7 +210,8 @@ class GenericSubParser(object):
         header_str = ''
         for key, val in header.items():
             header_str = "%s[%s]:[%s]%s%s" % (header_str, key, val, os.linesep, os.linesep)
-        return header_str.encode(self.encoding)
+        return header_str
+        #return header_str.encode(self.encoding)
 
     def get_time(self, frametime, which):
         '''Extract time (time_from or time_to) from FrameTime.

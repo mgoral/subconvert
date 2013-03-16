@@ -31,10 +31,6 @@ import subparser.Convert as Convert
 import subutils.version as version
 import subparser.FrameTime as FrameTime
 
-from subconvert import _
-
-
-
 class TestChardet(unittest.TestCase):
     """Chardet UnitTest.
     Please use enconv to convert enc.utf8 to other encodings."""
@@ -42,51 +38,45 @@ class TestChardet(unittest.TestCase):
     def test_utf8(self):
         log.info(" \n... running UTF-8 test")
         original_file = 'subs/enc.utf8'
-        encoding = Convert.detect_encoding(original_file, None)
+        converter = Convert.SubConverter(original_file)
+        encoding = converter.getEncoding()
         self.assertEqual( encoding.lower(), 'utf-8' )
 
     def test_utf8_specif(self):
         log.info(" \n... running UTF-8 specif test")
         original_file = 'subs/enc.utf8'
-        encoding = Convert.detect_encoding(original_file, 'utf8')
+        converter = Convert.SubConverter(original_file)
+        encoding = converter.changeEncoding('utf8').getEncoding()
         self.assertEqual( encoding.lower(), 'utf8' )
 
     def test_cp1250(self):
         log.info(" \n... running CP 1250 test")
         original_file = 'subs/enc.cp1250'
-        encoding = Convert.detect_encoding(original_file, None)
+        converter = Convert.SubConverter(original_file)
+        encoding = converter.getEncoding()
         self.assertEqual( encoding.lower(), 'windows-1250' )
 
     def test_cp1250_specif(self):
         log.info(" \n... running CP 1250 specif test")
         original_file = 'subs/enc.cp1250'
-        encoding = Convert.detect_encoding(original_file, 'cp1250')
+        converter = Convert.SubConverter(original_file)
+        encoding = converter.changeEncoding('cp1250').getEncoding()
         self.assertEqual( encoding.lower(), 'cp1250' )
 
     def test_iso_8859_2(self):
         log.info(" \n... running ISO 8859-2 test")
         original_file = 'subs/enc.iso88592'
-        encoding = Convert.detect_encoding(original_file, None)
+        converter = Convert.SubConverter(original_file)
+        encoding = converter.getEncoding()
         self.assertEqual( encoding.lower(), 'iso-8859-2' )
 
     def test_iso_8859_2_specif(self):
         log.info(" \n... running ISO 8859-2 specif test")
         original_file = 'subs/enc.iso88592'
-        encoding = Convert.detect_encoding(original_file, 'iso-8859-2')
+        converter = Convert.SubConverter(original_file)
+        encoding = converter.changeEncoding('iso-8859-2').getEncoding()
         self.assertEqual( encoding.lower(), 'iso-8859-2' )
 
-    def test_converting(self):
-        log.info(" \n... running encoding converter test")
-        original_file = 'subs/enc.utf8'
-        new_file = 'subs/Test_encoding'
-        encoding = Convert.detect_encoding(original_file, None)
-        with codecs.open(original_file, mode='r', encoding=encoding) as file_:
-            lines = file_.readlines()
-        with codecs.open(new_file, mode='w', encoding='utf-16') as file_:
-            file_.writelines(lines)
-        encoding = Convert.detect_encoding(new_file, None)
-        self.assertEqual( encoding.lower(), 'utf-16le' )
-       
 if __name__ == "__main__":
     log = logging.getLogger('SubConvert')
     log.setLevel(logging.DEBUG)
@@ -94,4 +84,4 @@ if __name__ == "__main__":
     log.info("Testing SubConvert, version %s." % version.__version__)
     log.info(datetime.datetime.now().isoformat())
     unittest.main()
-        
+
