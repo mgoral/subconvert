@@ -121,7 +121,9 @@ def convert_file(filepath, file_encoding, output_encoding, file_fps, output_form
     sub_pair = [0, 0]
     for cl in cls:
         if not lines:
-            for parsed in cl(filepath, file_fps, file_encoding, file_input).parse():
+            parser = cl(filepath, file_fps, file_encoding, file_input)
+            parser.parse()
+            for parsed in parser.get_results():
                 if not sub_pair[1] and conv.__WITH_HEADER__: # Only the first element
                     header = parsed['sub'].get('header')
                     if type(header) != dict:

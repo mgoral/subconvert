@@ -73,6 +73,8 @@ class GenericSubParser(object):
         self.lines = lines
         self.fps = fps
 
+        self.parsing_results = []
+
     def message(self, line_no, msg = "parsing error."):
         '''Uniform error message.'''
         return _("%s:%d %s") % (self.filename.encode(locale.getpreferredencoding()), line_no + 1, msg)
@@ -133,6 +135,7 @@ class GenericSubParser(object):
                         atom = {'time_from': '', 'time_to': '', 'text': '',}
                         continue
                     elif i > 0:
+                        self.parsing_results = []
                         raise SubParsingError, self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__)
                     else:
                         log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
@@ -148,16 +151,19 @@ class GenericSubParser(object):
                 except IndexError, msg:
                     log.debug(self.message(line_no, msg))
 
-                # yield parsing result if new end marker occurred, then clear results
+                # store parsing result if new end marker occurred, then clear results
                 if atom['time_from'] and atom['text']:
                     atom['text'] = self.format_text(atom['text'])
                     self.__PARSED__ = True
-                    yield { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }
+                    self.parsing_results.append(
+                        { 'sub_no': i, 'fmt': self.__FMT__, 'sub': atom }
+                    )
                     i += 1
                 elif atom['time_from'] and not atom['text']:
                     log.warning(self.message(line_no, _("No subtitle text found. Skipping that section.")))
                 else:
                     if i > 0:
+                        self.parsing_results = []
                         raise SubParsingError, self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__)
                     else:
                         log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
@@ -166,7 +172,11 @@ class GenericSubParser(object):
                 atom = {'time_from': '', 'time_to': '', 'text': '',}
         if i > 0:
             log.info(_("Recognised %s.") % self.__SUB_TYPE__)
-            yield None  # Last element is None so we can adjust sub converting
+            self.parsing_results.append(None)
+
+    def get_results(self):
+        '''Return parsing results which is a list of dictionaries'''
+        return self.parsing_results
 
     def convert(self, sub):
         '''A function which gets dictionary containing single

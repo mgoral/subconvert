@@ -59,7 +59,9 @@ class TestParsers(unittest.TestCase):
 
         assert( 0 < len(file_input) )
 
-        for i, parsed in enumerate(parser(file_to_parse, self.fps, self.encoding, file_input).parse()):
+        actual_parser = parser(file_to_parse, self.fps, self.encoding, file_input)
+        actual_parser.parse()
+        for i, parsed in enumerate(actual_parser.get_results()):
             lines.append(parsed)
             if parsed is not None:
                 self.assertEqual( parsed['sub']['time_from'], test_lines[i]['time_from'] )
@@ -90,16 +92,16 @@ class TestParsers(unittest.TestCase):
         log.info(" \n... running SubViewer test")
         original_file = 'subs/Line.subviewer'
         self.parse( Parsers.SubViewer, original_file )
-        
+
     def test_tmp(self):
         log.info(" \n... running TMP test")
         original_file = 'subs/Line.tmp'
         local_parsed = self.parsed.copy()
         local_parsed['time_to'] = ''
         local_parsed['time_from'] = FrameTime.FrameTime(25, 'frame', frame=25)
-        
+
         self.parse( Parsers.TMP, original_file, [local_parsed] )
-        
+
 if __name__ == "__main__":
     log = logging.getLogger('SubConvert')
     log.setLevel(logging.DEBUG)
@@ -107,4 +109,4 @@ if __name__ == "__main__":
     log.info("Testing SubConvert, version %s." % version.__version__)
     log.info(datetime.datetime.now().isoformat())
     unittest.main()
-        
+
