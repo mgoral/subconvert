@@ -32,7 +32,7 @@ class SubParsingError(Exception):
     '''Custom parsing error class.'''
     pass
 
-class GenericSubParser(object):
+class GenericSubParser():
     '''Generic class that should be inherited
     and polymorphed by the other, specialized
     classes. Don't forget to change patterns

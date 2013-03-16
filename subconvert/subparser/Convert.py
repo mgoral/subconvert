@@ -126,11 +126,33 @@ class SubConverter():
         self.fps = fps
         return self
 
+    def changeSubText(self, subNo, newText):
+        self.getSub(subNo)['text'] = newText
+        return self
+
+    def changeSubTimeFrom(self, subNo, newTime):
+        self.getSub(subNo)['time_from'] = newTime
+        return self
+
+    def changeSubTimeTo(self, subNo, newTime):
+        self.getSub(subNo)['time_to'] = newTime
+        return self
+
+    def increaseSubTime(self, subNo, newTime):
+        sub = self.getSub(subNo)
+        sub['time_to'] = sub['time_to'] + newTime
+        sub['time_from'] = sub['time_from'] + newTime
+        return self
+
     def getEncoding(self):
         return self.encoding
 
     def getFps(self):
         return self.fps
+
+    def getSub(self, subNo):
+        assert(len(self.parsedLines) > 0)
+        return self.parsedLines[subNo]['sub']
 
     #def backup(self, filename):
     #    """Backup a file to filename_strftime (by moving it, not copying).
