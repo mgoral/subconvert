@@ -43,10 +43,29 @@ except ImportError:
 
 log = logging.getLogger('subconvert.%s' % __name__)
 
-from subconvert import _
+class SubConverterManager():
+    def __init__(self):
+        self.converters = list()
+
+    def add(self, converter):
+        if converter not in self.converters:
+            self.converters.append(converter)
+            return True
+        return False
+
+    def get(self, filePath):
+        for i, retConverter in enumerate(self.converters):
+            if retConverter.getFilePath() == filePath:
+                return retConverter
+        return None
+
+    def remove(self, filePath):
+        for i, retConverter in enumerate(self.converters):
+            if retConverter.getFilePath() == filePath:
+                del self.converters[i]
 
 class SubConverter():
-    def __init__(self, filepath, movieFile = None):
+    def __init__(self, filepath):
         self.supportedParsers = SubParser.GenericSubParser.__subclasses__()
         self.originalFilePath = filepath
         self.encoding = None
@@ -58,8 +77,14 @@ class SubConverter():
 
         self.__detectOriginalEncoding()
 
-        if movieFile is not None:
-            self.__detectMovieFps()
+    def __eq__(self, other):
+        return self.originalFilePath == other.originalFilePath
+
+    def __lt__(self, other):
+        return self.originalFilePath < other.originalFilePath
+
+    def __hash__(self):
+        return hash(self.originalFilePath)
 
     #def __availableEncodings(self):
         # http://stackoverflow.com/questions/1707709/list-all-the-modules-that-are-part-of-a-python-package/1707786#1707786
@@ -70,11 +95,11 @@ class SubConverter():
     #    found.sort()
     #    return found
 
-    def __detectMovieFps():
+    def detectMovieFps(self, movieFile):
         """Fetch movie FPS from MPlayer output or return given default."""
 
         command = ['mplayer', '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify',]
-        command.append(self.movieFile)
+        command.append(movieFile)
         try:
             mpOut, mpErr = Popen(command, stdout=PIPE, stderr=PIPE).communicate()
             log.debug(mpOut)
@@ -85,7 +110,7 @@ class SubConverter():
         except AttributeError:
             log.warning(_("Couldn't get FPS info from mplayer."))
         else:
-            log.info(_("Got %s FPS from '%s'.") % (self.fps, self.movieFile))
+            log.info(_("Got %s FPS from '%s'.") % (self.fps, movieFile))
 
     def __detectOriginalEncoding(self):
         """Try to detect file encoding
@@ -96,7 +121,7 @@ class SubConverter():
         if IS_CHARDET:
             minimumConfidence = 0.52
             fileSize = os.path.getsize(self.originalFilePath)
-            size = 2000 if fileSize > 2000 else fileSize
+            size = 5000 if fileSize > 5000 else fileSize
             with open(self.originalFilePath, mode='rb',) as file_:
                 enc = chardet.detect(file_.read(size))
                 log.debug(_("Detecting encoding from %d bytes") % size)
@@ -153,6 +178,9 @@ class SubConverter():
     def getSub(self, subNo):
         assert(len(self.parsedLines) > 0)
         return self.parsedLines[subNo]['sub']
+
+    def getFilePath(self):
+        return self.originalFilePath
 
     #def backup(self, filename):
     #    """Backup a file to filename_strftime (by moving it, not copying).

@@ -31,6 +31,8 @@ import subparser.Convert as Convert
 import subutils.version as version
 import subparser.FrameTime as FrameTime
 
+from subconvert import _
+
 class TestChardet(unittest.TestCase):
     """Chardet UnitTest.
     Please use enconv to convert enc.utf8 to other encodings."""
