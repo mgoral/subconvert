@@ -41,7 +41,7 @@ except ImportError:
     IS_CHARDET = False
 
 
-log = logging.getLogger('SubConvert.%s' % __name__)
+log = logging.getLogger('Subconvert.%s' % __name__)
 
 
 def backup( filename ):
