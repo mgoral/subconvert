@@ -63,11 +63,21 @@ class FrameTime(object):
             'miliseconds': self.miliseconds
         })
 
-    def getTimeStr(self):
-        return "%d:%02d:%02d.%03d" % (self.hours, self.minutes, self.seconds, self.miliseconds)
+    def toStr(self, strType="time"):
+        """Convert FrameTime to string representation"""
+        if strType == "time":
+            return "%d:%02d:%02d.%03d" % (self.hours, self.minutes, self.seconds, self.miliseconds)
+        elif strType == "frame":
+            return "%s" % (self.frame)
+        else:
+            raise AttributeError(_("Incorrect string type: '%s'") % strType)
 
-    def getFrameStr(self):
-        return "%s" % (self.frame)
+    def changeFps(self, newFps):
+        if fps > 0:
+            self.fps = float(fps)
+        else:
+            raise ValueError(_("Incorrect FPS value: %s.") % fps)
+        self.frame = int(round(self.full_seconds * self.fps))
 
     def __set_time__(self, seconds):
         """Set frame from a given time"""
