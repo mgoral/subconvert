@@ -50,7 +50,7 @@ class MicroDVD(GenericSubParser):
         GenericSubParser.__init__(self, filename, fps, lines)
 
     def str_to_frametime(self, string):
-        return FrameTime(fps=self.fps, value_type=self.__FMT__, frame=string)
+        return FrameTime(fps=self.fps, value_type=self.__FMT__, value=string)
 
     def format_text(self, string):
         string = string.replace('{', '{{').replace('}', '}}')
@@ -105,8 +105,8 @@ class SubRip(GenericSubParser):
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
         return FrameTime(fps=self.fps, value_type=self.__FMT__, \
-            h=time.group('h'), m=time.group('m'), \
-            s=time.group('s'), ms=time.group('ms'))
+            value = "%d:%02d:%02d.%03d" % \
+            (time.group('h'), time.group('m'), time.group('s'), time.group('ms')))
 
     def format_text(self, string):
         string = string.strip()
@@ -164,8 +164,8 @@ class SubViewer(GenericSubParser):
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
         return FrameTime(fps=self.fps, value_type=self.__FMT__, \
-            h=time.group('h'), m=time.group('m'), \
-            s=time.group('s'), ms=int(time.group('ms'))*10)
+            value = "%d:%02d:%02d.%03d" % \
+            (time.group('h'), time.group('m'), time.group('s'), time.group('ms')*10))
 
     def format_text(self, string):
         string = string.strip()
@@ -269,8 +269,8 @@ class TMP(GenericSubParser):
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
         return FrameTime(fps=self.fps, value_type=self.__FMT__, \
-            h=time.group('h'), m=time.group('m'), \
-            s=time.group('s'), ms=0)
+            value = "%d:%02d:%02d" % \
+            (time.group('h'), time.group('m'), time.group('s')))
 
     def format_text(self, string):
         string = string.strip()
@@ -319,7 +319,7 @@ class MPL2(GenericSubParser):
         string = ''.join(['0', string]) # Parsing "[0][5] sub" would cause an error without this
         ms = int(string[-1]) / 10.0
         seconds = int(string[:-1]) + ms
-        return FrameTime(fps=self.fps, value_type='full_seconds', seconds=seconds)
+        return FrameTime(fps=self.fps, value_type='full_seconds', value=seconds)
 
     def format_text(self, string):
         string = string.replace('{', '{{').replace('}', '}}')
