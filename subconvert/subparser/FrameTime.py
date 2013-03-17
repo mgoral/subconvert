@@ -62,6 +62,12 @@ class FrameTime(object):
             'miliseconds': self.miliseconds
         })
 
+    def getTimeStr(self):
+        return "%d:%02d:%02d.%03d" % (self.hours, self.minutes, self.seconds, self.miliseconds)
+
+    def getFrameStr(self):
+        return "%s" % (self.frame)
+
     def __set_time__(self, seconds):
         """Set frame from a given time"""
         if seconds >= 0:
@@ -128,4 +134,6 @@ class FrameTime(object):
         """Define str(FrameTime)"""
         return "t: %s:%s:%s.%s; f: %s" % \
             ( self.hours, self.minutes, self.seconds, self.miliseconds, self.frame )
+
+
 

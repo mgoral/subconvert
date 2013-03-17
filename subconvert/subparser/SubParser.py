@@ -25,7 +25,7 @@ import gettext
 import re
 import codecs
 
-log = logging.getLogger('SubConvert.%s' % __name__)
+log = logging.getLogger('subconvert.%s' % __name__)
 
 
 class SubParsingError(Exception):

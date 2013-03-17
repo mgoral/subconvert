@@ -24,13 +24,9 @@ import sys
 import codecs
 import locale
 import logging
-#import optparse
 import argparse
 import gettext
 
-#import subparser.SubParser as SubParser
-#import subparser.Convert as Convert
-#import subutils.version as version
 import subutils.path as SubPath
 import gui.MainWindow as MainWindow
 
@@ -65,7 +61,7 @@ def main():
     optParser = prepareOptions()
     args = optParser.parse_args()
 
-    log = logging.getLogger('Subconvert')
+    log = logging.getLogger('subconvert')
 
     if args.quiet:
         log.setLevel(logging.ERROR)

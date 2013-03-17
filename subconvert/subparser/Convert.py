@@ -76,6 +76,7 @@ class SubConverter():
         self.converter = None
 
         self.__detectOriginalEncoding()
+        print( self.encoding)
 
     def __eq__(self, other):
         return self.originalFilePath == other.originalFilePath
@@ -141,9 +142,9 @@ class SubConverter():
     def changeEncoding(self, encoding):
         # FIXME: check if a given encoding is available. The problem is that currently chardet
         # returns something line "utf-8" while available are "utf8" and "utf_8"...
-        availableEncodings = (
-            list(encodings.aliases.aliases.keys()) + list(encodings.aliases.aliases.values())
-        )
+        #availableEncodings = (
+        #    list(encodings.aliases.aliases.keys()) + list(encodings.aliases.aliases.values())
+        #)
         self.encoding = encoding
         return self
 
@@ -212,6 +213,10 @@ class SubConverter():
                 fileInput = file_.readlines()
         except LookupError as msg:
             raise LookupError(_("Unknown encoding name: '%s'.") % file_encoding)
+        except UnicodeDecodeError:
+            log.error(_("Couldn't handle '%s' given '%s' encoding.") % (self.originalFilePath,
+                self.encoding))
+            return
 
         log.info(_("Trying to parse %s...") % self.originalFilePath)
         for supportedParser in self.supportedParsers:
