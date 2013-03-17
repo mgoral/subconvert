@@ -46,8 +46,8 @@ class MicroDVD(GenericSubParser):
         'gsp_nl':   r'|',
     }
 
-    def __init__(self, filename, fps, encoding, lines = None):
-        GenericSubParser.__init__(self, filename, fps, encoding, lines)
+    def __init__(self, filename, fps, lines = None):
+        GenericSubParser.__init__(self, filename, fps, lines)
 
     def str_to_frametime(self, string):
         return FrameTime(fps=self.fps, value_type=self.__FMT__, frame=string)
@@ -98,9 +98,9 @@ class SubRip(GenericSubParser):
         'gsp_nl':   os.linesep,
     }
 
-    def __init__(self, filename, fps, encoding, lines = None):
+    def __init__(self, filename, fps, lines = None):
         self.time_fmt = re.compile(self.time_fmt)
-        GenericSubParser.__init__(self, filename, fps, encoding, lines)
+        GenericSubParser.__init__(self, filename, fps, lines)
 
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
@@ -157,9 +157,9 @@ class SubViewer(GenericSubParser):
         'gsp_nl':   os.linesep,
     }
 
-    def __init__(self, filename, fps, encoding, lines = None):
+    def __init__(self, filename, fps, lines = None):
         self.time_fmt = re.compile(self.time_fmt)
-        GenericSubParser.__init__(self, filename, fps, encoding, lines)
+        GenericSubParser.__init__(self, filename, fps, lines)
 
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
@@ -262,9 +262,9 @@ class TMP(GenericSubParser):
         'gsp_nl':   r'|',
     }
 
-    def __init__(self, filename, fps, encoding, lines = None):
+    def __init__(self, filename, fps, lines = None):
         self.time_fmt = re.compile(self.time_fmt)
-        GenericSubParser.__init__(self, filename, fps, encoding, lines)
+        GenericSubParser.__init__(self, filename, fps, lines)
 
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
@@ -312,8 +312,8 @@ class MPL2(GenericSubParser):
         'gsp_nl':   r'|',
     }
 
-    def __init__(self, filename, fps, encoding, lines = None):
-        GenericSubParser.__init__(self, filename, fps, encoding, lines)
+    def __init__(self, filename, fps, lines = None):
+        GenericSubParser.__init__(self, filename, fps, lines)
 
     def str_to_frametime(self, string):
         string = ''.join(['0', string]) # Parsing "[0][5] sub" would cause an error without this

@@ -18,6 +18,7 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import gettext
+import re
 
 class FrameTime(object):
     """Class defining a FrameTime object which consists of frame and time

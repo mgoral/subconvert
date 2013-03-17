@@ -61,15 +61,14 @@ class GenericSubParser():
     __PARSED__ = False
     __HEADER_FOUND__ = False
 
-    def __init__(self, filename, fps, encoding, lines = None):
-        '''Usually you will only need to call super __init__(filename, encoding)
+    def __init__(self, filename, fps, lines = None):
+        '''Usually you will only need to call super __init__(filename)
         from a specialized class.'''
 
         self.atom_t = {'time_from': '', 'time_to': '', 'text': ''}
         self.filename = filename
         self.pattern = re.compile(self.pattern, re.X)
         self.end_pattern = re.compile(self.end_pattern, re.X)
-        self.encoding = encoding
         self.lines = lines
         self.fps = fps
 
@@ -192,7 +191,6 @@ class GenericSubParser():
             gsp_from = self.get_time(sub['sub']['time_from'], 'time_from'), \
             gsp_to = self.get_time(sub['sub']['time_to'], 'time_to'), \
             gsp_text = sub_text)
-            #gsp_text = sub_text.encode(self.encoding))
 
     # Following methods should probably be polymorphed
     def get_header(self, sub_section , atom):
@@ -211,7 +209,6 @@ class GenericSubParser():
         for key, val in header.items():
             header_str = "%s[%s]:[%s]%s%s" % (header_str, key, val, os.linesep, os.linesep)
         return header_str
-        #return header_str.encode(self.encoding)
 
     def get_time(self, frametime, which):
         '''Extract time (time_from or time_to) from FrameTime.

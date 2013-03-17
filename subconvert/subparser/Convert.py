@@ -20,26 +20,13 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import sys
-import locale
 import logging
-import re
 import gettext
-import codecs
 import datetime
-import shutil
-import encodings
-
-from subprocess import Popen, PIPE
 
 import subparser.SubParser as SubParser
 import subparser.FrameTime as FrameTime
 import subparser.Parsers as Parsers
-
-try:
-    import chardet
-    IS_CHARDET = True
-except ImportError:
-    IS_CHARDET = False
 
 log = logging.getLogger('subconvert.%s' % __name__)
 
@@ -87,66 +74,6 @@ class SubConverter():
     def __hash__(self):
         return hash(self.originalFilePath)
 
-    #def __availableEncodings(self):
-        # http://stackoverflow.com/questions/1707709/list-all-the-modules-that-are-part-of-a-python-package/1707786#1707786
-    #    falsePositives = set(["aliases"])
-    #    found = set(name for imp, name, ispkg in pkgutil.iter_modules(encodings.__path__) if not ispkg)
-    #    found.difference_update(falsePositives)
-    #    found = list(found)
-    #    found.sort()
-    #    return found
-
-    def detectMovieFps(self, movieFile):
-        """Fetch movie FPS from MPlayer output or return given default."""
-
-        command = ['mplayer', '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify',]
-        command.append(movieFile)
-        try:
-            mpOut, mpErr = Popen(command, stdout=PIPE, stderr=PIPE).communicate()
-            log.debug(mpOut)
-            log.debug(mpErr)
-            self.fps = re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', mpOut).group(1)
-        except OSError:
-            log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH in order to use auto_fps option."))
-        except AttributeError:
-            log.warning(_("Couldn't get FPS info from mplayer."))
-        else:
-            log.info(_("Got %s FPS from '%s'.") % (self.fps, movieFile))
-
-    def __detectOriginalEncoding(self):
-        """Try to detect file encoding
-        'is' keyword checks objects identity and it's the key to disabling
-        autodetect when '-e ascii' option is given. It seems that optparse
-        creates a new object (which is logical) when given an option from
-        shell and overrides a variable in program memory."""
-        if IS_CHARDET:
-            minimumConfidence = 0.52
-            fileSize = os.path.getsize(self.originalFilePath)
-            size = 5000 if fileSize > 5000 else fileSize
-            with open(self.originalFilePath, mode='rb',) as file_:
-                enc = chardet.detect(file_.read(size))
-                log.debug(_("Detecting encoding from %d bytes") % size)
-                log.debug(_(" ...chardet: %s") % enc)
-            if enc['confidence'] > minimumConfidence:
-                self.changeEncoding(enc['encoding'])
-                log.debug(_(" ...detected %s encoding.") % enc['encoding'])
-            else:
-                log.info(_("I am not too confident about encoding (most probably %s). Setting \
-                    default UTF-8") % enc['encoding'])
-                self.changeEncoding('utf8')
-        else:
-            log.info(_("Chardet module is not installed on this system. \
-                Setting default encoding (UTF-8)"))
-            self.changeEncoding('utf8')
-
-    def changeEncoding(self, encoding):
-        # FIXME: check if a given encoding is available. The problem is that currently chardet
-        # returns something line "utf-8" while available are "utf8" and "utf_8"...
-        #availableEncodings = (
-        #    list(encodings.aliases.aliases.keys()) + list(encodings.aliases.aliases.values())
-        #)
-        self.encoding = encoding
-        return self
 
     def changeFps(self, fps):
         self.fps = fps
@@ -170,8 +97,24 @@ class SubConverter():
         sub['time_from'] = sub['time_from'] + newTime
         return self
 
-    def getEncoding(self):
-        return self.encoding
+    def addSub(self, subNo, newSub):
+        assert(len(self.parsedLines) > 0)
+        if subNo > 0:
+            if len(self.parsedLines) < subNo:
+                log.warning(_("There are only %d subtitles. Pushing new one to the end."))
+                self.parsedLines.append(newSub)
+            else:
+                self.parsedLines.insert(newSub)
+                for i in range(subNo + 1, len(self.parsedLines)):
+                    self.parsedLines[i]['sub_no'] += 1
+
+    def removeSub(self, subNo):
+        assert(subNo > 0)
+        assert(len(self.parsedLines) >= subNo)
+        if subNo != len(self.parsedLines):
+            for i in range(subNo, len(self.parsedLines)):
+                self.parsedLines[i]['sub_no'] -= 1
+        del self.converters[i]
 
     def getFps(self):
         return self.fps
@@ -183,41 +126,7 @@ class SubConverter():
     def getFilePath(self):
         return self.originalFilePath
 
-    #def backup(self, filename):
-    #    """Backup a file to filename_strftime (by moving it, not copying).
-    #    Return a tuple (backed_up_filename, old_filename)"""
-    #
-    #    new_arg = ''.join([filename, datetime.datetime.now().strftime('_%y%m%d%H%M%S')])
-    #    try:
-    #        os.remove(new_arg)
-    #        log.debug(_("'%s' exists and needs to be removed before backing up.") %
-    #            new_arg.encode(locale.getpreferredencoding()))
-    #    except OSError:
-    #        pass
-    #    shutil.move(filename, new_arg)
-    #    return (new_arg, filename)
-
-    #def save(self, newFileName=None):
-    #    assert(self.parsedLines != [])
-    #
-    #    if newFileName is None:
-    #        assert(self.converter is not None)
-    #        fileName, extension = os.path.splitext(self.originalFilePath)
-    #        destinationFile = fileName + '.' + self.converter.__EXT__
-    #    else:
-    #        destinationFile = newFileName
-
     def parse(self):
-        try:
-            with codecs.open(self.originalFilePath, mode='r', encoding=self.encoding) as file_:
-                fileInput = file_.readlines()
-        except LookupError as msg:
-            raise LookupError(_("Unknown encoding name: '%s'.") % file_encoding)
-        except UnicodeDecodeError:
-            log.error(_("Couldn't handle '%s' given '%s' encoding.") % (self.originalFilePath,
-                self.encoding))
-            return
-
         log.info(_("Trying to parse %s...") % self.originalFilePath)
         for supportedParser in self.supportedParsers:
             if not self.parsedLines:
