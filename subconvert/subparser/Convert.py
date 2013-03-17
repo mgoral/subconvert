@@ -55,15 +55,11 @@ class SubConverter():
     def __init__(self, filepath):
         self.supportedParsers = SubParser.GenericSubParser.__subclasses__()
         self.originalFilePath = filepath
-        self.encoding = None
         self.movieFile = None
         self.fps = 25
         self.parsedLines = []
         self.convertedLines = []
         self.converter = None
-
-        self.__detectOriginalEncoding()
-        print( self.encoding)
 
     def __eq__(self, other):
         return self.originalFilePath == other.originalFilePath
@@ -137,21 +133,18 @@ class SubConverter():
         self.convertedLines = []
         for supportedParser in self.supportedParsers:
             if not self.parsedLines:
-                parser = supportedParser(self.originalFilePath, self.fps, self.encoding, content)
+                parser = supportedParser(self.originalFilePath, self.fps, content)
                 parser.parse()
                 self.parsedLines = parser.get_results()
 
-    def toFormat(self, newFormat, encoding=None):
+    def toFormat(self, newFormat):
         assert(self.parsedLines != [])
-
-        if encoding is None:
-            encoding = self.encoding
 
         for parser in self.supportedParsers:
             # Obtain user specified subclass
             if parser.__OPT__ == newFormat:
                 filename, _notUsed = os.path.splitext(self.originalFilePath)
-                self.converter = parser(filename + '.' + parser.__EXT__, self.fps, encoding)
+                self.converter = parser(filename + '.' + parser.__EXT__, self.fps)
                 break
         if self.converter.__OPT__ != newFormat:
             raise NameError
