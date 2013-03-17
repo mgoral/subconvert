@@ -76,7 +76,6 @@ class SubConverter():
 
 
     def changeFps(self, fps):
-        assert(len(self.parsedLines) > 0)
         assert(fps > 0)
 
         self.fps = fps
@@ -132,11 +131,13 @@ class SubConverter():
     def getFilePath(self):
         return self.originalFilePath
 
-    def parse(self):
+    def parse(self, content):
         log.info(_("Trying to parse %s...") % self.originalFilePath)
+        self.parsedLines = []
+        self.convertedLines = []
         for supportedParser in self.supportedParsers:
             if not self.parsedLines:
-                parser = supportedParser(self.originalFilePath, self.fps, self.encoding, fileInput)
+                parser = supportedParser(self.originalFilePath, self.fps, self.encoding, content)
                 parser.parse()
                 self.parsedLines = parser.get_results()
 
