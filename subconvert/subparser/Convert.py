@@ -76,7 +76,13 @@ class SubConverter():
 
 
     def changeFps(self, fps):
+        assert(len(self.parsedLines) > 0)
+        assert(fps > 0)
+
         self.fps = fps
+        for subtitle in self.parsedLines:
+            subtitle['sub']['time_from'].changeFps(fps)
+            subtitle['sub']['time_to'].changeFps(fps)
         return self
 
     def changeSubText(self, subNo, newText):
