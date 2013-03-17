@@ -52,7 +52,7 @@ class FrameTime(object):
 
     def get_frame(self):
         """Get Frame (and FPS) value)"""
-        return (self.fps, self.frame)
+        return self.frame
 
     def get_time(self):
         """Get Time (and FPS) value)"""
@@ -73,8 +73,8 @@ class FrameTime(object):
             raise AttributeError(_("Incorrect string type: '%s'") % strType)
 
     def changeFps(self, newFps):
-        if fps > 0:
-            self.fps = float(fps)
+        if newFps > 0:
+            self.fps = float(newFps)
         else:
             raise ValueError(_("Incorrect FPS value: %s.") % fps)
         self.frame = int(round(self.full_seconds * self.fps))

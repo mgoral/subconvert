@@ -117,9 +117,7 @@ class TestFrameTime(unittest.TestCase):
         fto = FrameTime(self.fps, "time", h=1, m=1, s=1, ms=100)
         full_seconds = 3661.100
         frames = round(full_seconds * self.fps)
-        method_return = fto.get_frame()
-        true_value = (self.fps, frames)
-        self.assertEqual(method_return, true_value)
+        self.assertEqual(fto.get_frame(), frames)
 
     def test_get_time(self):
         log.info(" \n... running FrameTime __get_time__() test")
@@ -172,6 +170,11 @@ class TestFrameTime(unittest.TestCase):
         returned_str = str(fto)
         expected_str = "t: 2:2:2.200; f: %s" % int(round(full_seconds * self.fps))
         self.assertEqual(returned_str, expected_str)
+
+    def test_changeFps(self):
+        fto = FrameTime(self.fps, "time", h=0, m=0, s=1, ms=0)
+        fto.changeFps(31)
+        self.assertEqual(31, fto.get_frame())
 
 if __name__ == "__main__":
     log = logging.getLogger('SubConvert')
