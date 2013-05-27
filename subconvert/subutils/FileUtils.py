@@ -22,6 +22,7 @@ from subprocess import Popen, PIPE
 import shutil
 import codecs
 import re
+import logging
 
 try:
     import chardet
@@ -60,14 +61,16 @@ def detectEncoding(filePath, maxSize=5000, defaultEncoding="utf8"):
 def openFile(filePath, fileEncoding=None):
     if fileEncoding is None:
         fileEncoding = detectEncoding(filePath)
+    fileInput = []
     try:
-        with codecs.open(self.originalFilePath, mode='r', encoding=fileEncoding) as file_:
+        with codecs.open(filePath, mode='r', encoding=fileEncoding) as file_:
             fileInput = file_.readlines()
     except LookupError as msg:
         raise LookupError(_("Unknown encoding name: '%s'.") % fileEncoding)
     except UnicodeDecodeError:
         log.error(_("Couldn't handle '%s' with '%s' encoding.") % (filePath, fileEncoding))
         return
+    return fileInput
 
 def saveToFile(content, filePath, fileEncoding="utf8"):
     assert(len(content) > 0)

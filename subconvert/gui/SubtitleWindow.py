@@ -25,6 +25,7 @@ from PyQt4 import QtGui, QtCore, Qt
 
 import subparser.Convert as Convert
 import subutils.path as subpath
+from subutils import FileUtils
 
 log = logging.getLogger('subconvert.%s' % __name__)
 
@@ -181,7 +182,7 @@ class SidePanel(QtGui.QWidget):
     def addFile(self, filePath):
         converter = Convert.SubConverter(filePath)
         if self.converterManager.add(converter):
-            converter.parse()
+            converter.parse(FileUtils.openFile(filePath))
             selfPath = subpath.get_dirname(__file__)
             icon = QtGui.QIcon(os.path.join(selfPath, "img/initial_list.png"))
             item = QtGui.QListWidgetItem(icon, filePath)
@@ -227,8 +228,8 @@ class SubtitleEditor(QtGui.QWidget):
 
         for line in converter.parsedLines:
             if line is not None:
-                timeStart = QtGui.QStandardItem(line['sub']['time_from'].getTimeStr())
-                timeEnd = QtGui.QStandardItem(line['sub']['time_from'].getTimeStr())
+                timeStart = QtGui.QStandardItem(line['sub']['time_from'].toStr())
+                timeEnd = QtGui.QStandardItem(line['sub']['time_from'].toStr())
                 text = QtGui.QStandardItem(line['sub']['text'])
                 self.model.appendRow([timeStart, timeEnd, text])
                 pass

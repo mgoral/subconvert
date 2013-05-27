@@ -106,7 +106,7 @@ class SubRip(GenericSubParser):
         time = self.time_fmt.search(string)
         return FrameTime(fps=self.fps, value_type=self.__FMT__, \
             value = "%d:%02d:%02d.%03d" % \
-            (time.group('h'), time.group('m'), time.group('s'), time.group('ms')))
+            (int(time.group('h')), int(time.group('m')), int(time.group('s')), int(time.group('ms'))))
 
     def format_text(self, string):
         string = string.strip()

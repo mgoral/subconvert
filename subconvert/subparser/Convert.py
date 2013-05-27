@@ -24,9 +24,12 @@ import logging
 import gettext
 import datetime
 
-import subparser.SubParser as SubParser
-import subparser.FrameTime as FrameTime
-import subparser.Parsers as Parsers
+from subparser import SubParser
+from subparser import FrameTime
+from subparser import Parsers
+#import subparser.SubParser as SubParser
+#import subparser.FrameTime as FrameTime
+#import subparser.Parsers as Parsers
 
 log = logging.getLogger('subconvert.%s' % __name__)
 
