@@ -88,6 +88,16 @@ class SubTabWidget(QtGui.QWidget):
 
         self.setLayout(mainLayout)
 
+    def __addTab(self, tab):
+        """Returns existing tab index. Creates a new one if it isn't opened and returns its index
+        otherwise."""
+        for i in range(self.tabBar.count()):
+            if tab == self.pages.widget(i):
+                return i
+        newIndex = self.tabBar.addTab(tab.name())
+        self.pages.addWidget(tab)
+        return newIndex
+
     def __drawSplitterHandle(self, index):
         splitterHandle = self.splitter.handle(index)
 
@@ -103,9 +113,8 @@ class SubTabWidget(QtGui.QWidget):
 
     @QtCore.pyqtSlot(Convert.SubConverter)
     def showConverter(self, converter):
-        self.tabBar.addTab(converter.originalFilePath)
-        newTab = SubtitleEditor(converter)
-        self.pages.addWidget(newTab)
+        tab = SubtitleEditor(converter)
+        self.showTab(self.__addTab(tab))
 
     def addFile(self, filePath, icon=None):
         self.sidePanel.addFile(filePath)
@@ -154,6 +163,7 @@ class SubTabWidget(QtGui.QWidget):
     def showTab(self, index):
         showWidget = self.pages.widget(index)
         self.pages.setCurrentWidget(showWidget)
+        self.tabBar.setCurrentIndex(index)
 
     def getFileInfo(self, filePath):
         return self.converterManager.getConverter(converterManager)
@@ -163,6 +173,7 @@ class SidePanel(QtGui.QWidget):
 
     def __init__(self, parent = None):
         super(SidePanel, self).__init__(parent)
+        # TODO: Do we need this manager class? Maybe we should treat SidePanel as such manager?
         self.converterManager = Convert.SubConverterManager()
         self.__initSidePanel()
 
@@ -184,6 +195,7 @@ class SidePanel(QtGui.QWidget):
         if self.converterManager.add(converter):
             converter.parse(FileUtils.openFile(filePath))
             selfPath = subpath.get_dirname(__file__)
+            # FIXME: icon doesn't show up
             icon = QtGui.QIcon(os.path.join(selfPath, "img/initial_list.png"))
             item = QtGui.QListWidgetItem(icon, filePath)
             item.setToolTip("Double click for details.")
@@ -211,6 +223,8 @@ class SubtitleEditor(QtGui.QWidget):
     def __init__(self, converter, parent = None):
         super(SubtitleEditor, self).__init__(parent)
 
+        self.__converter = converter
+
         grid = QtGui.QGridLayout(self)
 
         self.model = QtGui.QStandardItemModel(0, 3)
@@ -226,7 +240,7 @@ class SubtitleEditor(QtGui.QWidget):
         grid.setSpacing(10)
         grid.addWidget(self.subList, 0, 0)
 
-        for line in converter.parsedLines:
+        for line in self.__converter.parsedLines:
             if line is not None:
                 timeStart = QtGui.QStandardItem(line['sub']['time_from'].toStr())
                 timeEnd = QtGui.QStandardItem(line['sub']['time_from'].toStr())
@@ -238,3 +252,9 @@ class SubtitleEditor(QtGui.QWidget):
 
     def insertSubtitle(self, filePath):
         pass
+
+    def name(self):
+        return self.__converter.originalFilePath
+
+    def __eq__(self, other):
+        return self.__converter == other.__converter
