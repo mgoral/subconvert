@@ -22,6 +22,7 @@ import gettext
 import logging
 
 from PyQt4 import QtGui, QtCore, Qt
+import resources
 
 import subparser.Convert as Convert
 import subutils.path as subpath
@@ -190,9 +191,7 @@ class SidePanel(QtGui.QWidget):
         converter = self.converterManager.add(filePath)
         if not converter.isParsed():
             converter.parse(FileUtils.openFile(filePath))
-            # FIXME: icon doesn't show up
-            selfPath = subpath.get_dirname(__file__)
-            icon = QtGui.QIcon(os.path.join(selfPath, "img/initial_list.png"))
+            icon = QtGui.QIcon(":/img/initial_list.png")
             item = QtGui.QListWidgetItem(icon, filePath)
             item.setToolTip(converter.filePath())
             self.__fileList.addItem(item)
