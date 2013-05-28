@@ -165,15 +165,11 @@ class SubTabWidget(QtGui.QWidget):
         self.pages.setCurrentWidget(showWidget)
         self.tabBar.setCurrentIndex(index)
 
-    def getFileInfo(self, filePath):
-        return self.converterManager.getConverter(converterManager)
-
 class SidePanel(QtGui.QWidget):
     requestOpen = QtCore.pyqtSignal(Convert.SubConverter)
 
     def __init__(self, parent = None):
         super(SidePanel, self).__init__(parent)
-        # TODO: Do we need this manager class? Maybe we should treat SidePanel as such manager?
         self.converterManager = Convert.SubConverterManager()
         self.__initSidePanel()
 
@@ -191,14 +187,14 @@ class SidePanel(QtGui.QWidget):
         self.setLayout(mainLayout)
 
     def addFile(self, filePath):
-        converter = Convert.SubConverter(filePath)
-        if self.converterManager.add(converter):
+        converter = self.converterManager.add(filePath)
+        if not converter.isParsed():
             converter.parse(FileUtils.openFile(filePath))
-            selfPath = subpath.get_dirname(__file__)
             # FIXME: icon doesn't show up
+            selfPath = subpath.get_dirname(__file__)
             icon = QtGui.QIcon(os.path.join(selfPath, "img/initial_list.png"))
             item = QtGui.QListWidgetItem(icon, filePath)
-            item.setToolTip("Double click for details.")
+            item.setToolTip(converter.filePath())
             self.__fileList.addItem(item)
             return True
         return False

@@ -50,7 +50,7 @@ class TestConverting(unittest.TestCase):
         lines = []
 
         conv = Convert.SubConverter(file_to_parse)
-        conv.changeFps(self.fps).changeEncoding(self.encoding).parse()
+        conv.parse(self.file_input)
         lines = conv.toFormat(converter.__OPT__)
 
         with codecs.open(output_filename, mode='w', encoding=self.encoding) as file_:

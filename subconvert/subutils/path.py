@@ -35,6 +35,6 @@ def getLocalePath(givenPath, localeName='subconvert'):
         return "%s/%s" % ( installPath, "locale")
     return "./locale/"
 
-def get_dirname(filename):
+def getDirname(filename):
     return os.path.split(os.path.abspath(filename))[0]
 

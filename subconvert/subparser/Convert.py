@@ -32,25 +32,25 @@ log = logging.getLogger('subconvert.%s' % __name__)
 
 class SubConverterManager():
     def __init__(self):
-        self.converters = list()
+        # { 'filepath' : SubConverter }
+        self.converters = {}
 
-    def add(self, converter):
-        if converter not in self.converters:
-            self.converters.append(converter)
-            return True
-        return False
+    def add(self, filePath):
+        """Creates and returns a new converter if one with a given filePath doesn't exist yet.
+        Returns existing one otherwise."""
+        if not filePath in self.converters.keys():
+            converter = SubConverter(filePath)
+            self.converters[filePath] = converter
+        return self.converters[filePath]
 
     def get(self, filePath):
-        for i, retConverter in enumerate(self.converters):
-            if retConverter.getFilePath() == filePath:
-                return retConverter
-        return None
+        return self.converters.get(filePath)
 
     def remove(self, filePath):
-        for i, retConverter in enumerate(self.converters):
-            if retConverter.getFilePath() == filePath:
-                del self.converters[i]
+        if filePath in self.converters.keys():
+            del self.converters[filePath]
 
+# TODO: maybe it'd be better to completely remove filePath dependency from SubConverter?
 class SubConverter():
     def __init__(self, filepath):
         self.supportedParsers = SubParser.GenericSubParser.__subclasses__()
@@ -81,19 +81,19 @@ class SubConverter():
         return self
 
     def changeSubText(self, subNo, newText):
-        self.getSub(subNo)['text'] = newText
+        self.sub(subNo)['text'] = newText
         return self
 
     def changeSubTimeFrom(self, subNo, newTime):
-        self.getSub(subNo)['time_from'] = newTime
+        self.sub(subNo)['time_from'] = newTime
         return self
 
     def changeSubTimeTo(self, subNo, newTime):
-        self.getSub(subNo)['time_to'] = newTime
+        self.sub(subNo)['time_to'] = newTime
         return self
 
     def increaseSubTime(self, subNo, newTime):
-        sub = self.getSub(subNo)
+        sub = self.sub(subNo)
         sub['time_to'] = sub['time_to'] + newTime
         sub['time_from'] = sub['time_from'] + newTime
         return self
@@ -117,14 +117,14 @@ class SubConverter():
                 self.parsedLines[i]['sub_no'] -= 1
         del self.converters[i]
 
-    def getFps(self):
+    def fps(self):
         return self.fps
 
-    def getSub(self, subNo):
+    def sub(self, subNo):
         assert(len(self.parsedLines) > 0)
         return self.parsedLines[subNo]['sub']
 
-    def getFilePath(self):
+    def filePath(self):
         return self.originalFilePath
 
     def parse(self, content):
@@ -132,11 +132,16 @@ class SubConverter():
         self.parsedLines = []
         self.convertedLines = []
         for supportedParser in self.supportedParsers:
-            if not self.parsedLines:
+            if not self.isParsed():
                 parser = supportedParser(self.originalFilePath, self.fps, content)
                 parser.parse()
                 self.parsedLines = parser.get_results()
 
+    def isParsed(self):
+        return len(self.parsedLines) > 0
+
+    # TODO: SubConverter should accept somehow a full filepath to the new file. Only if it's not
+    # provided, it should use the old one but with a new extension.
     def toFormat(self, newFormat):
         assert(self.parsedLines != [])
 
@@ -149,10 +154,13 @@ class SubConverter():
         if self.converter.__OPT__ != newFormat:
             raise NameError
 
+        # FIXME: This is crazy! I know that it works but it's too complicated! Refactor it!
+        # Adding a header.
         subPair = [0, 0]
         for parsed in self.parsedLines:
             if not subPair[1] and self.converter.__WITH_HEADER__: # Only the first element
                 header = parsed['sub'].get('header')
+                # FIXME: What is that?!
                 if type(header) != dict:
                     header = {}
                 header = self.converter.convert_header(header)
@@ -161,6 +169,9 @@ class SubConverter():
                         self.convertedLines.append(header)
                     except UnicodeEncodeError:
                         raise
+            # FIXME: This is crazy! I know that it works but it's silly!
+            # We actually parse subPair[0] but need subPair[1] (which is next subtitle) in case
+            # there is not time_to.
             subPair[0] = subPair[1]
             subPair[1] = parsed
             try:
@@ -171,8 +182,7 @@ class SubConverter():
                                 subPair[0]['sub']['time_from'] + FrameTime.FrameTime(self.fps, 'full_seconds', seconds = 2.5)
                         else:
                             subPair[0]['sub']['time_to'] = \
-                                subPair[0]['sub']['time_from'] + \
-                                (subPair[1]['sub']['time_from'] - subPair[0]['sub']['time_from']) * 0.85
+                                subPair[0]['sub']['time_from'] + (subPair[1]['sub']['time_from'] - subPair[0]['sub']['time_from']) * 0.85
                     sub = self.converter.convert(subPair[0])
                     try:
                         self.convertedLines.append(sub)
