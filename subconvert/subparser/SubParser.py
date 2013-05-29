@@ -20,17 +20,15 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import locale
-import logging
 import gettext
 import re
 import codecs
 
-log = logging.getLogger('subconvert.%s' % __name__)
-
-
 class SubParsingError(Exception):
     '''Custom parsing error class.'''
-    pass
+    def __init__(self, message, lineNo):
+        Exception.__init__(self, message)
+        self.lineNo = lineNo
 
 class GenericSubParser():
     '''Generic class that should be inherited
@@ -61,12 +59,11 @@ class GenericSubParser():
     __PARSED__ = False
     __HEADER_FOUND__ = False
 
-    def __init__(self, filename, fps, lines = None):
-        '''Usually you will only need to call super __init__(filename)
+    def __init__(self, fps, lines = None):
+        '''Usually you will only need to call super __init__()
         from a specialized class.'''
 
         self.atom_t = {'time_from': '', 'time_to': '', 'text': ''}
-        self.filename = filename
         self.pattern = re.compile(self.pattern, re.X)
         self.end_pattern = re.compile(self.end_pattern, re.X)
         self.lines = lines
@@ -76,7 +73,7 @@ class GenericSubParser():
 
     def message(self, line_no, msg = "parsing error."):
         '''Uniform error message.'''
-        return _("%s:%d %s") % (self.filename, line_no + 1, msg)
+        return _("%d: %s") % (line_no + 1, msg)
 
     def initial_line_prepare(self, line, line_no):
         '''Do NOT override this method unless you know
@@ -97,18 +94,15 @@ class GenericSubParser():
         line_no = 0
         sub_section = ''
         if self.lines is None:
-            log.debug(_("No lines read from file. Skipping"))
             return
         for line_no, line in enumerate(self.lines):
             line = self.initial_line_prepare(line, line_no)
             if not self.__WITH_HEADER__ and not self.__PARSED__ and line_no > 35:
-                log.debug(self.message(line_no, _("%s waited too long. Skipping.") % self.__SUB_TYPE__))
                 return
             sub_section = ''.join([sub_section, line])
             end = self.end_pattern.search(line)
             if self.__WITH_HEADER__ and not self.__HEADER_FOUND__:
                 if line_no > self.__MAX_HEADER_LEN__:
-                    log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
                     return
                 self.__HEADER_FOUND__ = self.get_header(sub_section, atom)
                 if self.__HEADER_FOUND__:
@@ -129,18 +123,16 @@ class GenericSubParser():
                         atom['time_to'] = self.str_to_frametime(atom['time_to'])
                 except AttributeError as msg:
                     if sub_section in ('\n', '\r\n', '\r'):
-                        log.debug(self.message(line_no, _("Skipping empty line.")))
                         sub_section = ''
                         atom = {'time_from': '', 'time_to': '', 'text': '',}
                         continue
                     elif i > 0:
                         self.parsing_results = []
-                        raise SubParsingError(self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__))
+                        raise SubParsingError(self.message(_("%s parsing error.") % self.__SUB_TYPE__), line_no)
                     else:
-                        log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
                         return
                 except IndexError as msg:
-                    log.debug(self.message(line_no, _("IndexError: %s") % msg))
+                    pass
                 try:
                     # There should be no more AttributeErrors as parse()
                     # should return on it last time. If there is - we want
@@ -148,7 +140,7 @@ class GenericSubParser():
                     if matched.group('text'):
                         atom['text'] = matched.group('text')
                 except IndexError as msg:
-                    log.debug(self.message(line_no, msg))
+                    pass
 
                 # store parsing result if new end marker occurred, then clear results
                 if atom['time_from'] and atom['text']:
@@ -159,18 +151,16 @@ class GenericSubParser():
                     )
                     i += 1
                 elif atom['time_from'] and not atom['text']:
-                    log.warning(self.message(line_no, _("No subtitle text found. Skipping that section.")))
+                    pass
                 else:
                     if i > 0:
                         self.parsing_results = []
-                        raise SubParsingError(self.message(line_no, _("%s parsing error.") % self.__SUB_TYPE__))
+                        raise SubParsingError(self.message(_("%s parsing error.") % self.__SUB_TYPE__), line_no)
                     else:
-                        log.debug(self.message(line_no, _("Not a %s file.") % self.__SUB_TYPE__))
                         return
                 sub_section = ''
                 atom = {'time_from': '', 'time_to': '', 'text': '',}
         if i > 0:
-            log.info(_("Recognised %s.") % self.__SUB_TYPE__)
             self.parsing_results.append(None)
 
     def get_results(self):
@@ -185,7 +175,6 @@ class GenericSubParser():
         try:
             sub_text = sub['sub']['text'].format(**self.sub_formatting)
         except KeyError:
-            log.warning(_("Key exception occured when trying to format sub: %s") % sub['sub']['text'])
             sub_text = sub['sub']['text']
         return self.sub_fmt.format(gsp_no = sub['sub_no'], \
             gsp_from = self.get_time(sub['sub']['time_from'], 'time_from'), \

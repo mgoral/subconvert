@@ -58,7 +58,7 @@ def detectEncoding(filePath, maxSize=5000, defaultEncoding="utf8"):
                 default %s") % (enc['encoding'], defaultEncoding))
     return encoding
 
-def openFile(filePath, fileEncoding=None):
+def readFile(filePath, fileEncoding=None):
     if fileEncoding is None:
         fileEncoding = detectEncoding(filePath)
     fileInput = []

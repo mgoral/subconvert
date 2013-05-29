@@ -33,6 +33,7 @@ log = logging.getLogger('subconvert.%s' % __name__)
 class SubTabWidget(QtGui.QWidget):
     def __init__(self, parent = None):
         super(SubTabWidget, self).__init__(parent)
+        self.converterManager = Convert.SubConverterManager()
         self.__initTabWidget()
 
     def __initTabWidget(self):
@@ -89,13 +90,13 @@ class SubTabWidget(QtGui.QWidget):
 
         self.setLayout(mainLayout)
 
-    def __addTab(self, tab):
+    def __addTab(self, tab, tabName):
         """Returns existing tab index. Creates a new one if it isn't opened and returns its index
         otherwise."""
         for i in range(self.tabBar.count()):
             if tab == self.pages.widget(i):
                 return i
-        newIndex = self.tabBar.addTab(tab.name())
+        newIndex = self.tabBar.addTab(tabName)
         self.pages.addWidget(tab)
         return newIndex
 
@@ -112,17 +113,20 @@ class SubTabWidget(QtGui.QWidget):
         splitterLayout.addWidget(line)
         splitterHandle.setLayout(splitterLayout)
 
-    @QtCore.pyqtSlot(Convert.SubConverter)
-    def showConverter(self, converter):
-        tab = SubtitleEditor(converter)
-        self.showTab(self.__addTab(tab))
+    @QtCore.pyqtSlot(str)
+    def showConverter(self, filePath):
+        converter = self.converterManager.get(filePath)
+        if converter is not None:
+            tab = SubtitleEditor(converter)
+            self.showTab(self.__addTab(tab, filePath))
+        else:
+            log.error(_("Converter not created for %s!" % filePath))
 
     def addFile(self, filePath, icon=None):
-        self.sidePanel.addFile(filePath)
-        #if icon is None:
-        #    self.tabBar.addTab(filePath)
-        #else:
-        #    self.tabBar.addTab(icon, filePath)
+        converter = self.converterManager.add(filePath)
+        if not converter.isParsed():
+            converter.parse(FileUtils.readFile(filePath))
+            self.sidePanel.addFile(filePath)
 
     def count(self):
         return self.tabBar.count()
@@ -158,20 +162,16 @@ class SubTabWidget(QtGui.QWidget):
         # to prevent it.
         self.showTab(self.tabBar.currentIndex())
 
-    def renameTab(self, index, newName):
-        self.tabBar.setTabText(index, newName)
-
     def showTab(self, index):
         showWidget = self.pages.widget(index)
         self.pages.setCurrentWidget(showWidget)
         self.tabBar.setCurrentIndex(index)
 
 class SidePanel(QtGui.QWidget):
-    requestOpen = QtCore.pyqtSignal(Convert.SubConverter)
+    requestOpen = QtCore.pyqtSignal(str)
 
     def __init__(self, parent = None):
         super(SidePanel, self).__init__(parent)
-        self.converterManager = Convert.SubConverterManager()
         self.__initSidePanel()
 
 
@@ -188,19 +188,13 @@ class SidePanel(QtGui.QWidget):
         self.setLayout(mainLayout)
 
     def addFile(self, filePath):
-        converter = self.converterManager.add(filePath)
-        if not converter.isParsed():
-            converter.parse(FileUtils.openFile(filePath))
-            icon = QtGui.QIcon(":/img/initial_list.png")
-            item = QtGui.QListWidgetItem(icon, filePath)
-            item.setToolTip(converter.filePath())
-            self.__fileList.addItem(item)
-            return True
-        return False
+        icon = QtGui.QIcon(":/img/initial_list.png")
+        item = QtGui.QListWidgetItem(icon, filePath)
+        item.setToolTip(filePath)
+        self.__fileList.addItem(item)
 
     def removeFile(self):
         item = self.__fileList.takeItem(self.__fileList.currentRow())
-        self.converterManager.remove(item.text())
         item = None
 
     def getCurrentFile(self):
@@ -208,11 +202,7 @@ class SidePanel(QtGui.QWidget):
 
     def informFileRequest(self):
         item = self.__fileList.currentItem()
-        converter = self.converterManager.get(item.text())
-        if converter is not None:
-            self.requestOpen.emit(converter)
-        else:
-            log.error(_("No such converter created: %s") % item.text())
+        self.requestOpen.emit(item.text())
 
 class SubtitleEditor(QtGui.QWidget):
     def __init__(self, converter, parent = None):
@@ -247,9 +237,6 @@ class SubtitleEditor(QtGui.QWidget):
 
     def insertSubtitle(self, filePath):
         pass
-
-    def name(self):
-        return self.__converter.originalFilePath
 
     def __eq__(self, other):
         return self.__converter == other.__converter

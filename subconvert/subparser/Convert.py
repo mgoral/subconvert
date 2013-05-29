@@ -20,15 +20,12 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import sys
-import logging
 import gettext
 import datetime
 
 from subparser import SubParser
 from subparser import FrameTime
 from subparser import Parsers
-
-log = logging.getLogger('subconvert.%s' % __name__)
 
 class SubConverterManager():
     def __init__(self):
@@ -54,22 +51,11 @@ class SubConverterManager():
 class SubConverter():
     def __init__(self, filepath):
         self.supportedParsers = SubParser.GenericSubParser.__subclasses__()
-        self.originalFilePath = filepath
         self.movieFile = None
         self.fps = 25
         self.parsedLines = []
         self.convertedLines = []
         self.converter = None
-
-    def __eq__(self, other):
-        return self.originalFilePath == other.originalFilePath
-
-    def __lt__(self, other):
-        return self.originalFilePath < other.originalFilePath
-
-    def __hash__(self):
-        return hash(self.originalFilePath)
-
 
     def changeFps(self, fps):
         assert(fps > 0)
@@ -102,7 +88,6 @@ class SubConverter():
         assert(len(self.parsedLines) > 0)
         if subNo > 0:
             if len(self.parsedLines) < subNo:
-                log.warning(_("There are only %d subtitles. Pushing new one to the end."))
                 self.parsedLines.append(newSub)
             else:
                 self.parsedLines.insert(newSub)
@@ -124,16 +109,12 @@ class SubConverter():
         assert(len(self.parsedLines) > 0)
         return self.parsedLines[subNo]['sub']
 
-    def filePath(self):
-        return self.originalFilePath
-
     def parse(self, content):
-        log.info(_("Trying to parse %s...") % self.originalFilePath)
         self.parsedLines = []
         self.convertedLines = []
         for supportedParser in self.supportedParsers:
             if not self.isParsed():
-                parser = supportedParser(self.originalFilePath, self.fps, content)
+                parser = supportedParser(self.fps, content)
                 parser.parse()
                 self.parsedLines = parser.get_results()
 
@@ -148,8 +129,7 @@ class SubConverter():
         for parser in self.supportedParsers:
             # Obtain user specified subclass
             if parser.__OPT__ == newFormat:
-                filename, _notUsed = os.path.splitext(self.originalFilePath)
-                self.converter = parser(filename + '.' + parser.__EXT__, self.fps)
+                self.converter = parser(self.fps)
                 break
         if self.converter.__OPT__ != newFormat:
             raise NameError
@@ -158,6 +138,8 @@ class SubConverter():
         # Adding a header.
         subPair = [0, 0]
         for parsed in self.parsedLines:
+            # FIXME: refactor the way that HEADER is stored and handled. It should be stored
+            # independently to subtitles.
             if not subPair[1] and self.converter.__WITH_HEADER__: # Only the first element
                 header = parsed['sub'].get('header')
                 # FIXME: What is that?!
@@ -189,7 +171,14 @@ class SubConverter():
                     except UnicodeEncodeError:
                         raise
             except AssertionError:
-                log.warning(_("Correct time not asserted for subtitle %d. Skipping it...") % (subPair[0]['sub_no']))
-                log.debug(_(".. incorrect subtitle pair times: (%s, %s)") % (subPair[0]['sub']['time_from'], subPair[1]['sub']['time_from']))
+                # TODO: handle it somehow. Maybe inform SubConverter client about situation. Maybe
+                # create a list of tuples where second element would be a sub and first element
+                # would be flag indicating whether it's correct (it it's not, then the second
+                # element would contain unconverted sub)
+                pass
+                # TODO: logs are left as info source about this assertion. Remove when it'll be
+                # handled properly.
+                #log.warning(_("Correct time not asserted for subtitle %d. Skipping it...") % (subPair[0]['sub_no']))
+                #log.debug(_(".. incorrect subtitle pair times: (%s, %s)") % (subPair[0]['sub']['time_from'], subPair[1]['sub']['time_from']))
         return self.convertedLines
 

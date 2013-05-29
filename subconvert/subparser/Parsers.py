@@ -46,8 +46,8 @@ class MicroDVD(GenericSubParser):
         'gsp_nl':   r'|',
     }
 
-    def __init__(self, filename, fps, lines = None):
-        GenericSubParser.__init__(self, filename, fps, lines)
+    def __init__(self, fps, lines = None):
+        GenericSubParser.__init__(self, fps, lines)
 
     def str_to_frametime(self, string):
         return FrameTime(fps=self.fps, value_type=self.__FMT__, value=string)
@@ -98,9 +98,9 @@ class SubRip(GenericSubParser):
         'gsp_nl':   os.linesep,
     }
 
-    def __init__(self, filename, fps, lines = None):
+    def __init__(self, fps, lines = None):
         self.time_fmt = re.compile(self.time_fmt)
-        GenericSubParser.__init__(self, filename, fps, lines)
+        GenericSubParser.__init__(self, fps, lines)
 
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
@@ -157,9 +157,9 @@ class SubViewer(GenericSubParser):
         'gsp_nl':   os.linesep,
     }
 
-    def __init__(self, filename, fps, lines = None):
+    def __init__(self, fps, lines = None):
         self.time_fmt = re.compile(self.time_fmt)
-        GenericSubParser.__init__(self, filename, fps, lines)
+        GenericSubParser.__init__(self, fps, lines)
 
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
@@ -218,12 +218,11 @@ class SubViewer(GenericSubParser):
 
     def convert_header(self, header):
         keys = header.keys()
-        filename = os.path.split(self.filename)[-1]
-        title = header.get('title') if 'title' in keys else os.path.splitext(filename)[0]
+        title = header.get('title') if 'title' in keys else '' #FIXME: add sth on else here
         author = header.get('author') if 'author' in keys else ''
         source = header.get('source') if 'source' in keys else ''
         program = header.get('program') if 'program' in keys else 'SubConvert'
-        filepath = header.get('filepath') if 'filepath' in keys else self.filename
+        filepath = header.get('filepath') if 'filepath' in keys else '' #FIXME: add sth on else here
         delay = header.get('delay') if 'delay' in keys else '0'
         cd_track = header.get('cd_track') if 'cd_track' in keys else '0'
         comment = header.get('comment') if 'comment' in keys else 'Converted to subviewer format with SubConvert'
@@ -262,9 +261,9 @@ class TMP(GenericSubParser):
         'gsp_nl':   r'|',
     }
 
-    def __init__(self, filename, fps, lines = None):
+    def __init__(self, fps, lines = None):
         self.time_fmt = re.compile(self.time_fmt)
-        GenericSubParser.__init__(self, filename, fps, lines)
+        GenericSubParser.__init__(self, fps, lines)
 
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
@@ -312,8 +311,8 @@ class MPL2(GenericSubParser):
         'gsp_nl':   r'|',
     }
 
-    def __init__(self, filename, fps, lines = None):
-        GenericSubParser.__init__(self, filename, fps, lines)
+    def __init__(self, fps, lines = None):
+        GenericSubParser.__init__(self, fps, lines)
 
     def str_to_frametime(self, string):
         string = ''.join(['0', string]) # Parsing "[0][5] sub" would cause an error without this
