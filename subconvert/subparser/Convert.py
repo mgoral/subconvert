@@ -27,11 +27,26 @@ from subparser import SubParser
 from subparser import FrameTime
 from subparser import Parsers
 
+def acceptAlias(decoratedFunction):
+    def wrapper(self, alias):
+        key = alias
+        if alias in self.aliases.keys():
+            key = self.aliases[alias]
+        return decoratedFunction(self, key)
+    return wrapper
+
 class SubConverterManager():
+    """Manages SubConverter instances.
+
+    SubConverters can be accessed via filePath or alias. Each alias is unique and is mapped to a
+    single filePath (i.e. filePath might have several aliases but alias has only one filePath)."""
+
     def __init__(self):
         # { 'filepath' : SubConverter }
         self.converters = {}
+        self.aliases = {}
 
+    @acceptAlias
     def add(self, filePath):
         """Creates and returns a new converter if one with a given filePath doesn't exist yet.
         Returns existing one otherwise."""
@@ -40,12 +55,21 @@ class SubConverterManager():
             self.converters[filePath] = converter
         return self.converters[filePath]
 
+    @acceptAlias
     def get(self, filePath):
         return self.converters.get(filePath)
 
+    @acceptAlias
     def remove(self, filePath):
         if filePath in self.converters.keys():
             del self.converters[filePath]
+
+    def registerAlias(self, alias, filePath):
+        self.aliases[alias] = filePath
+
+    def deregisterAlias(self, alias):
+        if alias in self.aliases.keys():
+            del self.aliases[alias]
 
 # TODO: maybe it'd be better to completely remove filePath dependency from SubConverter?
 class SubConverter():
