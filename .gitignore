@@ -1,11 +1,5 @@
 *.pyc
-*.swp
-*.swo
-*.srt
-*.sub
-*.egg-info
 *.mo
-.pypirc
 build/*
 dist/*
 resources.py
