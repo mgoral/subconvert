@@ -17,22 +17,14 @@ You should have received a copy of the GNU General Public License
 along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
-import sys
 import unittest
 import codecs
-import logging
-import hashlib
-import datetime
 
-import subparser.SubParser as SubParser
-import subparser.Parsers as Parsers
-import subparser.Convert as Convert
-import subutils.version as version
-import subparser.FrameTime as FrameTime
-
-from subconvert import _
-
+from subconvert.subparser import SubParser
+from subconvert.subparser import Parsers
+from subconvert.subparser import Convert
+from subconvert.subutils import version
+from subconvert.subparser import FrameTime
 
 class TestParsers(unittest.TestCase):
     """Parsers UnitTest"""
@@ -41,8 +33,8 @@ class TestParsers(unittest.TestCase):
     fps = 25
 
     parsed = {
-        'time_from': FrameTime.FrameTime(25, 'frame', frame=28),
-        'time_to': FrameTime.FrameTime(25, 'frame', frame=75),
+        'time_from': FrameTime.FrameTime(25, 'frame', 28),
+        'time_to': FrameTime.FrameTime(25, 'frame', 75),
         'text': "Very simple subtitle parsing test.",
     }
 
@@ -70,31 +62,31 @@ class TestParsers(unittest.TestCase):
 
         assert( 0 < len(lines) )
 
+    @unittest.skip("Whole test suite should be rewritten. No need to use real files.")
     def test_subrip(self):
-        log.info(" \n... running SubRip test")
         original_file = 'subs/Line.subrip'
         self.parse( Parsers.SubRip, original_file )
 
+    @unittest.skip("Whole test suite should be rewritten. No need to use real files.")
     def test_microdvd(self):
-        log.info(" \n... running MicroDVD test")
         original_file = 'subs/Line.microdvd'
         self.parse( Parsers.MicroDVD, original_file )
 
+    @unittest.skip("Whole test suite should be rewritten. No need to use real files.")
     def test_mpl2(self):
-        log.info(" \n... running MPL2 test")
         original_file = 'subs/Line.mpl2'
         local_parsed = self.parsed.copy()
         local_parsed['time_to'] = FrameTime.FrameTime(25, 'full_seconds', seconds=3.0)
         local_parsed['time_from'] = FrameTime.FrameTime(25, 'full_seconds', seconds=1.1)
         self.parse( Parsers.MPL2, original_file, [local_parsed] )
 
+    @unittest.skip("Whole test suite should be rewritten. No need to use real files.")
     def test_subviewer(self):
-        log.info(" \n... running SubViewer test")
         original_file = 'subs/Line.subviewer'
         self.parse( Parsers.SubViewer, original_file )
 
+    @unittest.skip("Whole test suite should be rewritten. No need to use real files.")
     def test_tmp(self):
-        log.info(" \n... running TMP test")
         original_file = 'subs/Line.tmp'
         local_parsed = self.parsed.copy()
         local_parsed['time_to'] = ''
@@ -103,10 +95,5 @@ class TestParsers(unittest.TestCase):
         self.parse( Parsers.TMP, original_file, [local_parsed] )
 
 if __name__ == "__main__":
-    log = logging.getLogger('SubConvert')
-    log.setLevel(logging.DEBUG)
-    log.addHandler(logging.StreamHandler())
-    log.info("Testing SubConvert, version %s." % version.__version__)
-    log.info(datetime.datetime.now().isoformat())
     unittest.main()
 

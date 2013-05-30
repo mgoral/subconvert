@@ -18,14 +18,13 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import unittest
-import logging
 import datetime
 import random
 
-from subparser.FrameTime import FrameTime
-import subutils.version as version
+from subconvert.subparser.FrameTime import FrameTime
+import subconvert.subutils.version as version
 
-from subconvert import _
+from subconvert.apprunner import _
 
 class TestFrameTime(unittest.TestCase):
     """FrameTime Unit Tests
@@ -37,7 +36,7 @@ class TestFrameTime(unittest.TestCase):
     def compare(self, ft_object, fps, frame, full_seconds, hours, minutes, seconds, miliseconds):
         delta = 1
         self.assertEqual(ft_object.fps, fps)
-        log.info("* Asserting frame is almost equal with delta=%s for %s =?= %s" % (delta, ft_object.frame, frame))
+        print("* Asserting frame is almost equal with delta=%s for %s =?= %s" % (delta, ft_object.frame, frame))
         self.assertAlmostEqual(ft_object.frame, frame, delta=1)
         self.assertEqual(ft_object.full_seconds, full_seconds)
         self.assertEqual(ft_object.hours, hours)
@@ -46,8 +45,6 @@ class TestFrameTime(unittest.TestCase):
         self.assertEqual(ft_object.miliseconds, miliseconds)
 
     def test_init(self):
-        log.info(" \n... running FrameTime constructing test")
-
         #1
         #fto = FrameTime(self.fps, "time", h=1, m=1, s=1, ms=100)
         fto = FrameTime(self.fps, "time", "1:01:01.100")
@@ -66,7 +63,6 @@ class TestFrameTime(unittest.TestCase):
         self.compare(fto, self.fps, frames, full_seconds, 0, 0, 4, 0)
 
     def test_setTime(self):
-        log.info(" \n... running FrameTime __setTime__() test")
         fto = FrameTime(self.fps, "frame", 0)
 
         # 1
@@ -100,13 +96,9 @@ class TestFrameTime(unittest.TestCase):
         sseconds -= 3600 * hours
         minutes = int(sseconds / 60)
         seconds = sseconds - 60 * minutes
-        log.info("* Testing random full_seconds: %s" % full_seconds)
-        log.info("  which is %s frames, %s hours, %s minutes, %s seconds and %s miliseconds" % \
-            (frames, hours, minutes, seconds, miliseconds))
         self.compare(fto, self.fps, frames, full_seconds, hours, minutes, seconds, miliseconds)
 
     def test_setFrame(self):
-        log.info(" \n... running FrameTime __setFrame__() test")
         fto = FrameTime(self.fps, "frame", 0)
         frames = 40120
         fto.__setFrame__(frames)
@@ -114,14 +106,12 @@ class TestFrameTime(unittest.TestCase):
         self.compare(fto, self.fps, frames, full_seconds, 0, 26, 44, 800)
 
     def test_getFrame(self):
-        log.info(" \n... running FrameTime getFrame() test")
         fto = FrameTime(self.fps, "time", "1:01:01.100")
         full_seconds = 3661.100
         frames = round(full_seconds * self.fps)
         self.assertEqual(fto.getFrame(), frames)
 
     def test_getTime(self):
-        log.info(" \n... running FrameTime getTime() test")
         fto = FrameTime(self.fps, "time", "1:01:01.100")
         full_seconds = 3661.100
         frames = round(full_seconds * self.fps)
@@ -144,7 +134,6 @@ class TestFrameTime(unittest.TestCase):
             self.assertEqual(returned_dict[key], true_time_dict[key])
 
     def test_cmp(self):
-        log.info(" \n... running FrameTime __cmp__() test")
         fto1 = FrameTime(self.fps, "frame", 50)
         fto2 = FrameTime(self.fps, "frame", 50)
         fto3 = FrameTime(self.fps, "frame", 49)
@@ -155,7 +144,6 @@ class TestFrameTime(unittest.TestCase):
         self.assertTrue(fto1 < fto4)
 
     def test_add(self):
-        log.info(" \n... running FrameTime __add__() test")
         fto1 = FrameTime(self.fps, "time", "1:01:01.100")
         fto2 = FrameTime(self.fps, "time", "2:02:02.200")
         fto3 = fto1 + fto2
@@ -164,7 +152,6 @@ class TestFrameTime(unittest.TestCase):
         self.compare(fto3, self.fps, frames, full_seconds, 3, 3, 3, 300)
 
     def test_str(self):
-        log.info(" \n... running FrameTime __str__() test")
         fto = FrameTime(self.fps, "time", "2:02:02.200")
         full_seconds = 7322.2
         returned_str = str(fto)
@@ -172,13 +159,11 @@ class TestFrameTime(unittest.TestCase):
         self.assertEqual(returned_str, expected_str)
 
     def test_changeFpsOkCase(self):
-        log.info(" \n... running FrameTime changeFpsOkCase")
         fto = FrameTime(self.fps, "time", "0:00:01")
         fto.changeFps(31)
         self.assertEqual(31, fto.getFrame())
 
     def test_changeFpsToZeroIncorrectValue(self):
-        log.info(" \n... running FrameTime changeFpsToIncorrectValue")
         fto = FrameTime(self.fps, "time", "0:00:01")
         with self.assertRaises(ValueError):
             fto.changeFps(0)
@@ -186,10 +171,5 @@ class TestFrameTime(unittest.TestCase):
             fto.changeFps(-1)
 
 if __name__ == "__main__":
-    log = logging.getLogger('SubConvert')
-    log.setLevel(logging.DEBUG)
-    log.addHandler(logging.StreamHandler())
-    log.info("Testing SubConvert, version %s." % version.__version__)
-    log.info(datetime.datetime.now().isoformat())
     unittest.main()
 

@@ -28,11 +28,11 @@ Python standard library.
 
 import optparse
 import gettext
-import path as subpath
+import .SubPath
 
 t = gettext.translation(
     domain='subconvert',
-    localedir=subpath.get_locale_path(__file__),
+    localedir=SubPath.get_locale_path(__file__),
     fallback=True)
 gettext.install('subconvert')
 _ = t.ugettext

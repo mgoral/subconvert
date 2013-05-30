@@ -22,11 +22,10 @@ import gettext
 import logging
 
 from PyQt4 import QtGui, QtCore, Qt
-import resources
 
-import subparser.Convert as Convert
-import subutils.path as subpath
-from subutils import FileUtils
+import subconvert.resources
+from subconvert.subparser import Convert
+from subconvert.subutils import FileUtils
 
 log = logging.getLogger('subconvert.%s' % __name__)
 

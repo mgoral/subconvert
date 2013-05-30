@@ -21,8 +21,8 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import re
 
-from subparser.SubParser import GenericSubParser
-from subparser.FrameTime import FrameTime
+from subconvert.subparser.SubParser import GenericSubParser
+from subconvert.subparser.FrameTime import FrameTime
 
 class MicroDVD(GenericSubParser):
     """See a GenericSubParser for a documentation."""

@@ -23,9 +23,9 @@ import sys
 import gettext
 import datetime
 
-from subparser import SubParser
-from subparser import FrameTime
-from subparser import Parsers
+from subconvert.subparser import SubParser
+from subconvert.subparser import FrameTime
+from subconvert.subparser import Parsers
 
 def acceptAlias(decoratedFunction):
     def wrapper(self, alias):
@@ -51,7 +51,7 @@ class SubConverterManager():
         """Creates and returns a new converter if one with a given filePath doesn't exist yet.
         Returns existing one otherwise."""
         if not filePath in self.converters.keys():
-            converter = SubConverter(filePath)
+            converter = SubConverter()
             self.converters[filePath] = converter
         return self.converters[filePath]
 
@@ -73,7 +73,7 @@ class SubConverterManager():
 
 # TODO: maybe it'd be better to completely remove filePath dependency from SubConverter?
 class SubConverter():
-    def __init__(self, filepath):
+    def __init__(self):
         self.supportedParsers = SubParser.GenericSubParser.__subclasses__()
         self.movieFile = None
         self.fps = 25
@@ -90,24 +90,29 @@ class SubConverter():
             subtitle['sub']['time_to'].changeFps(fps)
         return self
 
+    # TODO: test
     def changeSubText(self, subNo, newText):
         self.sub(subNo)['text'] = newText
         return self
 
+    # TODO: test
     def changeSubTimeFrom(self, subNo, newTime):
         self.sub(subNo)['time_from'] = newTime
         return self
 
+    # TODO: test
     def changeSubTimeTo(self, subNo, newTime):
         self.sub(subNo)['time_to'] = newTime
         return self
 
+    # TODO: test
     def increaseSubTime(self, subNo, newTime):
         sub = self.sub(subNo)
         sub['time_to'] = sub['time_to'] + newTime
         sub['time_from'] = sub['time_from'] + newTime
         return self
 
+    # TODO: test
     def addSub(self, subNo, newSub):
         assert(len(self.parsedLines) > 0)
         if subNo > 0:
@@ -118,6 +123,7 @@ class SubConverter():
                 for i in range(subNo + 1, len(self.parsedLines)):
                     self.parsedLines[i]['sub_no'] += 1
 
+    # TODO: test
     def removeSub(self, subNo):
         assert(subNo > 0)
         assert(len(self.parsedLines) >= subNo)
@@ -126,13 +132,16 @@ class SubConverter():
                 self.parsedLines[i]['sub_no'] -= 1
         del self.converters[i]
 
+    # TODO: test
     def fps(self):
         return self.fps
 
+    # TODO: test
     def sub(self, subNo):
         assert(len(self.parsedLines) > 0)
         return self.parsedLines[subNo]['sub']
 
+    # TODO: test
     def parse(self, content):
         self.parsedLines = []
         self.convertedLines = []
@@ -142,9 +151,11 @@ class SubConverter():
                 parser.parse()
                 self.parsedLines = parser.get_results()
 
+    # TODO: test
     def isParsed(self):
         return len(self.parsedLines) > 0
 
+    # TODO: test
     # TODO: SubConverter should accept somehow a full filepath to the new file. Only if it's not
     # provided, it should use the old one but with a new extension.
     def toFormat(self, newFormat):

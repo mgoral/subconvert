@@ -2,11 +2,9 @@
 #-*- coding: utf-8 -*-
 
 import sys
-sys.path.append(sys.path[0] + '/subconvert')
-
-from subconvert import subconvert
+import subconvert.apprunner as apprunner
 
 try:
-    subconvert.main()
+    apprunner.main()
 except KeyboardInterrupt:
     raise SystemExit(0)
