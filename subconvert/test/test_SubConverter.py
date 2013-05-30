@@ -30,42 +30,107 @@ class TestSubConverter(unittest.TestCase):
         "[PRG]SubConvert\n", "[FILEPATH]\n", "[DELAY]0\n", "[CD TRACK]0\n",
         "[COMMENT]Converted to subviewer format with SubConvert\n", "[END INFORMATION]\n",
         "[SUBTITLE]\n", "[COLF]&HFFFFFF,[STYLE]no,[SIZE]24,[FONT]Tahoma\n",
-        "00:00:01.00,00:00:02.50\n", "First subtitle\n", "\n",
-        "00:00:03.00,00:00:04.00\n", "Second\n", "subtitle\n"]
+        "01:01:01.00,01:01:02.50\n", "First subtitle\n", "\n",
+        "01:01:03.00,01:01:04.00\n", "Second\n", "subtitle\n"]
 
-    subWithoutHeader = ["0\n", "00:00:01,000 --> 00:00:02,500\n", "First subtitle\n",
-        "\n", "1\n", "00:00:03,000 --> 00:00:04,000\n", "Second\n", "subtitle\n"]
+    subWithoutHeader = ["0\n", "01:01:01,000 --> 01:01:02,500\n", "First subtitle\n",
+        "\n", "1\n", "01:01:03,000 --> 01:01:04,000\n", "Second\n", "subtitle\n"]
 
     def setUp(self):
-        self.converter = SubConverter()
-        #self.subWithHeaderParsed = self.converter.parse(self.subWithHeader)
-        #self.subWithoutHeaderParsed = self.converter.parse(self.subWithoutHeader)
+        self.c = SubConverter()
+        #self.subWithHeaderParsed = self.c.parse(self.subWithHeader)
+        #self.subWithoutHeaderParsed = self.c.parse(self.subWithoutHeader)
 
     def test_raiseExceptionWhenFpsIs_0_(self):
         with self.assertRaises(AssertionError):
-            self.converter.changeFps(0)
+            self.c.changeFps(0)
 
     def test_raiseExceptionWhenFpsBelow_0_(self):
         with self.assertRaises(AssertionError):
-            self.converter.changeFps(-1)
+            self.c.changeFps(-1)
 
     def test_changeFpsCorrectly(self):
-        self.converter.changeFps(5)
-        self.assertEqual(5, self.converter.fps())
+        self.c.changeFps(5)
+        self.assertEqual(5, self.c.fps())
+
+    def test_changeFpsChangesCorrectlySubtitleTimes(self):
+        # Set FPS first so we don't rely on default value
+        self.c.changeFps(25)
+
+        result = self.c.parse(self.subWithHeader)
+        subTime0 = (self.c.sub(0)["time_from"].getFrame(), self.c.sub(0)["time_to"].getFrame())
+        subTime1 = (self.c.sub(1)["time_from"].getFrame(), self.c.sub(1)["time_to"].getFrame())
+
+        self.c.changeFps(50)
+        newTime0 = (self.c.sub(0)["time_from"].getFrame(), self.c.sub(0)["time_to"].getFrame())
+        newTime1 = (self.c.sub(1)["time_from"].getFrame(), self.c.sub(1)["time_to"].getFrame())
+
+        self.assertAlmostEqual(2 * subTime0[0], newTime0[0], delta=1)
+        self.assertAlmostEqual(2 * subTime0[1], newTime0[1], delta=1)
+        self.assertAlmostEqual(2 * subTime1[0], newTime1[0], delta=1)
+        self.assertAlmostEqual(2 * subTime1[1], newTime1[1], delta=1)
 
     def test_parseSubWithHeaderGivesProperSub(self):
-        result = self.converter.parse(self.subWithHeader)
+        result = self.c.parse(self.subWithHeader)
         self.assertEqual("First subtitle", result[0]["sub"]["text"])
+        self.assertEqual("Second{gsp_nl}subtitle", result[1]["sub"]["text"])
 
     def test_parseSubWithHeaderGivesProperTimes(self):
-        result = self.converter.parse(self.subWithHeader)
+        result = self.c.parse(self.subWithHeader)
         self.assertIsInstance(result[0]["sub"]["time_from"], FrameTime)
         self.assertIsInstance(result[0]["sub"]["time_to"], FrameTime)
 
     def test_parseSubWithHeaderFillsInHeader(self):
-        result = self.converter.parse(self.subWithHeader)
+        result = self.c.parse(self.subWithHeader)
         self.assertIsInstance(result[0]["sub"]["header"], dict)
         self.assertNotEqual(0, len(result[0]["sub"]["header"]))
+
+    def test_parseSubWithoutHeaderGivesProperSub(self):
+        result = self.c.parse(self.subWithoutHeader)
+        self.assertEqual("First subtitle", result[0]["sub"]["text"])
+        self.assertEqual("Second{gsp_nl}subtitle", result[1]["sub"]["text"])
+
+    def test_parseSubWithoutHeaderGivesProperTimes(self):
+        result = self.c.parse(self.subWithoutHeader)
+        self.assertIsInstance(result[0]["sub"]["time_from"], FrameTime)
+        self.assertIsInstance(result[0]["sub"]["time_to"], FrameTime)
+
+    def test_parseSubWithoutHeaderDoesntFillInHeader(self):
+        result = self.c.parse(self.subWithoutHeader)
+        self.assertIsNone(result[0]["sub"].get("header"))
+
+    def test_parseReturnsEmptyListWhenUnsuccessfull(self):
+        # We first make sure that there was something parsed earlier
+        self.c.parse(self.subWithHeader)
+        result = self.c.parse(["dummy text"])
+        self.assertEqual([], result)
+
+    def test_subAssertsThatSomethingHasBeenParsed(self):
+        with self.assertRaises(AssertionError):
+            self.c.sub(0)
+
+    def test_subCorrectlyUsesNegativeSubNumbers(self):
+        result = self.c.parse(self.subWithoutHeader)
+        # Last sub is always None
+        self.assertIsNone(self.c.sub(-1))
+        self.assertEqual(result[1]["sub"], self.c.sub(-2))
+
+    def test_subReturnsCorrectLines(self):
+        result = self.c.parse(self.subWithoutHeader)
+        self.assertEqual(result[0]["sub"], self.c.sub(0))
+        self.assertEqual(result[1]["sub"], self.c.sub(1))
+
+    def test_isParsedReturnsFalseWhenNothingIsParsed(self):
+        self.assertFalse(self.c.isParsed())
+
+    def test_isParsedReturnsFalseWhenSomethingIsParsed(self):
+        self.c.parse(self.subWithoutHeader)
+        self.assertTrue(self.c.isParsed())
+
+    def test_isParsedReturnsFalseWhenRepeatedParsingWasIncorrect(self):
+        self.c.parse(self.subWithoutHeader)
+        self.c.parse([""])
+        self.assertFalse(self.c.isParsed())
 
 if __name__ == "__main__":
     unittest.main()

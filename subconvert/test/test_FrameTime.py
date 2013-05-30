@@ -160,6 +160,7 @@ class TestFrameTime(unittest.TestCase):
 
     def test_changeFpsOkCase(self):
         fto = FrameTime(self.fps, "time", "0:00:01")
+        self.assertEqual(self.fps, fto.getFrame())
         fto.changeFps(31)
         self.assertEqual(31, fto.getFrame())
 

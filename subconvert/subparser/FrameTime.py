@@ -89,7 +89,7 @@ class FrameTime(object):
             self.fps = float(newFps)
         else:
             raise ValueError(_("Incorrect FPS value: %s.") % newFps)
-        self.frame = int(round(self.full_seconds * self.fps))
+        self.__setFrame__(int(round(self.full_seconds * self.fps)))
 
     def __setTime__(self, seconds):
         """Set frame from a given time"""

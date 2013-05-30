@@ -88,8 +88,9 @@ class SubConverter():
 
         self._fps = fps
         for subtitle in self.parsedLines:
-            subtitle['sub']['time_from'].changeFps(fps)
-            subtitle['sub']['time_to'].changeFps(fps)
+            if subtitle is not None:
+                subtitle['sub']['time_from'].changeFps(fps)
+                subtitle['sub']['time_to'].changeFps(fps)
         return self
 
     # TODO: test
@@ -134,16 +135,15 @@ class SubConverter():
                 self.parsedLines[i]['sub_no'] -= 1
         del self._converters[i]
 
-    # TODO: test
     def fps(self):
         return self._fps
 
-    # TODO: test
     def sub(self, subNo):
         assert(len(self.parsedLines) > 0)
-        return self.parsedLines[subNo]['sub']
+        if self.parsedLines[subNo] is not None:
+            return self.parsedLines[subNo]['sub']
+        return None
 
-    # TODO: test
     def parse(self, content):
         self.parsedLines = []
         self.convertedLines = []
@@ -154,7 +154,6 @@ class SubConverter():
                 self.parsedLines = parser.get_results()
         return self.parsedLines
 
-    # TODO: test
     def isParsed(self):
         return len(self.parsedLines) > 0
 
