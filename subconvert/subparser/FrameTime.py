@@ -24,6 +24,13 @@ class FrameTime(object):
     """Class defining a FrameTime object which consists of frame and time
     metrics (and fps as well)."""
 
+    # FIXME: FrameTime interface is ugly. It should be possible to construct it like this:
+    # FrameTime(time="1:01:01:100", fps=25)
+    # FrameTime(frame=100, fps=25)
+    # FrameTime(full_seconds="3600.01", fps=25)
+    #
+    # Or even:
+    # FrameTime(time="1-01.01:444", fps=25, format="%h-%M.%s:%ms")
     def __init__(self, fps, value_type, value):
         """Construct and convert value(s) given in kwargs.
         Kwargs should describe either 'frame' or 'h', 'm',

@@ -43,26 +43,26 @@ class SubConverterManager():
 
     def __init__(self):
         # { 'filepath' : SubConverter }
-        self.converters = {}
+        self._converters = {}
         self.aliases = {}
 
     @acceptAlias
     def add(self, filePath):
         """Creates and returns a new converter if one with a given filePath doesn't exist yet.
         Returns existing one otherwise."""
-        if not filePath in self.converters.keys():
+        if not filePath in self._converters.keys():
             converter = SubConverter()
-            self.converters[filePath] = converter
-        return self.converters[filePath]
+            self._converters[filePath] = converter
+        return self._converters[filePath]
 
     @acceptAlias
     def get(self, filePath):
-        return self.converters.get(filePath)
+        return self._converters.get(filePath)
 
     @acceptAlias
     def remove(self, filePath):
-        if filePath in self.converters.keys():
-            del self.converters[filePath]
+        if filePath in self._converters.keys():
+            del self._converters[filePath]
 
     def registerAlias(self, alias, filePath):
         self.aliases[alias] = filePath
@@ -74,17 +74,19 @@ class SubConverterManager():
 # TODO: maybe it'd be better to completely remove filePath dependency from SubConverter?
 class SubConverter():
     def __init__(self):
-        self.supportedParsers = SubParser.GenericSubParser.__subclasses__()
-        self.movieFile = None
-        self.fps = 25
+        self._supportedParsers = SubParser.GenericSubParser.__subclasses__()
+        self._movieFile = None
+        self._fps = 25
+        self._converter = None
+
+        # Public attributes (don't want to write explicit getters for them
         self.parsedLines = []
         self.convertedLines = []
-        self.converter = None
 
     def changeFps(self, fps):
         assert(fps > 0)
 
-        self.fps = fps
+        self._fps = fps
         for subtitle in self.parsedLines:
             subtitle['sub']['time_from'].changeFps(fps)
             subtitle['sub']['time_to'].changeFps(fps)
@@ -130,11 +132,11 @@ class SubConverter():
         if subNo != len(self.parsedLines):
             for i in range(subNo, len(self.parsedLines)):
                 self.parsedLines[i]['sub_no'] -= 1
-        del self.converters[i]
+        del self._converters[i]
 
     # TODO: test
     def fps(self):
-        return self.fps
+        return self._fps
 
     # TODO: test
     def sub(self, subNo):
@@ -145,11 +147,12 @@ class SubConverter():
     def parse(self, content):
         self.parsedLines = []
         self.convertedLines = []
-        for supportedParser in self.supportedParsers:
+        for supportedParser in self._supportedParsers:
             if not self.isParsed():
-                parser = supportedParser(self.fps, content)
+                parser = supportedParser(self._fps, content)
                 parser.parse()
                 self.parsedLines = parser.get_results()
+        return self.parsedLines
 
     # TODO: test
     def isParsed(self):
@@ -161,12 +164,12 @@ class SubConverter():
     def toFormat(self, newFormat):
         assert(self.parsedLines != [])
 
-        for parser in self.supportedParsers:
+        for parser in self._supportedParsers:
             # Obtain user specified subclass
             if parser.__OPT__ == newFormat:
-                self.converter = parser(self.fps)
+                self._converter = parser(self._fps)
                 break
-        if self.converter.__OPT__ != newFormat:
+        if self._converter.__OPT__ != newFormat:
             raise NameError
 
         # FIXME: This is crazy! I know that it works but it's too complicated! Refactor it!
@@ -175,12 +178,12 @@ class SubConverter():
         for parsed in self.parsedLines:
             # FIXME: refactor the way that HEADER is stored and handled. It should be stored
             # independently to subtitles.
-            if not subPair[1] and self.converter.__WITH_HEADER__: # Only the first element
+            if not subPair[1] and self._converter.__WITH_HEADER__: # Only the first element
                 header = parsed['sub'].get('header')
                 # FIXME: What is that?!
                 if type(header) != dict:
                     header = {}
-                header = self.converter.convert_header(header)
+                header = self._converter.convert_header(header)
                 if header:
                     try:
                         self.convertedLines.append(header)
@@ -196,11 +199,11 @@ class SubConverter():
                     if not subPair[0]['sub']['time_to']:
                         if subPair[1] is None:
                             subPair[0]['sub']['time_to'] = \
-                                subPair[0]['sub']['time_from'] + FrameTime.FrameTime(self.fps, 'full_seconds', seconds = 2.5)
+                                subPair[0]['sub']['time_from'] + FrameTime.FrameTime(self._fps, 'full_seconds', seconds = 2.5)
                         else:
                             subPair[0]['sub']['time_to'] = \
                                 subPair[0]['sub']['time_from'] + (subPair[1]['sub']['time_from'] - subPair[0]['sub']['time_from']) * 0.85
-                    sub = self.converter.convert(subPair[0])
+                    sub = self._converter.convert(subPair[0])
                     try:
                         self.convertedLines.append(sub)
                     except UnicodeEncodeError:
