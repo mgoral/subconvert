@@ -3,3 +3,5 @@
 build/*
 dist/*
 resources.py
+.coverage
+coverage/*
