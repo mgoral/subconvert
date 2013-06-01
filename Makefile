@@ -21,6 +21,7 @@ clean:
 	$(RM) $(shell find . -path .git -prune -o -name "*.mo")
 
 	$(RM) $(shell find . -path .git -prune -o -name "*.pyc")
+	$(RM) $(shell find . -path .git -prune -o -name "*.pyo")
 	$(RM) $(shell find . -path .git -prune -o -type d -name "__pycache__")
 
 .PHONY: all clean install test gen
