@@ -50,7 +50,7 @@ class MicroDVD(GenericSubParser):
         GenericSubParser.__init__(self, fps, lines)
 
     def str_to_frametime(self, string):
-        return FrameTime(fps=self.fps, value_type=self.__FMT__, value=string)
+        return FrameTime(fps=self.fps, frames=string)
 
     def format_text(self, string):
         string = string.replace('{', '{{').replace('}', '}}')
@@ -70,7 +70,7 @@ class MicroDVD(GenericSubParser):
         return string
 
     def get_time(self, frametime, which):
-        return frametime.frame
+        return frametime.getFrame()
 
 class SubRip(GenericSubParser):
     """See a GenericSubParser for a documentation."""
@@ -104,8 +104,7 @@ class SubRip(GenericSubParser):
 
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
-        return FrameTime(fps=self.fps, value_type=self.__FMT__, \
-            value = "%d:%02d:%02d.%03d" % \
+        return FrameTime(fps=self.fps, time = "%d:%02d:%02d.%03d" % \
             (int(time.group('h')), int(time.group('m')), int(time.group('s')), int(time.group('ms'))))
 
     def format_text(self, string):
@@ -129,7 +128,9 @@ class SubRip(GenericSubParser):
         return string
 
     def get_time(self, frametime, which):
-        return '%02d:%02d:%02d,%03d' % (int(frametime.hours), int(frametime.minutes), int(frametime.seconds), int(frametime.miliseconds))
+        return '%02d:%02d:%02d,%03d' % (int(frametime.getTime()['hours']),\
+            int(frametime.getTime()['minutes']), int(frametime.getTime()['seconds']),\
+            int(frametime.getTime()['miliseconds']))
 
 class SubViewer(GenericSubParser):
     """See a GenericSubParser for a documentation."""
@@ -163,8 +164,7 @@ class SubViewer(GenericSubParser):
 
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
-        return FrameTime(fps=self.fps, value_type=self.__FMT__, \
-            value = "%d:%02d:%02d.%03d" % \
+        return FrameTime(fps=self.fps, time = "%d:%02d:%02d.%03d" % \
             (int(time.group('h')), int(time.group('m')), int(time.group('s')), int(time.group('ms'))*10))
 
     def format_text(self, string):
@@ -179,8 +179,9 @@ class SubViewer(GenericSubParser):
         return string
 
     def get_time(self, frametime, which):
-        ms = int(round(frametime.miliseconds / float(10)))
-        return '%02d:%02d:%02d.%02d' % (int(frametime.hours), int(frametime.minutes), int(frametime.seconds), ms)
+        ms = int(round(frametime.getTime()['miliseconds'] / float(10)))
+        return '%02d:%02d:%02d.%02d' % (int(frametime.getTime()['hours']),\
+            int(frametime.getTime()['minutes']), int(frametime.getTime()['seconds']), ms)
 
     def get_header(self, header, atom):
         if( '[colf]' in header.lower() and '[information]' in header.lower()):
@@ -267,8 +268,7 @@ class TMP(GenericSubParser):
 
     def str_to_frametime(self, string):
         time = self.time_fmt.search(string)
-        return FrameTime(fps=self.fps, value_type=self.__FMT__, \
-            value = "%d:%02d:%02d" % \
+        return FrameTime(fps=self.fps, time = "%d:%02d:%02d" % \
             (int(time.group('h')), int(time.group('m')), int(time.group('s'))))
 
     def format_text(self, string):
@@ -286,7 +286,8 @@ class TMP(GenericSubParser):
 
     def get_time(self, frametime, which):
         if which == 'time_from':
-            return '%02d:%02d:%02d' % (int(frametime.hours), int(frametime.minutes), int(frametime.seconds))
+            return '%02d:%02d:%02d' % (int(frametime.getTime()['hours']),\
+            int(frametime.getTime()['minutes']), int(frametime.getTime()['seconds']))
 
 class MPL2(GenericSubParser):
     """See a GenericSubParser for a documentation."""
@@ -318,7 +319,7 @@ class MPL2(GenericSubParser):
         string = ''.join(['0', string]) # Parsing "[0][5] sub" would cause an error without this
         ms = int(string[-1]) / 10.0
         seconds = int(string[:-1]) + ms
-        return FrameTime(fps=self.fps, value_type='full_seconds', value=seconds)
+        return FrameTime(fps=self.fps, seconds=seconds)
 
     def format_text(self, string):
         string = string.replace('{', '{{').replace('}', '}}')
@@ -331,6 +332,6 @@ class MPL2(GenericSubParser):
         return string
 
     def get_time(self, frametime, which):
-        time = str(frametime.full_seconds).split('.')
+        time = str(frametime.getFullSeconds()).split('.')
         time = ''.join([time[0].lstrip('0'), time[1][0]])
         return time

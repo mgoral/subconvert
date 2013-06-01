@@ -21,142 +21,143 @@ import gettext
 import re
 
 class FrameTime(object):
-    """Class defining a FrameTime object which consists of frame and time
-    metrics (and fps as well)."""
+    """Class defining a FrameTime object which consists of frame and time metrics (and fps as well)."""
 
-    # FIXME: FrameTime interface is ugly. It should be possible to construct it like this:
-    # FrameTime(time="1:01:01:100", fps=25)
-    # FrameTime(frame=100, fps=25)
-    # FrameTime(full_seconds="3600.01", fps=25)
-    #
-    # Or even:
-    # FrameTime(time="1-01.01:444", fps=25, format="%h-%M.%s:%ms")
-    def __init__(self, fps, value_type, value):
-        """Construct and convert value(s) given in kwargs.
-        Kwargs should describe either 'frame' or 'h', 'm',
-        's' and 'ms'."""
-        if fps > 0:
-            self.fps = float(fps)
-        else:
+    def __init__(self, fps, seconds=None, frames=None, time=None):
+        """Constructs FrameTime object with a given FPS value. Constructor accepts only one value
+        from the following ones: time (properly formatted string), number of frames (int) or number
+        of total seconds (float, with miliseconds specified after decimal point).
+
+        Examples:
+        FrameTime(time="1:01:01:100", fps=25)
+        FrameTime(frame=100, fps=25)
+        FrameTime(full_seconds="3600.01", fps=25)
+        """
+        exclusiveArgs = [frames, time, seconds]
+        if exclusiveArgs.count(None) != 2:
+            raise AttributeError(_("FrameTime can obly be initialized by one type."))
+
+        if fps <= 0:
             raise ValueError(_("Incorrect FPS value: %s.") % fps)
 
+        self._fps = float(fps)
 
-        if value_type == 'frame':
-            self.__setTime__( int(value) / self.fps)
-        elif value_type == 'time':
-            time = re.match(r"(?P<h>\d+):(?P<m>[0-5][0-9]):(?P<s>[0-5][0-9])(?:.(?P<ms>\d{3}))?", value)
-            if time is None:
-                raise ValueError(_("Incorrect time format."))
-
-            if time.group('ms') is not None:
-                self.miliseconds = int(time.group('ms'))
-            else:
-                self.miliseconds = 0
-            self.seconds = int(time.group('s'))
-            self.minutes = int(time.group('m'))
-            self.hours = int(time.group('h'))
-            self.full_seconds = (3600*self.hours + 60*self.minutes + self.seconds + float(self.miliseconds)/1000)
-            self.frame = int(round(self.fps * self.full_seconds))
-        elif value_type == 'full_seconds':
-            self.__setTime__( value )
+        if frames is not None:
+            self.__setFrame__(int(frames))
+        elif time is not None:
+            self.__setTime__(str(time))
         else:
-            raise AttributeError(_("Not supported FrameTime type: '%s'") % value_type)
+            self.__setSeconds__(float(seconds))
 
     def getFrame(self):
         """Get Frame (and FPS) value)"""
-        return self.frame
+        return int(round(self.frame))
+
+    def getFullSeconds(self):
+        return self._full_seconds
 
     def getTime(self):
-        """Get Time (and FPS) value)"""
         return { \
-            'hours': self.hours, \
-            'minutes': self.minutes, \
-            'seconds': self.seconds, \
-            'miliseconds': self.miliseconds
+            'hours': self._hours, \
+            'minutes': self._minutes, \
+            'seconds': self._seconds, \
+            'miliseconds': self._miliseconds
         }
 
     def toStr(self, strType="time"):
         """Convert FrameTime to string representation"""
         if strType == "time":
-            return "%d:%02d:%02d.%03d" % (self.hours, self.minutes, self.seconds, self.miliseconds)
+            return "%d:%02d:%02d.%03d" % (self._hours, self._minutes, self._seconds, self._miliseconds)
         elif strType == "frame":
-            return "%s" % (self.frame)
+            return "%s" % int(round(self.frame))
         else:
             raise AttributeError(_("Incorrect string type: '%s'") % strType)
 
     def changeFps(self, newFps):
         if newFps > 0:
-            self.fps = float(newFps)
+            self._fps = float(newFps)
         else:
             raise ValueError(_("Incorrect FPS value: %s.") % newFps)
-        self.__setFrame__(int(round(self.full_seconds * self.fps)))
+        self.__setFrame__(self._full_seconds * self._fps)
 
-    def __setTime__(self, seconds):
-        """Set frame from a given time"""
+    def __setTime__(self, value):
+        time = re.match(r"(?P<h>\d+):(?P<m>[0-5][0-9]):(?P<s>[0-5][0-9])(?:.(?P<ms>\d{3}))?", value)
+        if time is None:
+            raise ValueError(_("Incorrect time format."))
+
+        if time.group('ms') is not None:
+            self._miliseconds = int(time.group('ms'))
+        else:
+            self._miliseconds = 0
+        self._seconds = int(time.group('s'))
+        self._minutes = int(time.group('m'))
+        self._hours = int(time.group('h'))
+        self._full_seconds = (3600*self._hours + 60*self._minutes + self._seconds + float(self._miliseconds)/1000)
+        self.frame = self._fps * self._full_seconds
+
+    def __setSeconds__(self, seconds):
         if seconds >= 0:
-            self.full_seconds = float(seconds)
-            self.frame = int(round(self.full_seconds * self.fps))
+            self._full_seconds = seconds
+            self.frame = seconds * self._fps
         else:
             raise ValueError(_("Incorrect seconds value."))
-        seconds = int(seconds)
-        str_full_seconds = "%.3f" % self.full_seconds   # hack for inaccurate float arithmetics
-        dot_place = str_full_seconds.find(".") + 1
-        self.miliseconds = int(str_full_seconds[dot_place:])
-        self.hours = int(seconds / 3600)
-        seconds -= 3600 * self.hours
-        self.minutes = int(seconds / 60)
-        self.seconds = seconds - 60 * self.minutes
+
+        self._hours = int(seconds / 3600)
+        seconds = round(seconds - self._hours * 3600, 3)
+        self._minutes = int(seconds / 60)
+        seconds = round(seconds - self._minutes * 60, 3)
+        self._seconds = int(seconds)
+        self._miliseconds = int(round(1000 * (seconds - self._seconds)))
 
     def __setFrame__(self, frame):
-        """Set time from a given frame"""
         if frame >= 0:
-            self.__setTime__(frame / self.fps)
+            self.__setSeconds__(frame / self._fps)
         else:
             raise ValueError(_("Incorrect frame value."))
 
     def __eq__(self, other):
-        assert(self.fps == other.fps)
-        return self.full_seconds == other.full_seconds
+        assert(self._fps == other._fps)
+        return self._full_seconds == other._full_seconds
 
     def __ne__(self, other):
-        assert(self.fps == other.fps)
-        return self.full_seconds != other.full_seconds
+        assert(self._fps == other._fps)
+        return self._full_seconds != other._full_seconds
 
     def __lt__(self, other):
-        assert(self.fps == other.fps)
-        return self.full_seconds < other.full_seconds
+        assert(self._fps == other._fps)
+        return self._full_seconds < other._full_seconds
 
     def __gt__(self, other):
-        assert(self.fps == other.fps)
-        return self.full_seconds > other.full_seconds
+        assert(self._fps == other._fps)
+        return self._full_seconds > other._full_seconds
 
     def __add__(self, other):
-        """Define FrameTime + FrameTime"""
-        assert(self.fps == other.fps)
-        result = self.full_seconds + other.full_seconds
-        return FrameTime(fps = self.fps, value_type = 'full_seconds', value = result)
+        """Defines FrameTime + FrameTime"""
+        assert(self._fps == other._fps)
+        result = self._full_seconds + other._full_seconds
+        return FrameTime(fps = self._fps, seconds = result)
 
     def __sub__(self, other):
-        """Define FrameTime - FrameTime"""
-        assert(self.fps == other.fps)
-        assert(self.full_seconds >= other.full_seconds)
-        result = self.full_seconds - other.full_seconds
-        return FrameTime(fps = self.fps, value_type = 'full_seconds', value = result)
+        """Defines FrameTime - FrameTime"""
+        assert(self._fps == other._fps)
+        assert(self._full_seconds >= other._full_seconds)
+        result = self._full_seconds - other._full_seconds
+        return FrameTime(fps = self._fps, seconds = result)
 
     def __mul__(self, val):
-        """Define FrameTime * number"""
-        result = self.full_seconds * val
-        return FrameTime(fps = self.fps, value_type = 'full_seconds', value = result)
+        """Defines FrameTime * number"""
+        result = self._full_seconds * val
+        return FrameTime(fps = self._fps, seconds = result)
 
     def __div__(self, val):
-        """Define FrameTime / number"""
-        result = self.full_seconds / val
-        return FrameTime(fps = self.fps, value_type = 'full_seconds', value = result)
+        """Defines FrameTime / number"""
+        result = self._full_seconds / val
+        return FrameTime(fps = self._fps, seconds = result)
 
     def __str__(self):
-        """Define str(FrameTime)"""
+        """Defines str(FrameTime)"""
         return "t: %s:%s:%s.%s; f: %s" % \
-            ( self.hours, self.minutes, self.seconds, self.miliseconds, self.frame )
+            (self._hours, self._minutes, self._seconds, self._miliseconds, self.getFrame())
 
 
 

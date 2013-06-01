@@ -204,7 +204,7 @@ class GenericSubParser():
         Note that it usually needs to be first calculated using
         'to_frame or to_time methods. The output is properly formatted
         string according to sub specification.'''
-        return frametime.frame
+        return frametime.getFrame()
 
     def str_to_frametime(self, string):
         '''Convert string to frametime objects.

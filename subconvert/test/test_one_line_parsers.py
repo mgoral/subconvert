@@ -33,8 +33,8 @@ class TestParsers(unittest.TestCase):
     fps = 25
 
     parsed = {
-        'time_from': FrameTime.FrameTime(25, 'frame', 28),
-        'time_to': FrameTime.FrameTime(25, 'frame', 75),
+        'time_from': FrameTime.FrameTime(25, frames=28),
+        'time_to': FrameTime.FrameTime(25, frames=75),
         'text': "Very simple subtitle parsing test.",
     }
 
@@ -76,8 +76,8 @@ class TestParsers(unittest.TestCase):
     def test_mpl2(self):
         original_file = 'subs/Line.mpl2'
         local_parsed = self.parsed.copy()
-        local_parsed['time_to'] = FrameTime.FrameTime(25, 'full_seconds', seconds=3.0)
-        local_parsed['time_from'] = FrameTime.FrameTime(25, 'full_seconds', seconds=1.1)
+        local_parsed['time_to'] = FrameTime.FrameTime(25, seconds=3.0)
+        local_parsed['time_from'] = FrameTime.FrameTime(25, seconds=1.1)
         self.parse( Parsers.MPL2, original_file, [local_parsed] )
 
     @unittest.skip("Whole test suite should be rewritten. No need to use real files.")
@@ -90,7 +90,7 @@ class TestParsers(unittest.TestCase):
         original_file = 'subs/Line.tmp'
         local_parsed = self.parsed.copy()
         local_parsed['time_to'] = ''
-        local_parsed['time_from'] = FrameTime.FrameTime(25, 'frame', frame=25)
+        local_parsed['time_from'] = FrameTime.FrameTime(25, frames=25)
 
         self.parse( Parsers.TMP, original_file, [local_parsed] )
 

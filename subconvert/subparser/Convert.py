@@ -199,7 +199,7 @@ class SubConverter():
                     if not subPair[0]['sub']['time_to']:
                         if subPair[1] is None:
                             subPair[0]['sub']['time_to'] = \
-                                subPair[0]['sub']['time_from'] + FrameTime.FrameTime(self._fps, 'full_seconds', seconds = 2.5)
+                                subPair[0]['sub']['time_from'] + FrameTime.FrameTime(self._fps, seconds=2.5)
                         else:
                             subPair[0]['sub']['time_to'] = \
                                 subPair[0]['sub']['time_from'] + (subPair[1]['sub']['time_from'] - subPair[0]['sub']['time_from']) * 0.85

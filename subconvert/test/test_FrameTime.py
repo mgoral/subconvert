@@ -26,95 +26,123 @@ import subconvert.subutils.version as version
 
 from subconvert.apprunner import _
 
+# TODO: tests for: sub, mul and div
 class TestFrameTime(unittest.TestCase):
     """FrameTime Unit Tests
     Note: "fto" in some testcases means "FrameTime Object"
     Note2: In most cases full_seconds are pre-calculated."""
 
-    fps = 25.0
-
     def compare(self, ft_object, fps, frame, full_seconds, hours, minutes, seconds, miliseconds):
-        delta = 1
-        self.assertEqual(ft_object.fps, fps)
-        print("* Asserting frame is almost equal with delta=%s for %s =?= %s" % (delta, ft_object.frame, frame))
-        self.assertAlmostEqual(ft_object.frame, frame, delta=1)
-        self.assertEqual(ft_object.full_seconds, full_seconds)
-        self.assertEqual(ft_object.hours, hours)
-        self.assertEqual(ft_object.minutes, minutes)
-        self.assertEqual(ft_object.seconds, seconds)
-        self.assertEqual(ft_object.miliseconds, miliseconds)
+        self.assertEqual(ft_object._fps, fps)
+        self.assertEqual(ft_object.getFrame(), round(frame))
+        self.assertEqual(ft_object.getFullSeconds(), full_seconds)
+        self.assertEqual(ft_object.getTime()['hours'], hours)
+        self.assertEqual(ft_object.getTime()['minutes'], minutes)
+        self.assertEqual(ft_object.getTime()['seconds'], seconds)
+        self.assertEqual(ft_object.getTime()['miliseconds'], miliseconds)
 
-    def test_init(self):
-        #1
-        #fto = FrameTime(self.fps, "time", h=1, m=1, s=1, ms=100)
-        fto = FrameTime(self.fps, "time", "1:01:01.100")
+    def test_initWith_0_Fps(self):
+        with self.assertRaises(ValueError):
+            FrameTime(0, frames=5)
+
+    def test_initWithNegativeFps(self):
+        with self.assertRaises(ValueError):
+            FrameTime(-5, frames=5)
+
+    def test_initWithoutFrameTimeOrSecondsSpecified(self):
+        with self.assertRaises(AttributeError):
+            FrameTime(5)
+
+    def test_initWithOneSurplusParameter(self):
+        with self.assertRaises(AttributeError):
+            FrameTime(5, frames=5, seconds=10)
+
+    def test_initWithTwoSurplusParameters(self):
+        with self.assertRaises(AttributeError):
+            FrameTime(5, frames=5, time="1:01:01.000", seconds=10)
+
+    def test_initByTimeString(self):
+        fto = FrameTime(25, time="1:01:01.101")
+        full_seconds = 3661.101
+        frames = full_seconds * 25
+        self.compare(fto, 25, frames, full_seconds, 1, 1, 1, 101)
+
+    def test_initFullSeconds(self):
+        fto = FrameTime(25, seconds=3661.100)
         full_seconds = 3661.100
-        frames = full_seconds * self.fps
-        self.compare(fto, self.fps, frames, full_seconds, 1, 1, 1, 100)
-        #2
-        fto = FrameTime(self.fps, "full_seconds", 3661.100)
-        full_seconds = 3661.100
-        frames = full_seconds * self.fps
-        self.compare(fto, self.fps, frames, full_seconds, 1, 1, 1, 100)
-        #3
-        fto = FrameTime(self.fps, "frame", 100)
+        frames = full_seconds * 25
+        self.compare(fto, 25, frames, full_seconds, 1, 1, 1, 100)
+
+    def test_initFrames(self):
+        fto = FrameTime(25, frames=100)
         full_seconds = 4
-        frames = full_seconds * self.fps
-        self.compare(fto, self.fps, frames, full_seconds, 0, 0, 4, 0)
+        frames = full_seconds * 25
+        self.compare(fto, 25, frames, full_seconds, 0, 0, 4, 0)
 
-    def test_setTime(self):
-        fto = FrameTime(self.fps, "frame", 0)
-
-        # 1
+    def test_setSecondsWith1ms(self):
+        fto = FrameTime(25, seconds=0)
         full_seconds = 3661.001
-        frames = full_seconds * self.fps
-        fto.__setTime__(full_seconds)
-        self.compare(fto, self.fps, frames, full_seconds, 1, 1, 1, 1)
+        fto.__setSeconds__(full_seconds)
+        frames = full_seconds * 25
+        self.compare(fto, 25, frames, full_seconds, 1, 1, 1, 1)
 
-        # 2
+    def test_setSecondsWith10ms(self):
+        fto = FrameTime(25, seconds=0)
         full_seconds = 3661.010
-        frames = full_seconds * self.fps
-        fto.__setTime__(full_seconds)
-        self.compare(fto, self.fps, frames, full_seconds, 1, 1, 1, 10)
+        fto.__setSeconds__(full_seconds)
+        frames = full_seconds * 25
+        self.compare(fto, 25, frames, full_seconds, 1, 1, 1, 10)
 
-        # 3
+    def test_setSecondsWith100ms(self):
+        fto = FrameTime(25, seconds=0)
         full_seconds = 3661.1
-        frames = full_seconds * self.fps
-        fto.__setTime__(full_seconds)
-        self.compare(fto, self.fps, frames, full_seconds, 1, 1, 1, 100)
+        fto.__setSeconds__(full_seconds)
+        frames = full_seconds * 25
+        self.compare(fto, 25, frames, full_seconds, 1, 1, 1, 100)
 
-        #4 - some random numbers
-        full_seconds = random.uniform(1000, 10000)
-        frames = full_seconds * self.fps
-        fto.__setTime__(full_seconds)
-
-        sseconds = int(full_seconds)
-        str_full_seconds = "%.3f" % full_seconds
-        dot_place = str_full_seconds.find(".") + 1
-        miliseconds = int(str_full_seconds[dot_place:])
-        hours = int(sseconds / 3600)
-        sseconds -= 3600 * hours
-        minutes = int(sseconds / 60)
-        seconds = sseconds - 60 * minutes
-        self.compare(fto, self.fps, frames, full_seconds, hours, minutes, seconds, miliseconds)
+    def test_setSecondsWithNegativeSecondsRaisesAnError(self):
+        fto = FrameTime(25, seconds=0)
+        with self.assertRaises(ValueError):
+            fto.__setSeconds__(-1)
 
     def test_setFrame(self):
-        fto = FrameTime(self.fps, "frame", 0)
+        fto = FrameTime(25, frames=0)
         frames = 40120
         fto.__setFrame__(frames)
-        full_seconds = frames / self.fps
-        self.compare(fto, self.fps, frames, full_seconds, 0, 26, 44, 800)
+        full_seconds = frames / 25
+        self.compare(fto, 25, frames, full_seconds, 0, 26, 44, 800)
+
+    def test_setFrameWithNegativeSecondsRaisesAnError(self):
+        fto = FrameTime(25, frames=0)
+        with self.assertRaises(ValueError):
+            fto.__setFrame__(-1)
+
+    def test_setTime(self):
+        fto = FrameTime(25, time="0:00:00.000")
+        time = "1:01:01.234"
+        fto.__setTime__(time)
+        full_seconds = 3661.234
+        frames = full_seconds * 25
+        self.compare(fto, 25, frames, full_seconds, 1, 1, 1, 234)
+
+    def test_setIncorrectlyFormattedTimeRaisesAnError(self):
+        fto = FrameTime(25, time="0:00:00.000")
+        with self.assertRaises(ValueError):
+            fto.__setTime__("1:12;44-999")
 
     def test_getFrame(self):
-        fto = FrameTime(self.fps, "time", "1:01:01.100")
-        full_seconds = 3661.100
-        frames = round(full_seconds * self.fps)
-        self.assertEqual(fto.getFrame(), frames)
+        # full_seconds = 3661.100
+        fto = FrameTime(25, time="1:01:01.100")
+        self.assertEqual(91528, fto.getFrame())
+
+    def test_getFullSeconds(self):
+        fto = FrameTime(25, frames=50)
+        self.assertEqual(2, fto.getFullSeconds())
 
     def test_getTime(self):
-        fto = FrameTime(self.fps, "time", "1:01:01.100")
         full_seconds = 3661.100
-        frames = round(full_seconds * self.fps)
+        fto = FrameTime(25, seconds=full_seconds)
+        frames = round(full_seconds * 25)
         returned_dict = fto.getTime()
         true_time_dict = {
             'hours': 1, \
@@ -133,39 +161,46 @@ class TestFrameTime(unittest.TestCase):
                 raise AssertionError("Surplus key in returned dictionary")
             self.assertEqual(returned_dict[key], true_time_dict[key])
 
-    def test_cmp(self):
-        fto1 = FrameTime(self.fps, "frame", 50)
-        fto2 = FrameTime(self.fps, "frame", 50)
-        fto3 = FrameTime(self.fps, "frame", 49)
-        fto4 = FrameTime(self.fps, "frame", 51)
-
+    def test_compareEqual(self):
+        fto1 = FrameTime(25, frames=50)
+        fto2 = FrameTime(25, frames=50)
         self.assertTrue(fto1 == fto2)
-        self.assertTrue(fto1 > fto3)
-        self.assertTrue(fto1 < fto4)
+
+    def test_compareHigherThan(self):
+        fto1 = FrameTime(25, frames=51)
+        fto2 = FrameTime(25, frames=50)
+        self.assertTrue(fto1 > fto2)
+        self.assertFalse(fto2 > fto1)
+
+    def test_compareLowerThan(self):
+        fto1 = FrameTime(25, frames=49)
+        fto2 = FrameTime(25, frames=50)
+        self.assertTrue(fto1 < fto2)
+        self.assertFalse(fto2 < fto1)
 
     def test_add(self):
-        fto1 = FrameTime(self.fps, "time", "1:01:01.100")
-        fto2 = FrameTime(self.fps, "time", "2:02:02.200")
+        fto1 = FrameTime(25, time="1:01:01.100")
+        fto2 = FrameTime(25, time="2:02:02.200")
         fto3 = fto1 + fto2
         full_seconds = 10983.3
-        frames = full_seconds * self.fps
-        self.compare(fto3, self.fps, frames, full_seconds, 3, 3, 3, 300)
+        frames = full_seconds * 25
+        self.compare(fto3, 25, frames, full_seconds, 3, 3, 3, 300)
 
     def test_str(self):
-        fto = FrameTime(self.fps, "time", "2:02:02.200")
+        fto = FrameTime(25, time="2:02:02.200")
         full_seconds = 7322.2
         returned_str = str(fto)
-        expected_str = "t: 2:2:2.200; f: %s" % int(round(full_seconds * self.fps))
+        expected_str = "t: 2:2:2.200; f: %s" % int(round(full_seconds * 25))
         self.assertEqual(returned_str, expected_str)
 
     def test_changeFpsOkCase(self):
-        fto = FrameTime(self.fps, "time", "0:00:01")
-        self.assertEqual(self.fps, fto.getFrame())
+        fto = FrameTime(25, time="0:00:01")
+        self.assertEqual(25, fto.getFrame())
         fto.changeFps(31)
         self.assertEqual(31, fto.getFrame())
 
     def test_changeFpsToZeroIncorrectValue(self):
-        fto = FrameTime(self.fps, "time", "0:00:01")
+        fto = FrameTime(25, time="0:00:01")
         with self.assertRaises(ValueError):
             fto.changeFps(0)
         with self.assertRaises(ValueError):
