@@ -12,7 +12,7 @@ test: gen
 	@nosetests3 -v
 
 coverage: gen
-	@nosetests3 -v --with-coverage --cover-html --cover-html-dir=./coverage --cover-package=subconvert
+	@nosetests3 -v --with-coverage --cover-html --cover-html-dir=./coverage --cover-branches --cover-package=subconvert
 
 all: gen
 
