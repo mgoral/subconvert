@@ -128,7 +128,7 @@ class SubConverter():
 
     # TODO: test
     def removeSub(self, subNo):
-        assert(subNo > 0)
+        assert(subNo >= 0)
         assert(len(self.parsedLines) >= subNo)
         if subNo != len(self.parsedLines):
             for i in range(subNo, len(self.parsedLines)):
@@ -163,13 +163,14 @@ class SubConverter():
     def toFormat(self, newFormat):
         assert(self.parsedLines != [])
 
+        self._converter = None
         for parser in self._supportedParsers:
             # Obtain user specified subclass
             if parser.__OPT__ == newFormat:
                 self._converter = parser(self._fps)
                 break
-        if self._converter.__OPT__ != newFormat:
-            raise NameError
+
+        assert(self._converter)
 
         # FIXME: This is crazy! I know that it works but it's too complicated! Refactor it!
         # Adding a header.

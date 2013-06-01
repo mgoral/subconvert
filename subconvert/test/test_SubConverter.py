@@ -26,9 +26,9 @@ from subconvert.subparser.FrameTime import FrameTime
 class TestSubConverter(unittest.TestCase):
     """SubConverter test suite."""
 
-    subWithHeader = ["[INFORMATION]\n", "[TITLE]\n", "[AUTHOR]\n", "[SOURCE]\n",
-        "[PRG]SubConvert\n", "[FILEPATH]\n", "[DELAY]0\n", "[CD TRACK]0\n",
-        "[COMMENT]Converted to subviewer format with SubConvert\n", "[END INFORMATION]\n",
+    subWithHeader = ["[INFORMATION]\n", "[TITLE]SubTitle\n", "[AUTHOR]Author\n",
+        "[SOURCE]Source\n","[PRG]Prg\n", "[FILEPATH]Dummy/Path\n", "[DELAY]4\n", "[CD TRACK]1\n",
+        "[COMMENT]No comment\n", "[END INFORMATION]\n",
         "[SUBTITLE]\n", "[COLF]&HFFFFFF,[STYLE]no,[SIZE]24,[FONT]Tahoma\n",
         "01:01:01.00,01:01:02.50\n", "First subtitle\n", "\n",
         "01:01:03.00,01:01:04.00\n", "Second\n", "subtitle\n"]
@@ -38,8 +38,6 @@ class TestSubConverter(unittest.TestCase):
 
     def setUp(self):
         self.c = SubConverter()
-        #self.subWithHeaderParsed = self.c.parse(self.subWithHeader)
-        #self.subWithoutHeaderParsed = self.c.parse(self.subWithoutHeader)
 
     def test_raiseExceptionWhenFpsIs_0_(self):
         with self.assertRaises(AssertionError):
@@ -131,6 +129,48 @@ class TestSubConverter(unittest.TestCase):
         self.c.parse(self.subWithoutHeader)
         self.c.parse([""])
         self.assertFalse(self.c.isParsed())
+
+    def test_toFormatAssertsThatSubtitleIsParsed(self):
+        with self.assertRaises(AssertionError):
+            self.c.toFormat("subrip")
+
+    def test_toFormatRaisesAnExceptionWhenIncorrectFormatIsGiven(self):
+        self.c.parse(self.subWithoutHeader)
+        self.c.toFormat("subrip")
+        with self.assertRaises(AssertionError):
+            self.c.toFormat("DummyFormatWhichDoesntExist")
+
+    def test_toFormatReturnsTheSameSubForSubtitleWithHeader(self):
+        self.c.parse(self.subWithHeader)
+        result = self.c.toFormat("subviewer")
+        # Comparing bare strings has several benefits: it produces better visual output when
+        # something goes wrong. Also, SubConvert produces lists that arelogically equal to the
+        # input but differ somehow (e.g. newlines aren't stored in individual list elements but
+        # together with subtitle)
+        self.assertEqual(''.join(self.subWithHeader).strip(), ''.join(result).strip())
+
+    def test_toFormatReturnsTheSameSubForSubtitleWithoutHeader(self):
+        self.c.parse(self.subWithoutHeader)
+        result = self.c.toFormat("subrip")
+        self.assertEqual(''.join(self.subWithoutHeader).strip(), ''.join(result).strip())
+
+    def test_toFormatConvertsFromHeaderlessToSubtitleWithHeader(self):
+        self.c.parse(self.subWithoutHeader)
+        result = self.c.toFormat("subviewer")
+        # Note: this requires the knowledge of what SubViewer converter default header values are.
+        # They may change at times...
+        compSubWithHeader = ["[INFORMATION]\n", "[TITLE]\n", "[AUTHOR]\n",
+            "[SOURCE]\n","[PRG]SubConvert\n", "[FILEPATH]\n", "[DELAY]0\n", "[CD TRACK]0\n",
+            "[COMMENT]Converted to subviewer format with SubConvert\n", "[END INFORMATION]\n",
+            "[SUBTITLE]\n", "[COLF]&HFFFFFF,[STYLE]no,[SIZE]24,[FONT]Tahoma\n",
+            "01:01:01.00,01:01:02.50\n", "First subtitle\n", "\n",
+            "01:01:03.00,01:01:04.00\n", "Second\n", "subtitle\n"]
+        self.assertEqual(''.join(compSubWithHeader).strip(), ''.join(result).strip())
+
+    def test_toFormatConvertsSubtitleWithHeaderToHeaderless(self):
+        self.c.parse(self.subWithHeader)
+        result = self.c.toFormat("subrip")
+        self.assertEqual(''.join(self.subWithoutHeader).strip(), ''.join(result).strip())
 
 if __name__ == "__main__":
     unittest.main()
