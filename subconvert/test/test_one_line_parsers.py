@@ -20,7 +20,7 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import codecs
 
-from subconvert.parsing import Parsers
+from subconvert.parsing import Formats
 from subconvert.parsing import FrameTime
 
 class TestParsers(unittest.TestCase):
@@ -62,12 +62,12 @@ class TestParsers(unittest.TestCase):
     @unittest.skip("Whole test suite should be rewritten. No need to use real files.")
     def test_subrip(self):
         original_file = 'subs/Line.subrip'
-        self.parse( Parsers.SubRip, original_file )
+        self.parse( Formats.SubRip, original_file )
 
     @unittest.skip("Whole test suite should be rewritten. No need to use real files.")
     def test_microdvd(self):
         original_file = 'subs/Line.microdvd'
-        self.parse( Parsers.MicroDVD, original_file )
+        self.parse( Formats.MicroDVD, original_file )
 
     @unittest.skip("Whole test suite should be rewritten. No need to use real files.")
     def test_mpl2(self):
@@ -75,12 +75,12 @@ class TestParsers(unittest.TestCase):
         local_parsed = self.parsed.copy()
         local_parsed['time_to'] = FrameTime.FrameTime(25, seconds=3.0)
         local_parsed['time_from'] = FrameTime.FrameTime(25, seconds=1.1)
-        self.parse( Parsers.MPL2, original_file, [local_parsed] )
+        self.parse( Formats.MPL2, original_file, [local_parsed] )
 
     @unittest.skip("Whole test suite should be rewritten. No need to use real files.")
     def test_subviewer(self):
         original_file = 'subs/Line.subviewer'
-        self.parse( Parsers.SubViewer, original_file )
+        self.parse( Formats.SubViewer, original_file )
 
     @unittest.skip("Whole test suite should be rewritten. No need to use real files.")
     def test_tmp(self):
@@ -89,7 +89,7 @@ class TestParsers(unittest.TestCase):
         local_parsed['time_to'] = ''
         local_parsed['time_from'] = FrameTime.FrameTime(25, frames=25)
 
-        self.parse( Parsers.TMP, original_file, [local_parsed] )
+        self.parse( Formats.TMP, original_file, [local_parsed] )
 
 if __name__ == "__main__":
     unittest.main()

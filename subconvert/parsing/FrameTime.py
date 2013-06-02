@@ -49,6 +49,9 @@ class FrameTime(object):
         else:
             self.__setSeconds__(float(seconds))
 
+    def getFps(self):
+        return self._fps
+
     def getFrame(self):
         """Get Frame (and FPS) value)"""
         return int(round(self.frame))

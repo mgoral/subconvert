@@ -24,7 +24,7 @@ import logging
 from PyQt4 import QtGui, QtCore, Qt
 
 import subconvert.resources
-from subconvert.parsing import Convert
+from subconvert.parsing.Core import SubConverter
 from subconvert.utils import Utils
 
 log = logging.getLogger('subconvert.%s' % __name__)
@@ -226,9 +226,9 @@ class SubtitleEditor(QtGui.QWidget):
 
         for line in self.__converter.parsedLines:
             if line is not None:
-                timeStart = QtGui.QStandardItem(line['sub']['time_from'].toStr())
-                timeEnd = QtGui.QStandardItem(line['sub']['time_from'].toStr())
-                text = QtGui.QStandardItem(line['sub']['text'])
+                timeStart = QtGui.QStandardItem(line['sub'].start().toStr())
+                timeEnd = QtGui.QStandardItem(line['sub'].end().toStr())
+                text = QtGui.QStandardItem(line['sub'].text())
                 self.model.appendRow([timeStart, timeEnd, text])
                 pass
 

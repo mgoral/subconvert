@@ -24,7 +24,7 @@ import logging
 
 from PyQt4 import QtGui, QtCore
 
-from subconvert.parsing import SubParser
+from subconvert.parsing.Core import SubParser
 from subconvert.gui import SubtitleWindow
 from subconvert.utils import SubPath
 
@@ -84,7 +84,7 @@ class MainWindow(QtGui.QMainWindow):
         fileMenu.addAction(exitApp)
 
     def __getAllSubExtensions(self):
-        classes = SubParser.GenericSubParser.__subclasses__()
+        classes = SubParser.__subclasses__()
         exts = [_('Default')]
         exts.extend(set([ c.__EXT__ for c in classes ]))
         exts.sort()
