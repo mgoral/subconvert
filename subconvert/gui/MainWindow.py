@@ -24,9 +24,9 @@ import logging
 
 from PyQt4 import QtGui, QtCore
 
-from subconvert.subparser import SubParser
+from subconvert.parsing import SubParser
 from subconvert.gui import SubtitleWindow
-from subconvert.subutils import SubPath
+from subconvert.utils import SubPath
 
 log = logging.getLogger('Subconvert.%s' % __name__)
 

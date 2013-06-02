@@ -18,8 +18,8 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import unittest
-from subconvert.subparser.Convert import SubConverter
-from subconvert.subparser.FrameTime import FrameTime
+from subconvert.parsing.Convert import SubConverter
+from subconvert.parsing.FrameTime import FrameTime
 
 # FIXME: SubConverter tests should not rely on actual subtitle parsers. A mocked parser should be
 # used instead.

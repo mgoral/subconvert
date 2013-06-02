@@ -23,17 +23,10 @@ import sys
 import gettext
 import datetime
 
-from subconvert.subparser import SubParser
-from subconvert.subparser import FrameTime
-from subconvert.subparser import Parsers
-
-def acceptAlias(decoratedFunction):
-    def wrapper(self, alias):
-        key = alias
-        if alias in self.aliases.keys():
-            key = self.aliases[alias]
-        return decoratedFunction(self, key)
-    return wrapper
+from subconvert.parsing import SubParser
+from subconvert.parsing import FrameTime
+from subconvert.parsing import Parsers
+from subconvert.utils.Utils import acceptAlias
 
 class SubConverterManager():
     """Manages SubConverter instances.

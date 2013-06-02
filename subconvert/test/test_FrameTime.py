@@ -21,8 +21,8 @@ import unittest
 import datetime
 import random
 
-from subconvert.subparser.FrameTime import FrameTime
-import subconvert.subutils.version as version
+from subconvert.parsing.FrameTime import FrameTime
+import subconvert.utils.version as version
 
 from subconvert.apprunner import _
 

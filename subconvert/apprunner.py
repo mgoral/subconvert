@@ -27,8 +27,8 @@ import logging
 import argparse
 import gettext
 
-from .subutils import SubPath
-from .gui import MainWindow
+from subconvert.utils import SubPath
+from subconvert.gui import MainWindow
 
 t = gettext.translation(
     domain='subconvert',

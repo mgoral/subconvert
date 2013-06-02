@@ -24,8 +24,8 @@ import logging
 from PyQt4 import QtGui, QtCore, Qt
 
 import subconvert.resources
-from subconvert.subparser import Convert
-from subconvert.subutils import FileUtils
+from subconvert.parsing import Convert
+from subconvert.utils import Utils
 
 log = logging.getLogger('subconvert.%s' % __name__)
 
@@ -124,7 +124,7 @@ class SubTabWidget(QtGui.QWidget):
     def addFile(self, filePath, icon=None):
         converter = self.converterManager.add(filePath)
         if not converter.isParsed():
-            converter.parse(FileUtils.readFile(filePath))
+            converter.parse(Utils.readFile(filePath))
             self.sidePanel.addFile(filePath)
 
     def count(self):

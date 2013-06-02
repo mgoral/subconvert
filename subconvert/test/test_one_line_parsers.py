@@ -20,11 +20,8 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 import codecs
 
-from subconvert.subparser import SubParser
-from subconvert.subparser import Parsers
-from subconvert.subparser import Convert
-from subconvert.subutils import version
-from subconvert.subparser import FrameTime
+from subconvert.parsing import Parsers
+from subconvert.parsing import FrameTime
 
 class TestParsers(unittest.TestCase):
     """Parsers UnitTest"""

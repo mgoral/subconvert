@@ -30,11 +30,11 @@ import logging
 import gettext
 import time
 
-import subparser.SubParser as SubParser
-import subparser.Convert as Convert
-import subutils.version as version
-import subutils.path as subpath
-import subutils.suboptparse as suboptparse
+import parsing.SubParser as SubParser
+import parsing.Convert as Convert
+import utils.version as version
+import utils.path as subpath
+import utils.suboptparse as suboptparse
 
 from optparse import OptionParser, OptionGroup
 
