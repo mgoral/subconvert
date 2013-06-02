@@ -35,19 +35,6 @@ log = logging.getLogger('subconvert.%s' % __name__)
 class FileExist(Exception):
     pass
 
-def acceptAlias(decoratedFunction):
-    """This function should be used as a decorator. Each class method that is decorated will be able
-    to also accept name aliases."""
-    def wrapper(self, alias):
-        if not hasattr(self, "_aliases"):
-            self._aliases = {}
-
-        key = alias
-        if alias in self._aliases.keys():
-            key = self._aliases[alias]
-        return decoratedFunction(self, key)
-    return wrapper
-
 def detectEncoding(filePath, maxSize=5000, defaultEncoding="utf8"):
     """Try to detect file encoding
     'is' keyword checks objects identity and it's the key to disabling

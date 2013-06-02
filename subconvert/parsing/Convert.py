@@ -26,51 +26,46 @@ import datetime
 from subconvert.parsing import SubParser
 from subconvert.parsing import FrameTime
 from subconvert.parsing import Parsers
-from subconvert.utils.Utils import acceptAlias
+from subconvert.utils.Alias import *
 
-class SubConverterManager():
+class SubConverterManager(AliasBase):
     """Manages SubConverter instances.
 
     SubConverters can be accessed via filePath or alias. Each alias is unique and is mapped to a
     single filePath (i.e. filePath might have several aliases but alias has only one filePath)."""
 
     def __init__(self):
+        super(SubConverterManager, self).__init__()
         # { 'filepath' : SubConverter }
-        self._converters = {}
-        self.aliases = {}
+        self.__converters = {}
 
     @acceptAlias
     def add(self, filePath):
         """Creates and returns a new converter if one with a given filePath doesn't exist yet.
         Returns existing one otherwise."""
-        if not filePath in self._converters.keys():
+        if not filePath in self.__converters.keys():
             converter = SubConverter()
-            self._converters[filePath] = converter
-        return self._converters[filePath]
+            self.__converters[filePath] = converter
+        return self.__converters[filePath]
 
     @acceptAlias
     def get(self, filePath):
-        return self._converters.get(filePath)
+        return self.__converters.get(filePath)
 
     @acceptAlias
     def remove(self, filePath):
-        if filePath in self._converters.keys():
-            del self._converters[filePath]
+        if filePath in self.__converters.keys():
+            del self.__converters[filePath]
 
-    def registerAlias(self, alias, filePath):
-        self.aliases[alias] = filePath
 
-    def deregisterAlias(self, alias):
-        if alias in self.aliases.keys():
-            del self.aliases[alias]
 
 # TODO: maybe it'd be better to completely remove filePath dependency from SubConverter?
 class SubConverter():
     def __init__(self):
-        self._supportedParsers = SubParser.GenericSubParser.__subclasses__()
-        self._movieFile = None
-        self._fps = 25
-        self._converter = None
+        self.__supportedParsers = SubParser.GenericSubParser.__subclasses__()
+        self.__movieFile = None
+        self.__fps = 25
+        self.__converter = None
 
         # Public attributes (don't want to write explicit getters for them
         self.parsedLines = []
@@ -79,7 +74,7 @@ class SubConverter():
     def changeFps(self, fps):
         assert(fps > 0)
 
-        self._fps = fps
+        self.__fps = fps
         for subtitle in self.parsedLines:
             if subtitle is not None:
                 subtitle['sub']['time_from'].changeFps(fps)
@@ -126,10 +121,10 @@ class SubConverter():
         if subNo != len(self.parsedLines):
             for i in range(subNo, len(self.parsedLines)):
                 self.parsedLines[i]['sub_no'] -= 1
-        del self._converters[i]
+        del self.__converter[i]
 
     def fps(self):
-        return self._fps
+        return self.__fps
 
     def sub(self, subNo):
         assert(len(self.parsedLines) > 0)
@@ -140,9 +135,9 @@ class SubConverter():
     def parse(self, content):
         self.parsedLines = []
         self.convertedLines = []
-        for supportedParser in self._supportedParsers:
+        for supportedParser in self.__supportedParsers:
             if not self.isParsed():
-                parser = supportedParser(self._fps, content)
+                parser = supportedParser(self.__fps, content)
                 parser.parse()
                 self.parsedLines = parser.get_results()
         return self.parsedLines
@@ -156,14 +151,14 @@ class SubConverter():
     def toFormat(self, newFormat):
         assert(self.parsedLines != [])
 
-        self._converter = None
-        for parser in self._supportedParsers:
+        self.__converter = None
+        for parser in self.__supportedParsers:
             # Obtain user specified subclass
             if parser.__OPT__ == newFormat:
-                self._converter = parser(self._fps)
+                self.__converter = parser(self.__fps)
                 break
 
-        assert(self._converter)
+        assert(self.__converter)
 
         # FIXME: This is crazy! I know that it works but it's too complicated! Refactor it!
         # Adding a header.
@@ -171,12 +166,12 @@ class SubConverter():
         for parsed in self.parsedLines:
             # FIXME: refactor the way that HEADER is stored and handled. It should be stored
             # independently to subtitles.
-            if not subPair[1] and self._converter.__WITH_HEADER__: # Only the first element
+            if not subPair[1] and self.__converter.__WITH_HEADER__: # Only the first element
                 header = parsed['sub'].get('header')
                 # FIXME: What is that?!
                 if type(header) != dict:
                     header = {}
-                header = self._converter.convert_header(header)
+                header = self.__converter.convert_header(header)
                 if header:
                     try:
                         self.convertedLines.append(header)
@@ -192,11 +187,11 @@ class SubConverter():
                     if not subPair[0]['sub']['time_to']:
                         if subPair[1] is None:
                             subPair[0]['sub']['time_to'] = \
-                                subPair[0]['sub']['time_from'] + FrameTime.FrameTime(self._fps, seconds=2.5)
+                                subPair[0]['sub']['time_from'] + FrameTime.FrameTime(self.__fps, seconds=2.5)
                         else:
                             subPair[0]['sub']['time_to'] = \
                                 subPair[0]['sub']['time_from'] + (subPair[1]['sub']['time_from'] - subPair[0]['sub']['time_from']) * 0.85
-                    sub = self._converter.convert(subPair[0])
+                    sub = self.__converter.convert(subPair[0])
                     try:
                         self.convertedLines.append(sub)
                     except UnicodeEncodeError:
