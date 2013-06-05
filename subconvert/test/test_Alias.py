@@ -22,12 +22,16 @@ from subconvert.utils.Alias import *
 
 class DummyClass(AliasBase):
     @acceptAlias
-    def accessFirstArg(self, a=None):
+    def accessFirstArg(self, a="defaultAlias"):
         return a
 
     @acceptAlias
     def accessSecondArg(self, a=None, b=None):
         return b
+
+    @acceptAlias
+    def accessThirdArg(self, a=None, b=None, c=0):
+        return c
 
 class ClassWithoutAlias:
     @acceptAlias
@@ -80,14 +84,25 @@ class TestSubConverter(unittest.TestCase):
 
     def test_AcceptAliasDecoratorProperlyPassesValueWhenAliasIsGiven(self):
         self.d.registerAlias("alias", "passedArg")
-
         self.assertEqual("passedArg", self.d.accessFirstArg("alias"))
+
     def test_AcceptAliasDecoratorProperlyPassesRemainingArgsWhenNoAliasIsFound(self):
         self.assertEqual(6, self.d.accessSecondArg("noAlias", 6))
+        self.assertEqual(1, self.d.accessThirdArg("noAlias", 3, 1))
 
     def test_AcceptAliasDecoratorProperlyPassesRemainingArgsWhenAliasIsFound(self):
         self.d.registerAlias("alias", "passedArg")
         self.assertEqual(5, self.d.accessSecondArg("alias", 5))
+        self.assertEqual(2, self.d.accessThirdArg("alias", 9, 2))
+
+    def test_AcceptAliasDecoratorProperlyPassesRemainingDefaultArgsWhenNoAliasIsFound(self):
+        self.assertEqual("defaultAlias", self.d.accessFirstArg())
+        self.assertIsNone(self.d.accessSecondArg("noAlias"))
+
+    def test_AcceptAliasDecoratorProperlyPassesRemainingDefaultArgsWhenAliasIsFound(self):
+        self.d.registerAlias("alias", "passedArg")
+        self.assertEqual("defaultAlias", self.d.accessFirstArg())
+        self.assertIsNone(self.d.accessSecondArg())
 
     def test_AcceptAliasDecoratorAllowsUsingKwargsForRemainingArguments(self):
         self.d.registerAlias("alias", "passedArg")
@@ -102,9 +117,9 @@ class TestSubConverter(unittest.TestCase):
     def test_AliasesReturnEmptyTupleWhenNoAliasesAreAssigned(self):
         self.assertEqual(tuple(), self.d.aliases("passedArg"))
 
-    def test_GetReturnsRealNameToWhichAliasIsAssigned(self):
+    def test_GetAliasReturnsRealNameToWhichAliasIsAssigned(self):
         self.d.registerAlias("alias", "passedArg")
-        self.assertEqual("passedArg", self.d.get("alias"))
+        self.assertEqual("passedArg", self.d.getAlias("alias"))
 
-    def test_GetReturnsNoneIfGivenAliasIsNotAssigned(self):
-        self.assertIsNone(self.d.get("alias"))
+    def test_GetAliasReturnsNoneIfGivenAliasIsNotAssigned(self):
+        self.assertIsNone(self.d.getAlias("alias"))

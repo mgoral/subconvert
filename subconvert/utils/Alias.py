@@ -19,14 +19,16 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 def acceptAlias(decoratedFunction):
     """This function should be used as a decorator. Each class method that is decorated will be able
-    to accept alias or original names as a first function parameter."""
-    def wrapper(self, alias, *args, **kwargs):
+    to accept alias or original names as a first function positional parameter."""
+    def wrapper(self, *args, **kwargs):
         assert(isinstance(self, AliasBase))
 
-        key = alias
-        if alias in self._aliases.keys():
-            key = self._aliases[alias]
-        return decoratedFunction(self, key, *args, **kwargs)
+        if len(args) > 0:
+            key = args[0]
+            if args[0] in self._aliases.keys():
+                key = self._aliases[args[0]]
+            return decoratedFunction(self, key, *args[1:], **kwargs)
+        return decoratedFunction(self, *args, **kwargs)
     return wrapper
 
 class AliasBase:
@@ -44,7 +46,7 @@ class AliasBase:
         aliasList.sort()
         return tuple(aliasList)
 
-    def get(self, alias):
+    def getAlias(self, alias):
         return self._aliases.get(alias)
 
     def registerAlias(self, alias, name):
