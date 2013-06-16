@@ -5,3 +5,4 @@ dist/*
 resources.py
 .coverage
 coverage/*
+tags
