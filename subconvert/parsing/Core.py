@@ -87,30 +87,48 @@ class SubManager:
         self._subs = []
         self._header = Header()
 
+        # if sub has been appended without endTime, its auto endTime should be changed once when a
+        # new sub is appended again
+        self._invalidTime = False
+
+    def _autoSetEnd(self, sub, nextSub = None):
+        endTime = None
+        fps = sub.start().fps()
+        if nextSub is None:
+            endTime = sub.start() + FrameTime(fps, seconds = 2.5)
+        else:
+            endTime = sub.start() + (nextSub.start() - sub.start()) * 0.85
+        sub.change(end = endTime)
+
     def insert(self, subNo, newSub):
-        if subNo > 0:
+        if subNo >= 0:
             if len(self._subs) < subNo:
                 self.append(newSub)
             else:
                 if sub.end() is None:
-                    endTime = self._subs[subNo].start() + \
-                        (self._subs[subNo + 1].start() - self._subs[subNo].start()) * 0.85
-                    sub.change(end = endTime)
+                    self._autoSetEnd(sub, self._subs[subNo + 1])
                 self._subs.insert(subNo, newSub)
 
     def append(self, sub):
+        if self._invalidTime:
+            invalidSub = self._subs[-1]
+            self._autoSetEnd(invalidSub, sub)
+            self._invalidTime = False
+
         if sub.end() is None:
-            fps = sub.start().fps()
-            endTime = sub.start() + FrameTime(fps, seconds = 2.5)
-            sub.change(end = endTime)
+            self._autoSetEnd(sub)
+            self._invalidTime = True
         self._subs.append(sub)
 
     # TODO: test
     def remove(self, subNo):
+        if subNo == self.size() - 1:
+            self._invalidTime = False
         del self._subs[subNo]
 
     def clear(self):
         self._subs = []
+        self._invalidTime = False
 
     def changeFps(self, fps):
         if not fps > 0:
@@ -134,6 +152,8 @@ class SubManager:
     # TODO: test
     def changeSubEnd(self, subNo, newTime):
         self._subs(subNo).change(end = newTime)
+        if subNo == self.size() - 1:
+            self._invalidTime = False
         return self
 
     def header(self):
