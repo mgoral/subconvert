@@ -90,6 +90,31 @@ class SubFormat:
     def __hash__(self):
         return self.NAME.__hash__()
 
+    def _formatLinesep(self, string):
+        if self.formatting["gsp_nl"]:
+            if self.formatting["gsp_nl"] == os.linesep:
+                if "\r\n" in string:
+                    string = string.replace("\r\n", "{gsp_nl}")
+                elif "\n" in string:
+                    string = string.replace("\n", "{gsp_nl}")
+                elif "\r" in string:
+                    string = string.replace("\r", "{gsp_nl}")
+            else:
+                string = string.replace(self.formatting["gsp_nl"], "{gsp_nl}")
+        return string
+
+    def _formatWithTags(self, openTag, closeTag, string):
+        if self.formatting[openTag]:
+            fullOpenTag = ''.join(['{', openTag, '}'])
+            openFormatTag = self.formatting[openTag].replace('{', '{{').replace('}', '}}')
+            string = string.replace(openFormatTag, fullOpenTag)
+
+        if self.formatting[closeTag]:
+            fullCloseTag = ''.join(['{', closeTag, '}'])
+            closeFormatTag = self.formatting[closeTag].replace('{', '{{').replace('}', '}}')
+            string = string.replace(closeFormatTag, fullCloseTag)
+        return string
+
     #
     # Parsing subtitle format.
     #
@@ -127,7 +152,20 @@ class SubFormat:
 
     def formatSub(self, string):
         """Convert sub-type specific formatting to GSP formatting.
-        Trivia: gsp stands for "GenericSubParser" which was SubParser class name before."""
+        By default formatSub will replace 1-to-1 all occurences of subtitle specific tags with
+        their GSP equivalents. Due to performance reasons it will not parse given 'string' in any
+        other way. That means that it cannot detect exotic situations like existance of opening tags
+        only. This generic behaviour is good enough for most formats but in some cases it'll be
+        necessary to provide a specialized version of this method.
+        If 'gsp_nl' equals to os.linesep, then a given string will be checked against occurance of
+        any of newline styles (Linux, Windows and Mac).
+        Trivia: GSP stands for "GenericSubParser" which was SubParser class name before."""
+        string = string.strip()
+        string = string.replace('{', '{{').replace('}', '}}')
+        string = self._formatWithTags("gsp_b_", "_gsp_b", string)
+        string = self._formatWithTags("gsp_i_", "_gsp_i", string)
+        string = self._formatWithTags("gsp_u_", "_gsp_u", string)
+        string = self._formatLinesep(string)
         return string
 
     #
@@ -238,26 +276,6 @@ class SubRip(SubFormat):
         return FrameTime(fps, time = "%d:%02d:%02d.%03d" % \
             (int(time.group('h')), int(time.group('m')), int(time.group('s')), int(time.group('ms'))))
 
-    def formatSub(self, string):
-        string = string.strip()
-        string = string.replace('{', '{{').replace('}', '}}')
-        if r'<b>' in string:
-            string = string.replace(r'<b>', '{gsp_b_}')
-            string = string.replace(r'</b>', '{_gsp_b}')
-        if r'<u>' in string:
-            string = string.replace(r'<u>', '{gsp_u_}')
-            string = string.replace(r'</u>', '{_gsp_u}')
-        if r'<i>' in string:
-            string = string.replace(r'<i>', '{gsp_i_}')
-            string = string.replace(r'</i>', '{_gsp_i}')
-        if '\r\n' in string:
-            string = string.replace('\r\n', '{gsp_nl}')   # Windows
-        elif '\n' in string:
-            string = string.replace('\n', '{gsp_nl}') # Linux
-        elif '\r' in string:
-            string = string.replace('\r', '{gsp_nl}') # Mac
-        return string
-
     def convertTime(self, frametime, which):
         return '%02d:%02d:%02d,%03d' % (int(frametime.getTime()['hours']),\
             int(frametime.getTime()['minutes']), int(frametime.getTime()['seconds']),\
@@ -291,17 +309,6 @@ class SubViewer(SubFormat):
         time = self.time_fmt.search(string)
         return FrameTime(fps, time = "%d:%02d:%02d.%03d" % \
             (int(time.group('h')), int(time.group('m')), int(time.group('s')), int(time.group('ms'))*10))
-
-    def formatSub(self, string):
-        string = string.strip()
-        string = string.replace('{', '{{').replace('}', '}}')
-        if '\r\n' in string:
-            string = string.replace('\r\n', '{gsp_nl}')   # Windows
-        elif '\n' in string:
-            string = string.replace('\n', '{gsp_nl}') # Linux
-        elif '\r' in string:
-            string = string.replace('\r', '{gsp_nl}') # Mac
-        return string
 
     def convertTime(self, frametime, which):
         ms = int(round(frametime.getTime()['miliseconds'] / float(10)))
@@ -392,19 +399,6 @@ class TMP(SubFormat):
         return FrameTime(fps, time = "%d:%02d:%02d" % \
             (int(time.group('h')), int(time.group('m')), int(time.group('s'))))
 
-    def formatSub(self, string):
-        string = string.strip()
-        string = string.replace('{', '{{').replace('}', '}}')
-        if '|' in string:
-            string = string.replace('|', '{gsp_nl}')
-        if '\r\n' in string:
-            string = string.replace('\r\n', '{gsp_nl}')   # Windows
-        elif '\n' in string:
-            string = string.replace('\n', '{gsp_nl}') # Linux
-        elif '\r' in string:
-            string = string.replace('\r', '{gsp_nl}') # Mac
-        return string
-
     def convertTime(self, frametime, which):
         if which == 'time_from':
             return '%02d:%02d:%02d' % (int(frametime.getTime()['hours']),\
@@ -438,16 +432,6 @@ class MPL2(SubFormat):
         ms = int(string[-1]) / 10.0
         seconds = int(string[:-1]) + ms
         return FrameTime(fps, seconds=seconds)
-
-    def formatSub(self, string):
-        string = string.replace('{', '{{').replace('}', '}}')
-        lines = string.split('|')
-        for i, line in enumerate(lines):
-            if line.startswith('/'):
-                line = ''.join(['{gsp_i_}', line[1:], '{_gsp_i}'])
-                lines[i] = line
-        string = '{gsp_nl}'.join(lines)
-        return string
 
     def convertTime(self, frametime, which):
         time = str(frametime.getFullSeconds()).split('.')
