@@ -53,7 +53,7 @@ class Subtitle():
             self.__text = text
 
     def empty(self):
-        return self.__start or self.__end or self.__text
+        return not (bool(self.__start) or bool(self.__end) or bool(self.__text))
 
 class Header(AliasBase):
     def __init__(self):
