@@ -32,12 +32,15 @@ class Subtitle():
         self.__end = end
         self.__text = text
 
+    @property
     def start(self):
         return self.__start
 
+    @property
     def end(self):
         return self.__end
 
+    @property
     def text(self):
         return self.__text
 
@@ -49,7 +52,7 @@ class Subtitle():
         if text is not None:
             self.__text = text
 
-    def isEmpty(self):
+    def empty(self):
         return self.__start or self.__end or self.__text
 
 class Header(AliasBase):
@@ -93,11 +96,11 @@ class SubManager:
 
     def _autoSetEnd(self, sub, nextSub = None):
         endTime = None
-        fps = sub.start().fps()
+        fps = sub.start.fps
         if nextSub is None:
-            endTime = sub.start() + FrameTime(fps, seconds = 2.5)
+            endTime = sub.start + FrameTime(fps, seconds = 2.5)
         else:
-            endTime = sub.start() + (nextSub.start() - sub.start()) * 0.85
+            endTime = sub.start + (nextSub.start - sub.start) * 0.85
         sub.change(end = endTime)
 
     def insert(self, subNo, newSub):
@@ -105,7 +108,7 @@ class SubManager:
             if len(self._subs) < subNo:
                 self.append(newSub)
             else:
-                if sub.end() is None:
+                if sub.end is None:
                     self._autoSetEnd(sub, self._subs[subNo + 1])
                 self._subs.insert(subNo, newSub)
 
@@ -115,7 +118,7 @@ class SubManager:
             self._autoSetEnd(invalidSub, sub)
             self._invalidTime = False
 
-        if sub.end() is None:
+        if sub.end is None:
             self._autoSetEnd(sub)
             self._invalidTime = True
         self._subs.append(sub)
@@ -135,8 +138,8 @@ class SubManager:
             raise ValueError
 
         for sub in self._subs:
-            sub.start().changeFps(fps)
-            sub.end().changeFps(fps)
+            sub.start.fps = fps
+            sub.end.fps = fps
         return self
 
     # TODO: test
@@ -211,6 +214,7 @@ class SubParser:
     def formats(self):
         pass
 
+    @property
     def isParsed(self):
         return self._formatFound
 
@@ -257,16 +261,17 @@ class SubParser:
                         return
 
                 # store parsing result if new end marker occurred, then clear results
-                if subtitle.start() and subtitle.text():
+                if subtitle.start and subtitle.text:
                     self._formatFound = True
                     self._subtitles.append(subtitle)
-                elif subtitle.start() and not subtitle.text():
+                elif subtitle.start and not subtitle.text:
                     pass
                 else:
                     return
                 subSection = ''
 
-    def getResults(self):
+    @property
+    def results(self):
         '''Return parsing results which is a list of dictionaries'''
         return self._subtitles
 
@@ -287,13 +292,13 @@ class SubConverter():
         for subNo, sub in enumerate(subtitles):
             if sub is not None:
                 try:
-                    subText = sub.text().format(**fmt.formatting)
+                    subText = sub.text.format(**fmt.formatting)
                 except KeyError:
-                    subText = sub.text()
+                    subText = sub.text
                 try:
                     convertedSub = fmt.subFormat.format(gsp_no = subNo, \
-                        gsp_from = fmt.convertTime(sub.start(), 'time_from'), \
-                        gsp_to = fmt.convertTime(sub.end(), 'time_to'), \
+                        gsp_from = fmt.convertTime(sub.start, 'time_from'), \
+                        gsp_to = fmt.convertTime(sub.end, 'time_to'), \
                         gsp_text = subText)
                 except AssertionError:
                     # TODO: handle it somehow. Maybe inform SubConverter client about situation. Maybe

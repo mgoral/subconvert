@@ -43,26 +43,26 @@ class TestSubParser(unittest.TestCase):
         self.p.registerFormat(SubViewer)
 
     def test_isParsedReturnsFalseWhenNothingIsParsed(self):
-        self.assertFalse(self.p.isParsed())
+        self.assertFalse(self.p.isParsed)
 
     def test_isParsedReturnsTrueWhenSomethingIsParsed(self):
         self.p.parse(self.subWithoutHeader)
-        self.assertTrue(self.p.isParsed())
+        self.assertTrue(self.p.isParsed)
 
     def test_isParsedReturnsFalseWhenRepeatedParsingWasIncorrect(self):
         self.p.parse(self.subWithoutHeader)
         self.p.parse([""])
-        self.assertFalse(self.p.isParsed())
+        self.assertFalse(self.p.isParsed)
 
     def test_parseSubWithHeaderGivesProperSub(self):
         result = self.p.parse(self.subWithHeader)
-        self.assertEqual("First subtitle", result[0].text())
-        self.assertEqual("Second{gsp_nl}subtitle", result[1].text())
+        self.assertEqual("First subtitle", result[0].text)
+        self.assertEqual("Second{gsp_nl}subtitle", result[1].text)
 
     def test_parseSubWithHeaderGivesProperTimes(self):
         result = self.p.parse(self.subWithHeader)
-        self.assertIsInstance(result[0].start(), FrameTime)
-        self.assertIsInstance(result[0].start(), FrameTime)
+        self.assertIsInstance(result[0].start, FrameTime)
+        self.assertIsInstance(result[0].start, FrameTime)
 
     def test_parseSubWithHeaderFillsInHeader(self):
         result = self.p.parse(self.subWithHeader)
@@ -70,14 +70,14 @@ class TestSubParser(unittest.TestCase):
 
     def test_parseSubWithoutHeaderGivesProperSub(self):
         result = self.p.parse(self.subWithoutHeader)
-        self.assertEqual("First subtitle", result[0].text())
-        self.assertEqual("Second{gsp_nl}subtitle", result[1].text())
+        self.assertEqual("First subtitle", result[0].text)
+        self.assertEqual("Second{gsp_nl}subtitle", result[1].text)
 
     # TODO: check actual times, not just types
     def test_parseSubWithoutHeaderGivesProperTimes(self):
         result = self.p.parse(self.subWithoutHeader)
-        self.assertIsInstance(result[0].start(), FrameTime)
-        self.assertIsInstance(result[0].end(), FrameTime)
+        self.assertIsInstance(result[0].start, FrameTime)
+        self.assertIsInstance(result[0].end, FrameTime)
 
     def test_parseSubWithoutHeaderDoesntFillInHeader(self):
         result = self.p.parse(self.subWithoutHeader)

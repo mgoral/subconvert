@@ -49,17 +49,29 @@ class FrameTime(object):
         else:
             self.__setSeconds__(float(seconds))
 
-    def getFps(self):
+    @property
+    def fps(self):
         return self._fps
 
-    def getFrame(self):
-        """Get Frame (and FPS) value)"""
-        return int(round(self.frame))
+    @fps.setter
+    def fps(self, newFps):
+        if newFps > 0:
+            self._fps = float(newFps)
+        else:
+            raise ValueError(_("Incorrect FPS value: %s.") % newFps)
+        self.__setFrame__(self._full_seconds * self._fps)
 
-    def getFullSeconds(self):
+    @property
+    def frame(self):
+        """Get Frame (and FPS) value)"""
+        return int(round(self._frame))
+
+    @property
+    def fullSeconds(self):
         return self._full_seconds
 
-    def getTime(self):
+    @property
+    def time(self):
         return { \
             'hours': self._hours, \
             'minutes': self._minutes, \
@@ -72,16 +84,9 @@ class FrameTime(object):
         if strType == "time":
             return "%d:%02d:%02d.%03d" % (self._hours, self._minutes, self._seconds, self._miliseconds)
         elif strType == "frame":
-            return "%s" % int(round(self.frame))
+            return "%s" % int(round(self._frame))
         else:
             raise AttributeError(_("Incorrect string type: '%s'") % strType)
-
-    def changeFps(self, newFps):
-        if newFps > 0:
-            self._fps = float(newFps)
-        else:
-            raise ValueError(_("Incorrect FPS value: %s.") % newFps)
-        self.__setFrame__(self._full_seconds * self._fps)
 
     def __setTime__(self, value):
         time = re.match(r"(?P<h>\d+):(?P<m>[0-5][0-9]):(?P<s>[0-5][0-9])(?:.(?P<ms>\d{3}))?", value)
@@ -96,12 +101,12 @@ class FrameTime(object):
         self._minutes = int(time.group('m'))
         self._hours = int(time.group('h'))
         self._full_seconds = (3600*self._hours + 60*self._minutes + self._seconds + float(self._miliseconds)/1000)
-        self.frame = self._fps * self._full_seconds
+        self._frame = self._fps * self._full_seconds
 
     def __setSeconds__(self, seconds):
         if seconds >= 0:
             self._full_seconds = seconds
-            self.frame = seconds * self._fps
+            self._frame = seconds * self._fps
         else:
             raise ValueError(_("Incorrect seconds value."))
 
@@ -160,7 +165,7 @@ class FrameTime(object):
     def __str__(self):
         """Defines str(FrameTime)"""
         return "t: %s:%s:%s.%s; f: %s" % \
-            (self._hours, self._minutes, self._seconds, self._miliseconds, self.getFrame())
+            (self._hours, self._minutes, self._seconds, self._miliseconds, self.frame)
 
 
 

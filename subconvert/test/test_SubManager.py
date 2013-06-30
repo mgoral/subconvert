@@ -40,17 +40,17 @@ class TestSubManager(unittest.TestCase):
     def test_changeFpsCorrectly(self):
         self.m.changeFps(5)
         for sub in self.m:
-            self.assertEqual(5, sub.start().getFps())
-            self.assertEqual(5, sub.end().getFps())
+            self.assertEqual(5, sub.start.fps)
+            self.assertEqual(5, sub.end.fps)
 
     def test_subAssertsThatSomethingHasBeenParsed(self):
         self.m[0]
 
     def test_subCorrectlyUsesNegativeSubNumbers(self):
-        self.assertEqual("Second{gsp_nl}subtitle", self.m[-1].text())
-        self.assertEqual("Second{gsp_nl}subtitle", self.m[1].text())
+        self.assertEqual("Second{gsp_nl}subtitle", self.m[-1].text)
+        self.assertEqual("Second{gsp_nl}subtitle", self.m[1].text)
 
     # TODO: Make also tests that check returned subtitle times.
     def test_subtitleManagerReturnsCorrectLines(self):
-        self.assertEqual("First subtitle", self.m[0].text())
-        self.assertEqual("Second{gsp_nl}subtitle", self.m[1].text())
+        self.assertEqual("First subtitle", self.m[0].text)
+        self.assertEqual("Second{gsp_nl}subtitle", self.m[1].text)

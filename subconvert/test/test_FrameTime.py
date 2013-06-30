@@ -34,12 +34,12 @@ class TestFrameTime(unittest.TestCase):
 
     def compare(self, ft_object, fps, frame, full_seconds, hours, minutes, seconds, miliseconds):
         self.assertEqual(ft_object._fps, fps)
-        self.assertEqual(ft_object.getFrame(), round(frame))
-        self.assertEqual(ft_object.getFullSeconds(), full_seconds)
-        self.assertEqual(ft_object.getTime()['hours'], hours)
-        self.assertEqual(ft_object.getTime()['minutes'], minutes)
-        self.assertEqual(ft_object.getTime()['seconds'], seconds)
-        self.assertEqual(ft_object.getTime()['miliseconds'], miliseconds)
+        self.assertEqual(ft_object.frame, round(frame))
+        self.assertEqual(ft_object.fullSeconds, full_seconds)
+        self.assertEqual(ft_object.time['hours'], hours)
+        self.assertEqual(ft_object.time['minutes'], minutes)
+        self.assertEqual(ft_object.time['seconds'], seconds)
+        self.assertEqual(ft_object.time['miliseconds'], miliseconds)
 
     def test_initWith_0_Fps(self):
         with self.assertRaises(ValueError):
@@ -133,17 +133,17 @@ class TestFrameTime(unittest.TestCase):
     def test_getFrame(self):
         # full_seconds = 3661.100
         fto = FrameTime(25, time="1:01:01.100")
-        self.assertEqual(91528, fto.getFrame())
+        self.assertEqual(91528, fto.frame)
 
     def test_getFullSeconds(self):
         fto = FrameTime(25, frames=50)
-        self.assertEqual(2, fto.getFullSeconds())
+        self.assertEqual(2, fto.fullSeconds)
 
     def test_getTime(self):
         full_seconds = 3661.100
         fto = FrameTime(25, seconds=full_seconds)
         frames = round(full_seconds * 25)
-        returned_dict = fto.getTime()
+        returned_dict = fto.time
         true_time_dict = {
             'hours': 1, \
             'minutes': 1, \
@@ -195,16 +195,19 @@ class TestFrameTime(unittest.TestCase):
 
     def test_changeFpsOkCase(self):
         fto = FrameTime(25, time="0:00:01")
-        self.assertEqual(25, fto.getFrame())
-        fto.changeFps(31)
-        self.assertEqual(31, fto.getFrame())
+        self.assertEqual(25, fto.frame)
+        fto.fps = 31
+        self.assertEqual(31, fto.frame)
 
-    def test_changeFpsToZeroIncorrectValue(self):
+    def test_changeFpsToZeroRaises(self):
         fto = FrameTime(25, time="0:00:01")
         with self.assertRaises(ValueError):
-            fto.changeFps(0)
+            fto.fps = 0
+
+    def test_changeFpsToNegativeValueRaises(self):
+        fto = FrameTime(24, time="1:00:01")
         with self.assertRaises(ValueError):
-            fto.changeFps(-1)
+            fto.fps = -1
 
 if __name__ == "__main__":
     unittest.main()
