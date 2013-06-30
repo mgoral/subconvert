@@ -28,9 +28,26 @@ from subconvert.utils.Alias import *
 
 class Subtitle():
     def __init__(self, start = None, end = None, text = None):
-        self.__start = start
-        self.__end = end
-        self.__text = text
+        self.__start = None
+        self.__end = None
+        self.__text = None
+        self.change(start, end, text)
+
+    def _validateFps(self, start, end):
+        startFps = None
+        endFps = None
+        if start and end:
+            startFps = start.fps
+            endFps = end.fps
+        elif end and self.__start:
+            startFps = self.__start.fps
+            endFps = end.fps
+        elif start and self.__end:
+            startFps = start.fps
+            endFps = self.__end.fps
+
+        if startFps != endFps:
+            raise ValueError("Subtitle FPS values differ: %s != %s" % (startFps, endFps))
 
     @property
     def start(self):
@@ -44,7 +61,21 @@ class Subtitle():
     def text(self):
         return self.__text
 
+    @property
+    def fps(self):
+        if self.__start:
+            return self.__start.fps
+        return None
+
+    @fps.setter
+    def fps(self, value):
+        if self.__start:
+            self.__start.fps = value
+        if self.__end:
+            self.__end.fps = value
+
     def change(self, start = None, end = None, text = None):
+        self._validateFps(start, end)
         if start is not None:
             self.__start = start
         if end is not None:
@@ -96,9 +127,8 @@ class SubManager:
 
     def _autoSetEnd(self, sub, nextSub = None):
         endTime = None
-        fps = sub.start.fps
         if nextSub is None:
-            endTime = sub.start + FrameTime(fps, seconds = 2.5)
+            endTime = sub.start + FrameTime(sub.fps, seconds = 2.5)
         else:
             endTime = sub.start + (nextSub.start - sub.start) * 0.85
         sub.change(end = endTime)
@@ -138,8 +168,7 @@ class SubManager:
             raise ValueError
 
         for sub in self._subs:
-            sub.start.fps = fps
-            sub.end.fps = fps
+            sub.fps = fps
         return self
 
     # TODO: test

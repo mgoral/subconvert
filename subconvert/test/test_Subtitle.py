@@ -19,10 +19,19 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
 from subconvert.parsing.Core import Subtitle
-from subconvert.parsing.FrameTime import FrameTime
 
-# FIXME: SubParser tests should not rely on actual subtitle parsers. A mocked parser should be
-# used instead.
+# Unfortunately unittest.mock is available in std from Python 3.3 and I don't want to create
+# another dependency
+class FrameTimeMock:
+    def __init__(self, fps):
+        self.fps = fps
+
+    def __eq__(self, other):
+        return self.fps == other.fps
+
+    def __ne__(self, other):
+        return self.fps != other.fps
+
 class TestSubtitle(unittest.TestCase):
     """Subtitle test suite."""
 
@@ -39,12 +48,12 @@ class TestSubtitle(unittest.TestCase):
         self.assertIsNone(sub.text)
 
     def test_constructorInitializesStartProperly(self):
-        ft = FrameTime(25.0, seconds=0)
+        ft = FrameTimeMock(25.0)
         sub = Subtitle(start = ft)
         self.assertEqual(ft, sub.start)
 
     def test_constructorInitializesEndProperly(self):
-        ft = FrameTime(24.0, seconds=1)
+        ft = FrameTimeMock(24.0)
         sub = Subtitle(end = ft)
         self.assertEqual(ft, sub.end)
 
@@ -57,12 +66,12 @@ class TestSubtitle(unittest.TestCase):
         self.assertTrue(sub.empty)
 
     def test_emptyReturnsFalseWhenStartIsSet(self):
-        ft = FrameTime(22.0, seconds=5)
+        ft = FrameTimeMock(22.0)
         sub = Subtitle(start = ft)
         self.assertFalse(sub.empty())
 
     def test_emptyReturnsFalseWhenEndIsSet(self):
-        ft = FrameTime(21.0, seconds=2)
+        ft = FrameTimeMock(21.0)
         sub = Subtitle(end = ft)
         self.assertFalse(sub.empty())
 
@@ -71,14 +80,14 @@ class TestSubtitle(unittest.TestCase):
         self.assertFalse(sub.empty())
 
     def test_changeStartCorrectly(self):
-        sub = Subtitle(start = FrameTime(10, seconds=0))
-        ft = FrameTime(15, seconds = 1)
+        sub = Subtitle(start = FrameTimeMock(10))
+        ft = FrameTimeMock(15)
         sub.change(start = ft)
         self.assertEqual(ft, sub.start)
 
     def test_changeEndCorrectly(self):
-        sub = Subtitle(end = FrameTime(11, seconds=2))
-        ft = FrameTime(14, seconds = 4)
+        sub = Subtitle(end = FrameTimeMock(11))
+        ft = FrameTimeMock(14)
         sub.change(end = ft)
         self.assertEqual(ft, sub.end)
 
@@ -88,13 +97,13 @@ class TestSubtitle(unittest.TestCase):
         self.assertEqual("Subtitle", sub.text)
 
     def test_changeDisallowsChangingStartToNone(self):
-        ft = FrameTime(17, seconds = 6)
+        ft = FrameTimeMock(17)
         sub = Subtitle(start = ft)
         sub.change(start = None)
         self.assertEqual(ft, sub.start)
 
     def test_changeDisallowsChangingEndToNone(self):
-        ft = FrameTime(19, seconds = 64)
+        ft = FrameTimeMock(19)
         sub = Subtitle(end = ft)
         sub.change(end = None)
         self.assertEqual(ft, sub.end)
@@ -104,3 +113,53 @@ class TestSubtitle(unittest.TestCase):
         sub.change(text = None)
         self.assertEqual("My Subtitle", sub.text)
 
+    def test_fpsIsReturnedForCorrectlyInitializedSubtitle(self):
+        sub = Subtitle(start = FrameTimeMock(11))
+        self.assertEqual(11, sub.fps)
+
+    def test_fpsReturnsNoneWhenSubtitleIsNotIntializedCorrectly(self):
+        sub = Subtitle()
+        self.assertIsNone(sub.fps)
+
+    def test_fpsCorrectlyChangesFpsForStart(self):
+        ftStart = FrameTimeMock(10)
+        ftEnd = FrameTimeMock(10)
+        sub = Subtitle(start = ftStart, end = ftEnd)
+        sub.fps = 25
+        self.assertEqual(25, sub.start.fps)
+
+    def test_fpsCorrectlyChangesFpsForEnd(self):
+        ftStart = FrameTimeMock(12)
+        ftEnd = FrameTimeMock(12)
+        sub = Subtitle(start = ftStart, end = ftEnd)
+        sub.fps = 23
+        self.assertEqual(23, sub.end.fps)
+
+    def test_fpsDoesntChangeStartWhenItIsNone(self):
+        sub = Subtitle(end = FrameTimeMock(13))
+        sub.fps = 10
+        self.assertIsNone(sub.start)
+
+    def test_fpsDoesntChangeEndWhenItIsNone(self):
+        sub = Subtitle(start = FrameTimeMock(14))
+        sub.fps = 9
+        self.assertIsNone(sub.end)
+
+    def test_SubtitleDisallowsCreatingSubtitleWithDifferentFpsValues(self):
+        with self.assertRaises(ValueError):
+            sub = Subtitle(start = FrameTimeMock(10), end = FrameTimeMock(20))
+
+    def test_SubtitleDisallowChangingStartToADifferentFpsThanEnd(self):
+        sub = Subtitle(start = FrameTimeMock(25), end = FrameTimeMock(25))
+        with self.assertRaises(ValueError):
+            sub.change(start = FrameTimeMock(34))
+
+    def test_SubtitleDisallowChangingEndToADifferentFpsThanStart(self):
+        sub = Subtitle(start = FrameTimeMock(15), end = FrameTimeMock(15))
+        with self.assertRaises(ValueError):
+            sub.change(end = FrameTimeMock(29))
+
+    def test_SubtitleDisallowSettingStartAndEndWithDifferentFpsValues(self):
+        sub = Subtitle(start = FrameTimeMock(17), end = FrameTimeMock(17))
+        with self.assertRaises(ValueError):
+            sub.change(start = FrameTimeMock(37), end = FrameTimeMock(26))

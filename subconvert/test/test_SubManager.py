@@ -40,8 +40,7 @@ class TestSubManager(unittest.TestCase):
     def test_changeFpsCorrectly(self):
         self.m.changeFps(5)
         for sub in self.m:
-            self.assertEqual(5, sub.start.fps)
-            self.assertEqual(5, sub.end.fps)
+            self.assertEqual(5, sub.fps)
 
     def test_subAssertsThatSomethingHasBeenParsed(self):
         self.m[0]
