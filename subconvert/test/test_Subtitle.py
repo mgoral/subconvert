@@ -19,18 +19,7 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
 from subconvert.parsing.Core import Subtitle
-
-# Unfortunately unittest.mock is available in std from Python 3.3 and I don't want to create
-# another dependency
-class FrameTimeMock:
-    def __init__(self, fps):
-        self.fps = fps
-
-    def __eq__(self, other):
-        return self.fps == other.fps
-
-    def __ne__(self, other):
-        return self.fps != other.fps
+from subconvert.test.Mocks import *
 
 class TestSubtitle(unittest.TestCase):
     """Subtitle test suite."""

@@ -26,8 +26,14 @@ class TestSubManager(unittest.TestCase):
 
     def setUp(self):
         self.m = SubManager()
-        self.m.append(Subtitle(FrameTime(25.0, frames=0), FrameTime(25.0, frames=25), "First subtitle"))
-        self.m.append(Subtitle(FrameTime(25.0, frames=26), FrameTime(25.0, frames=50), "Second{gsp_nl}subtitle"))
+
+    def addSubtitles(self, no):
+        for i in range(abs(no)):
+            self.m.append(
+                Subtitle(FrameTime(25.0, frames=i),
+                FrameTime(25.0, frames=i),
+                "Subtitle{gsp_nl}%s" % str(i + 1))
+            )
 
     def test_raiseExceptionWhenFpsIs_0_(self):
         with self.assertRaises(ValueError):
@@ -42,14 +48,14 @@ class TestSubManager(unittest.TestCase):
         for sub in self.m:
             self.assertEqual(5, sub.fps)
 
-    def test_subAssertsThatSomethingHasBeenParsed(self):
-        self.m[0]
-
-    def test_subCorrectlyUsesNegativeSubNumbers(self):
-        self.assertEqual("Second{gsp_nl}subtitle", self.m[-1].text)
-        self.assertEqual("Second{gsp_nl}subtitle", self.m[1].text)
+    def test_subManagerCorrectlyUsesNegativeSubNumbers(self):
+        self.addSubtitles(2)
+        self.assertEqual("Subtitle{gsp_nl}2", self.m[-1].text)
+        self.assertEqual("Subtitle{gsp_nl}2", self.m[1].text)
 
     # TODO: Make also tests that check returned subtitle times.
-    def test_subtitleManagerReturnsCorrectLines(self):
-        self.assertEqual("First subtitle", self.m[0].text)
-        self.assertEqual("Second{gsp_nl}subtitle", self.m[1].text)
+    def test_subManagerReturnsCorrectLines(self):
+        self.addSubtitles(2)
+        self.assertEqual("Subtitle{gsp_nl}1", self.m[0].text)
+        self.assertEqual("Subtitle{gsp_nl}2", self.m[1].text)
+
