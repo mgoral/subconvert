@@ -26,6 +26,7 @@ import codecs
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils.Alias import *
 
+#TODO: add comparing Subtitles (i.e. __eq__, __ne__ etc.)
 class Subtitle():
     def __init__(self, start = None, end = None, text = None):
         self.__start = None
@@ -133,14 +134,16 @@ class SubManager:
             endTime = sub.start + (nextSub.start - sub.start) * 0.85
         sub.change(end = endTime)
 
-    def insert(self, subNo, newSub):
+    def insert(self, subNo, sub):
         if subNo >= 0:
             if len(self._subs) < subNo:
-                self.append(newSub)
+                self.append(sub)
             else:
                 if sub.end is None:
                     self._autoSetEnd(sub, self._subs[subNo + 1])
-                self._subs.insert(subNo, newSub)
+                self._subs.insert(subNo, sub)
+        else:
+            raise ValueError("insert only accepts positive indices")
 
     def append(self, sub):
         if self._invalidTime:
@@ -165,7 +168,7 @@ class SubManager:
 
     def changeFps(self, fps):
         if not fps > 0:
-            raise ValueError
+            raise ValueError("Incorrect FPS value")
 
         for sub in self._subs:
             sub.fps = fps

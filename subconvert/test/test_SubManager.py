@@ -18,21 +18,23 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import unittest
-from subconvert.parsing.FrameTime import FrameTime
 from subconvert.parsing.Core import SubManager, Subtitle
+from subconvert.test.Mocks import *
 
 class TestSubManager(unittest.TestCase):
     """SubManager test suite."""
 
     def setUp(self):
         self.m = SubManager()
+        self.correctSub = SubtitleMock(FrameTimeMock(10), FrameTimeMock(10), "Default Subtitle")
+        self.subWithNoEnd = SubtitleMock(FrameTimeMock(10), None, "NoEnd Subtitle")
 
     def addSubtitles(self, no):
         for i in range(abs(no)):
             self.m.append(
-                Subtitle(FrameTime(25.0, frames=i),
-                FrameTime(25.0, frames=i),
-                "Subtitle{gsp_nl}%s" % str(i + 1))
+                SubtitleMock(
+                    FrameTimeMock(25), FrameTimeMock(25), "Subtitle{gsp_nl}%s" % str(i + 1)
+                )
             )
 
     def test_raiseExceptionWhenFpsIs_0_(self):
@@ -59,3 +61,36 @@ class TestSubManager(unittest.TestCase):
         self.assertEqual("Subtitle{gsp_nl}1", self.m[0].text)
         self.assertEqual("Subtitle{gsp_nl}2", self.m[1].text)
 
+    def test_raiseExceptionWhenTryingToInsertSubToNegativeIndex(self):
+        with self.assertRaises(ValueError):
+            self.m.insert(-1, self.correctSub)
+
+    def test_insertProperlyAddsToEmptyList(self):
+        self.m.insert(0, self.correctSub)
+        self.assertEqual(self.correctSub, self.m[0])
+
+    def test_insertProperlyAddsToTheBeginning(self):
+        self.addSubtitles(2)
+        self.m.insert(0, self.correctSub)
+        self.assertEqual(self.correctSub, self.m[0])
+
+    def test_insertProperlyAddsToTheEnd(self):
+        self.addSubtitles(2)
+        self.m.insert(2, self.correctSub)
+        self.assertEqual(self.correctSub, self.m[2])
+
+    def test_insertProperlyAddsToTheEndWhenIndexIsTooHigh(self):
+        self.addSubtitles(5)
+        self.m.insert(9, self.correctSub)
+        self.assertEqual(self.correctSub, self.m[5])
+
+    def test_insertProperlyAddsInTheMiddle(self):
+        self.addSubtitles(4)
+        self.m.insert(2, self.correctSub)
+        self.assertEqual(self.correctSub, self.m[2])
+
+    def test_insertHandlesChangingSubtitleEndWhenItIsNotSet(self):
+        self.addSubtitles(3)
+        self.assertIsNone(self.subWithNoEnd.end)
+        self.m.insert(1, self.subWithNoEnd)
+        self.assertIsNotNone(self.m[1].end)
