@@ -20,6 +20,7 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 import gettext
 import re
 
+# TODO: change asserts to exceptions!
 class FrameTime(object):
     """Class defining a FrameTime object which consists of frame and time metrics (and fps as well)."""
 

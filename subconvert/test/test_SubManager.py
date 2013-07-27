@@ -20,20 +20,23 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 from subconvert.parsing.Core import SubManager, Subtitle
 from subconvert.test.Mocks import *
+from subconvert.parsing.FrameTime import FrameTime
 
 class TestSubManager(unittest.TestCase):
     """SubManager test suite."""
 
     def setUp(self):
         self.m = SubManager()
-        self.correctSub = SubtitleMock(FrameTimeMock(10), FrameTimeMock(10), "Default Subtitle")
-        self.subWithNoEnd = SubtitleMock(FrameTimeMock(10), None, "NoEnd Subtitle")
+        self.correctSub = SubtitleMock(FrameTime(10, 0), FrameTime(10, 0), "Default Subtitle")
+        self.subWithNoEnd = SubtitleMock(FrameTime(10, 0), None, "NoEnd Subtitle")
 
     def addSubtitles(self, no):
         for i in range(abs(no)):
             self.m.append(
                 SubtitleMock(
-                    FrameTimeMock(25), FrameTimeMock(25), "Subtitle{gsp_nl}%s" % str(i + 1)
+                    FrameTime(10, seconds=i),
+                    FrameTime(10, seconds=i),
+                    "Subtitle{gsp_nl}%s" % str(i + 1)
                 )
             )
 
@@ -94,3 +97,48 @@ class TestSubManager(unittest.TestCase):
         self.assertIsNone(self.subWithNoEnd.end)
         self.m.insert(1, self.subWithNoEnd)
         self.assertIsNotNone(self.m[1].end)
+
+    def test_appendCorrectlyAddsTheFirstSub(self):
+        self.m.append(self.correctSub)
+        self.assertEqual(self.correctSub, self.m[0])
+
+    def test_appendCorrectlyAddsTheSecondSub(self):
+        self.m.append(self.correctSub)
+        self.m.append(self.subWithNoEnd)
+        self.assertEqual(self.subWithNoEnd, self.m[1])
+
+    def test_appendCorrectlyChangesEmptyEndTimeOfTheLastSubtitle(self):
+        self.m.append(self.correctSub)
+        self.m.append(self.subWithNoEnd)
+        self.assertIsNotNone(self.subWithNoEnd.end)
+
+    def test_appendCorrectlyChangesEndTimeOfPreviousSubtitleWhenANewSubtitlehasBeenAdded(self):
+        self.m.append(self.correctSub)
+        self.m.append(self.subWithNoEnd)
+        self.assertEqual(2.5, self.subWithNoEnd.end.fullSeconds)
+
+        nextSub = SubtitleMock(FrameTime(10, seconds=1), FrameTime(10, seconds=1), "")
+        self.m.append(nextSub)
+        self.assertEqual(0.85, self.subWithNoEnd.end.fullSeconds)
+
+    # TODO: this should check number of mock calls
+    def test_appendChangesEndTimeMaximumTwoTimes(self):
+        nextSub = SubtitleMock(FrameTime(10, seconds=1), FrameTime(10, seconds=1), "")
+        secondNextSub = SubtitleMock(FrameTime(10, seconds=2), FrameTime(10, seconds=2), "")
+
+        self.m.append(self.correctSub)
+        self.m.append(self.subWithNoEnd)
+        self.m.append(nextSub)
+        self.m.append(secondNextSub)
+
+        self.assertEqual(0.85, self.subWithNoEnd.end.fullSeconds)
+
+    def test_appendIsAbleToChangeEndTimeOfTwoSubsAtOnce(self):
+        self.m.append(self.correctSub)
+        self.m.append(self.subWithNoEnd)
+
+        nextSub = SubtitleMock(FrameTime(10, seconds=1), None, "")
+        self.m.append(nextSub)
+
+        self.assertIsNotNone(self.subWithNoEnd.end)
+        self.assertIsNotNone(nextSub.end)

@@ -27,7 +27,7 @@ class SubtitleMock:
         self.start = start
         self.end = end
         self.text = text
-        self.fps = None
+        self.fps = start.fps if start is not None else None
 
     def __eq__(self, other):
         return self.text == other.text
