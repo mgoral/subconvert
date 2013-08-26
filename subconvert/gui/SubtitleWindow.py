@@ -24,16 +24,25 @@ import logging
 from PyQt4 import QtGui, QtCore, Qt
 
 import subconvert.resources
-from subconvert.parsing.Core import SubConverter
-from subconvert.utils import Utils
+from subconvert.parsing.Core import SubManager, SubParser, SubConverter
+from subconvert.parsing.Formats import *
+from subconvert.utils.SubFile import File
 
 log = logging.getLogger('subconvert.%s' % __name__)
 
 class SubTabWidget(QtGui.QWidget):
     def __init__(self, parent = None):
         super(SubTabWidget, self).__init__(parent)
-        self.converterManager = Convert.SubConverterManager()
+        self.__createParser()
         self.__initTabWidget()
+        self._fileStorage = {
+            # File(filePath): SubManager
+        }
+
+    def __createParser(self):
+        self._parser = SubParser()
+        for Format in SubFormat.__subclasses__():
+            self._parser.registerFormat(Format)
 
     def __initTabWidget(self):
         mainLayout = QtGui.QVBoxLayout(self)
@@ -85,17 +94,18 @@ class SubTabWidget(QtGui.QWidget):
         self.tabBar.currentChanged.connect(self.showTab)
         self.tabBar.tabCloseRequested.connect(self.closeTab)
         self.tabBar.tabMoved.connect(self.moveTab)
-        self.sidePanel.requestOpen.connect(self.showConverter)
+        self.sidePanel.requestOpen.connect(self.showEditor)
 
         self.setLayout(mainLayout)
 
-    def __addTab(self, tab, tabName):
+    def __addTab(self, filePath, subtitles):
         """Returns existing tab index. Creates a new one if it isn't opened and returns its index
         otherwise."""
         for i in range(self.tabBar.count()):
-            if tab == self.pages.widget(i):
+            if filePath == self.pages.widget(i).filePath:
                 return i
-        newIndex = self.tabBar.addTab(tabName)
+        tab = SubtitleEditor(filePath, subtitles)
+        newIndex = self.tabBar.addTab(filePath)
         self.pages.addWidget(tab)
         return newIndex
 
@@ -112,19 +122,34 @@ class SubTabWidget(QtGui.QWidget):
         splitterLayout.addWidget(line)
         splitterHandle.setLayout(splitterLayout)
 
+    def __createSubtitles(self, file_):
+        # TODO: fetch fps and encoding from user input (e.g. commandline options, settings, etc)
+        fps = 25
+        encoding = None
+        fileContent = file_.read(encoding)
+        subtitles = self._parser.parse(fileContent)
+        return subtitles
+
     @QtCore.pyqtSlot(str)
-    def showConverter(self, filePath):
-        converter = self.converterManager.get(filePath)
-        if converter is not None:
-            tab = SubtitleEditor(converter)
-            self.showTab(self.__addTab(tab, filePath))
+    def showEditor(self, filePath):
+        subtitles = self._fileStorage.get(File(filePath))
+        if subtitles is not None:
+            self.showTab(self.__addTab(filePath, subtitles))
         else:
             log.error(_("Converter not created for %s!" % filePath))
 
+
     def addFile(self, filePath, icon=None):
-        converter = self.converterManager.add(filePath)
-        if not converter.isParsed():
-            converter.parse(Utils.readFile(filePath))
+        try:
+            file_ = File(filePath)
+        except IOError as msg:
+            log.error(msg)
+            return
+
+        subtitles = self._fileStorage.get(file_)
+        if subtitles is None:
+            subtitles = self.__createSubtitles(file_)
+            self._fileStorage[file_] = subtitles
             self.sidePanel.addFile(filePath)
 
     def count(self):
@@ -204,10 +229,11 @@ class SidePanel(QtGui.QWidget):
         self.requestOpen.emit(item.text())
 
 class SubtitleEditor(QtGui.QWidget):
-    def __init__(self, converter, parent = None):
+    def __init__(self, filePath, subtitles, parent = None):
         super(SubtitleEditor, self).__init__(parent)
 
-        self.__converter = converter
+        self._filePath = filePath # for __eq__
+        self._subtitles = subtitles
 
         grid = QtGui.QGridLayout(self)
 
@@ -224,18 +250,21 @@ class SubtitleEditor(QtGui.QWidget):
         grid.setSpacing(10)
         grid.addWidget(self.subList, 0, 0)
 
-        for line in self.__converter.parsedLines:
-            if line is not None:
-                timeStart = QtGui.QStandardItem(line['sub'].start().toStr())
-                timeEnd = QtGui.QStandardItem(line['sub'].end().toStr())
-                text = QtGui.QStandardItem(line['sub'].text())
-                self.model.appendRow([timeStart, timeEnd, text])
-                pass
+        for sub in self._subtitles:
+            timeStart = QtGui.QStandardItem(sub.start.toStr())
+            timeEnd = QtGui.QStandardItem(sub.end.toStr())
+            text = QtGui.QStandardItem(sub.text)
+            self.model.appendRow([timeStart, timeEnd, text])
 
         self.setLayout(grid)
 
     def insertSubtitle(self, filePath):
         pass
 
-    def __eq__(self, other):
-        return self.__converter == other.__converter
+    @property
+    def filePath(self):
+        return self._filePath
+
+    @property
+    def subtitles(self):
+        return self._subtitles

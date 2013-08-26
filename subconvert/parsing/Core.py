@@ -201,7 +201,7 @@ class SubManager:
         return self._subs == other._subs
 
     def __ne__(self, other):
-        return self._subs == other._subs
+        return self._subs != other._subs
 
     def __lt__(self, other):
         return self._subs < other._subs
@@ -224,7 +224,7 @@ class SubParser:
         self._formatFound= False
         self._headerFound = False
 
-        self._SupportedFormats = set()
+        self._supportedFormats = set()
 
         self._subtitles = SubManager()
 
@@ -239,7 +239,7 @@ class SubParser:
         return line
 
     def registerFormat(self, fmt):
-        self._SupportedFormats.add(fmt)
+        self._supportedFormats.add(fmt)
 
     # TODO: implementation (return a list of format names)
     # TODO: test
@@ -251,9 +251,10 @@ class SubParser:
         return self._formatFound
 
     def parse(self, content, fps = 25):
-        self._subtitles.clear()
+        # return a new object each time (otherwise it'd contantly modify the same reference
+        self._subtitles = SubManager()
         self._formatFound = False
-        for Format in self._SupportedFormats:
+        for Format in self._supportedFormats:
             if not self._formatFound:
                 subFormat = Format()
                 try:
@@ -309,20 +310,26 @@ class SubParser:
 
 class SubConverter():
     def __init__(self):
-        self.convertedLines = []
+        self._convertedLines = []
+
+    @property
+    def subtitles(self):
+        '''Return results which is a list of strings in output format'''
+        return self._convertedLines
 
     # TODO: test
     def convert(self, Format, subtitles):
         assert(subtitles.size() != 0)
 
         fmt = Format()
+        self._convertedLines = []
 
         if fmt.WITH_HEADER:
             head = fmt.convertHeader(subtitles.header())
-            self.convertedLines.append(head)
+            self._convertedLines.append(head)
 
         for subNo, sub in enumerate(subtitles):
-            if sub is not None:
+            if sub is not None: # FIXME: do we have to check it?
                 try:
                     subText = sub.text.format(**fmt.formatting)
                 except KeyError:
@@ -342,6 +349,6 @@ class SubConverter():
                     # handled properly.
                     #log.warning(_("Correct time not asserted for subtitle %d. Skipping it...") % (subPair[0]['sub_no']))
                     #log.debug(_(".. incorrect subtitle pair times: (%s, %s)") % (subPair[0]['sub']['time_from'], subPair[1]['sub']['time_from']))
-                self.convertedLines.append(convertedSub)
-        return self.convertedLines
+                self._convertedLines.append(convertedSub)
+        return self._convertedLines
 
