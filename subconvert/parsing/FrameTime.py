@@ -30,7 +30,7 @@ class FrameTime(object):
         of total seconds (float, with miliseconds specified after decimal point).
 
         Examples:
-        FrameTime(time="1:01:01:100", fps=25)
+        FrameTime(time="1:01:01.100", fps=25)
         FrameTime(frame=100, fps=25)
         FrameTime(full_seconds="3600.01", fps=25)
         """
