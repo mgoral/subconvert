@@ -309,24 +309,16 @@ class SubParser:
         return self._subtitles
 
 class SubConverter():
-    def __init__(self):
-        self._convertedLines = []
-
-    @property
-    def subtitles(self):
-        '''Return results which is a list of strings in output format'''
-        return self._convertedLines
-
     # TODO: test
     def convert(self, Format, subtitles):
         assert(subtitles.size() != 0)
 
         fmt = Format()
-        self._convertedLines = []
+        convertedLines = []
 
         if fmt.WITH_HEADER:
             head = fmt.convertHeader(subtitles.header())
-            self._convertedLines.append(head)
+            convertedLines.append(head)
 
         for subNo, sub in enumerate(subtitles):
             if sub is not None: # FIXME: do we have to check it?
@@ -349,6 +341,6 @@ class SubConverter():
                     # handled properly.
                     #log.warning(_("Correct time not asserted for subtitle %d. Skipping it...") % (subPair[0]['sub_no']))
                     #log.debug(_(".. incorrect subtitle pair times: (%s, %s)") % (subPair[0]['sub']['time_from'], subPair[1]['sub']['time_from']))
-                self._convertedLines.append(convertedSub)
-        return self._convertedLines
+                convertedLines.append(convertedSub)
+        return convertedLines
 
