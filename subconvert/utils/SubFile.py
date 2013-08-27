@@ -36,6 +36,8 @@ class File:
     """Physical file handler. Reads/writes files, detects their encoding,
     backups etc."""
 
+    DEFAULT_ENCODING = "utf8"
+
     def __init__(self, filePath):
         # Will raise IOError if file doesn't exist
         with open(filePath): pass
@@ -45,14 +47,13 @@ class File:
         defaultChardetSize = 5000
         fileSize = os.path.getsize(self._filePath)
         self._chardetSize = defaultChardetSize if fileSize > defaultChardetSize else fileSize
-        self._defaultEncoding = "utf8"
 
     @property
     def path(self):
         return self._filePath
 
     def detectEncoding(self):
-        encoding = self._defaultEncoding
+        encoding = self.DEFAULT_ENCODING
 
         if IS_CHARDET:
             minimumConfidence = 0.52
@@ -86,7 +87,7 @@ class File:
     def overwrite(self, content, encoding = None):
         assert(len(content) > 0)
         if encoding is None:
-            encoding = self._defaultEncoding
+            encoding = self.DEFAULT_ENCODING
 
         try:
             with open(self._filePath, 'w', encoding=encoding) as file_:
@@ -97,7 +98,7 @@ class File:
     def write(self, filePath, encoding = None):
         assert(len(content) > 0)
         if encoding is None:
-            encoding = self._defaultEncoding
+            encoding = self.DEFAULT_ENCODING
 
         try:
             with open(filePath, 'r', encoding=encoding):

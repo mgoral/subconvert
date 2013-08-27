@@ -24,10 +24,11 @@ import logging
 
 from PyQt4 import QtGui, QtCore
 
-from subconvert.parsing.Core import SubParser
+from subconvert.parsing.Core import SubManager, SubParser, SubConverter
 from subconvert.parsing.Formats import *
 from subconvert.gui import SubtitleWindow
-from subconvert.utils import SubPath
+from subconvert.gui.DataModel import DataController
+from subconvert.utils.SubFile import File
 
 log = logging.getLogger('Subconvert.%s' % __name__)
 
@@ -42,8 +43,14 @@ class MainWindow(QtGui.QMainWindow):
         #self.windowSettings = QtCore.QSettings(QtCore.QSettings.IniFormat,
         #    QtCore.QSettings.UserScope, "logmaster", "window")
 
+        self.__createParser()
         self.__initGui()
         self.show()
+
+    def __createParser(self):
+        self._parser = SubParser()
+        for Format in SubFormat.__subclasses__():
+            self._parser.registerFormat(Format)
 
     def __initGui(self):
         self.mainWidget = QtGui.QWidget(self)
@@ -52,7 +59,8 @@ class MainWindow(QtGui.QMainWindow):
 
         self.setCentralWidget(self.mainWidget)
 
-        self.tabs = SubtitleWindow.SubTabWidget()
+        self._subtitleData = DataController(self)
+        self.tabs = SubtitleWindow.SubTabWidget(self._subtitleData)
         self.fileDialog = QtGui.QFileDialog
         self.directory = os.environ['HOME'] # TODO: read from config
 
@@ -73,7 +81,7 @@ class MainWindow(QtGui.QMainWindow):
             _('&Open File'), self)
         openLogAction.setStatusTip(_("Open log file in current tab."))
         openLogAction.setShortcut('ctrl+o')    # TODO: read this from settings
-        openLogAction.triggered.connect(self.fileOpen)
+        openLogAction.triggered.connect(self.openFile)
 
         exitApp= QtGui.QAction(QtGui.QIcon.fromTheme('application-exit'),
             _('&Exit'), self)
@@ -91,15 +99,24 @@ class MainWindow(QtGui.QMainWindow):
         exts.sort()
         return exts
 
-    def fileOpen(self):
-        self.openFile()
+    def __createSubtitles(self, file_):
+        # TODO: fetch fps and encoding from user input (e.g. commandline options, settings, etc)
+        fps = 25
+        encoding = None
+        fileContent = file_.read(encoding)
+        subtitles = self._parser.parse(fileContent)
+        return subtitles
 
-    # TODO: mere this with openTab and check what action is required (new tab or
-    # open tab)
-    # like this :
-    # button = self.sender()
-    #   if button == self.add_file
-    #     ...
+    def __addFile(self, filePath):
+        if not self._subtitleData.fileExists(filePath):
+            try:
+                file_ = File(filePath)
+            except IOError as msg:
+                log.error(msg)
+                return
+            subtitles = self.__createSubtitles(file_)
+            self._subtitleData.addFile(filePath, subtitles)
+
     def openFile(self):
         sub_extensions = self.__getAllSubExtensions()
         str_sub_exts = ' '.join(['*.%s' % ext for ext in sub_extensions[1:]])
@@ -112,7 +129,7 @@ class MainWindow(QtGui.QMainWindow):
             self.directory = os.path.split(filenames[0])[0]
         except IndexError:
             pass    # Normal error when hitting "Cancel"
-        for filepath in filenames:
-            self.tabs.addFile(filepath)
+        for filePath in filenames:
+            self.__addFile(filePath)
 
 

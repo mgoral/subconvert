@@ -24,25 +24,14 @@ import logging
 from PyQt4 import QtGui, QtCore, Qt
 
 import subconvert.resources
-from subconvert.parsing.Core import SubManager, SubParser, SubConverter
-from subconvert.parsing.Formats import *
-from subconvert.utils.SubFile import File
 
 log = logging.getLogger('subconvert.%s' % __name__)
 
 class SubTabWidget(QtGui.QWidget):
-    def __init__(self, parent = None):
+    def __init__(self, subtitleData, parent = None):
         super(SubTabWidget, self).__init__(parent)
-        self.__createParser()
+        self._subtitleData = subtitleData
         self.__initTabWidget()
-        self._fileStorage = {
-            # File(filePath): SubManager
-        }
-
-    def __createParser(self):
-        self._parser = SubParser()
-        for Format in SubFormat.__subclasses__():
-            self._parser.registerFormat(Format)
 
     def __initTabWidget(self):
         mainLayout = QtGui.QVBoxLayout(self)
@@ -65,10 +54,10 @@ class SubTabWidget(QtGui.QWidget):
         rightLayout.setMargin(0)
         self.rightPanel.setLayout(rightLayout)
 
-        self.sidePanel = SidePanel(self)
+        self.sidePanel = SidePanel(self._subtitleData, self)
         leftLayout.addWidget(self.sidePanel)
 
-        self.pages = QtGui.QStackedWidget()
+        self.pages = QtGui.QStackedWidget(self)
         rightLayout.addWidget(self.pages, 0, 0)
 
         self.splitter.addWidget(self.leftPanel)
@@ -98,13 +87,14 @@ class SubTabWidget(QtGui.QWidget):
 
         self.setLayout(mainLayout)
 
-    def __addTab(self, filePath, subtitles):
+
+    def __addTab(self, filePath):
         """Returns existing tab index. Creates a new one if it isn't opened and returns its index
         otherwise."""
         for i in range(self.tabBar.count()):
             if filePath == self.pages.widget(i).filePath:
                 return i
-        tab = SubtitleEditor(filePath, subtitles)
+        tab = SubtitleEditor(filePath, self._subtitleData, self.pages)
         newIndex = self.tabBar.addTab(filePath)
         self.pages.addWidget(tab)
         return newIndex
@@ -122,35 +112,12 @@ class SubTabWidget(QtGui.QWidget):
         splitterLayout.addWidget(line)
         splitterHandle.setLayout(splitterLayout)
 
-    def __createSubtitles(self, file_):
-        # TODO: fetch fps and encoding from user input (e.g. commandline options, settings, etc)
-        fps = 25
-        encoding = None
-        fileContent = file_.read(encoding)
-        subtitles = self._parser.parse(fileContent)
-        return subtitles
-
     @QtCore.pyqtSlot(str)
     def showEditor(self, filePath):
-        subtitles = self._fileStorage.get(File(filePath))
-        if subtitles is not None:
-            self.showTab(self.__addTab(filePath, subtitles))
+        if self._subtitleData.fileExists(filePath):
+            self.showTab(self.__addTab(filePath))
         else:
-            log.error(_("Converter not created for %s!" % filePath))
-
-
-    def addFile(self, filePath, icon=None):
-        try:
-            file_ = File(filePath)
-        except IOError as msg:
-            log.error(msg)
-            return
-
-        subtitles = self._fileStorage.get(file_)
-        if subtitles is None:
-            subtitles = self.__createSubtitles(file_)
-            self._fileStorage[file_] = subtitles
-            self.sidePanel.addFile(filePath)
+            log.error(_("SubtitleEditor not created for %s!" % filePath))
 
     def count(self):
         return self.tabBar.count()
@@ -194,12 +161,8 @@ class SubTabWidget(QtGui.QWidget):
 class SidePanel(QtGui.QWidget):
     requestOpen = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent = None):
+    def __init__(self, subtitleData, parent = None):
         super(SidePanel, self).__init__(parent)
-        self.__initSidePanel()
-
-
-    def __initSidePanel(self):
         mainLayout = QtGui.QVBoxLayout(self)
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
@@ -208,9 +171,11 @@ class SidePanel(QtGui.QWidget):
         mainLayout.addWidget(self.__fileList)
 
         self.__fileList.itemDoubleClicked.connect(self.informFileRequest)
+        subtitleData.fileAdded.connect(self.addFile)
 
         self.setLayout(mainLayout)
 
+    @QtCore.pyqtSlot(str)
     def addFile(self, filePath):
         icon = QtGui.QIcon(":/img/initial_list.png")
         item = QtGui.QListWidgetItem(icon, filePath)
@@ -229,37 +194,36 @@ class SidePanel(QtGui.QWidget):
         self.requestOpen.emit(item.text())
 
 class SubtitleEditor(QtGui.QWidget):
-    def __init__(self, filePath, subtitles, parent = None):
+    def __init__(self, filePath, subtitleData, parent = None):
         super(SubtitleEditor, self).__init__(parent)
 
         self._filePath = filePath # for __eq__
-        self._subtitles = subtitles
+        self._subtitleData = subtitleData
 
         grid = QtGui.QGridLayout(self)
 
-        self.model = QtGui.QStandardItemModel(0, 3)
-        self.model.setHorizontalHeaderLabels([_("Begin"), _("End"), _("Subtitle")])
+        self._model = QtGui.QStandardItemModel(0, 3, self)
+        self._model.setHorizontalHeaderLabels([_("Begin"), _("End"), _("Subtitle")])
         self.subList = QtGui.QTableView(self)
-        self.subList.setModel(self.model)
+        self.subList.setModel(self._model)
 
-        #self.subList.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        #self.subList.horizontalHeader().resizeSection(2,600)
         self.subList.horizontalHeader().setResizeMode(2, QtGui.QHeaderView.Stretch)
-        #self.subList.horizontalHeader().setResizeMode(2, QtGui.QHeaderView.Interactive)
 
         grid.setSpacing(10)
         grid.addWidget(self.subList, 0, 0)
 
+        self.updateSubtitles()
+
+        self.setLayout(grid)
+
+    def updateSubtitles(self):
+        self._subtitles = self._subtitleData.subtitles(self._filePath)
+        self._model.removeRows(0, self._model.rowCount())
         for sub in self._subtitles:
             timeStart = QtGui.QStandardItem(sub.start.toStr())
             timeEnd = QtGui.QStandardItem(sub.end.toStr())
             text = QtGui.QStandardItem(sub.text)
-            self.model.appendRow([timeStart, timeEnd, text])
-
-        self.setLayout(grid)
-
-    def insertSubtitle(self, filePath):
-        pass
+            self._model.appendRow([timeStart, timeEnd, text])
 
     @property
     def filePath(self):
