@@ -227,6 +227,7 @@ class SubParser:
         self._supportedFormats = set()
 
         self._subtitles = SubManager()
+        self._format = None
 
     def message(self, lineNo, msg = "parsing error."):
         '''Uniform error message.'''
@@ -250,6 +251,13 @@ class SubParser:
     def isParsed(self):
         return self._formatFound
 
+    # It is not a @property, because calling parser.parsedFormat() by accident would actually
+    # return a created instance of SubFormat (i.e. would result in a SubFormat())
+    def parsedFormat(self):
+        if self.isParsed:
+            return self._format
+        return None
+
     def parse(self, content, fps = 25):
         # return a new object each time (otherwise it'd contantly modify the same reference
         self._subtitles = SubManager()
@@ -257,6 +265,7 @@ class SubParser:
         for Format in self._supportedFormats:
             if not self._formatFound:
                 subFormat = Format()
+                self._format = Format
                 try:
                     self.__parseFormat(subFormat, content, fps)
                 except SubParsingError:
@@ -308,7 +317,7 @@ class SubParser:
         '''Return parsing results which is a list of dictionaries'''
         return self._subtitles
 
-class SubConverter():
+class SubConverter:
     # TODO: test
     def convert(self, Format, subtitles):
         assert(subtitles.size() != 0)

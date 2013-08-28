@@ -28,6 +28,8 @@ import subconvert.resources
 log = logging.getLogger('subconvert.%s' % __name__)
 
 class SubTabWidget(QtGui.QWidget):
+    _tabChanged = QtCore.pyqtSignal(int, name = "tabChanged")
+
     def __init__(self, subtitleData, parent = None):
         super(SubTabWidget, self).__init__(parent)
         self._subtitleData = subtitleData
@@ -95,6 +97,7 @@ class SubTabWidget(QtGui.QWidget):
             if filePath == self.pages.widget(i).filePath:
                 return i
         tab = SubtitleEditor(filePath, self._subtitleData, self.pages)
+        # FIXME: too many tab-change signals
         newIndex = self.tabBar.addTab(filePath)
         self.pages.addWidget(tab)
         return newIndex
@@ -122,11 +125,20 @@ class SubTabWidget(QtGui.QWidget):
     def count(self):
         return self.tabBar.count()
 
+    @QtCore.pyqtSlot(int)
     def closeTab(self, index):
         widgetToRemove = self.pages.widget(index)
         self.tabBar.removeTab(index)
         self.pages.removeWidget(widgetToRemove)
         widgetToRemove.close()
+        # FIXME: too many tab-change signals
+        # Hack
+        # when last tab is closed, tabBar should emit tabCloseRequested and then currentChanged.
+        # Unfortunately it emits these signals the other way round and when clients receive
+        # self.tabChanged, they have no possibility to know if there's no tab opened. This hack
+        # will inform them additionaly when last tab is closed.
+        if self.currentIndex() == -1:
+            self._tabChanged.emit(self.currentIndex())
 
     def currentIndex(self):
         return self.tabBar.currentIndex()
@@ -134,6 +146,7 @@ class SubTabWidget(QtGui.QWidget):
     def currentPage(self):
         return self.pages.currentWidget()
 
+    @QtCore.pyqtSlot(int, int)
     def moveTab(self, fromIndex, toIndex):
         fromWidget = self.pages.widget(fromIndex)
         toWidget = self.pages.widget(toIndex)
@@ -153,10 +166,17 @@ class SubTabWidget(QtGui.QWidget):
         # to prevent it.
         self.showTab(self.tabBar.currentIndex())
 
+    @QtCore.pyqtSlot(int)
     def showTab(self, index):
+        # FIXME: too many tab-change signals
         showWidget = self.pages.widget(index)
-        self.pages.setCurrentWidget(showWidget)
-        self.tabBar.setCurrentIndex(index)
+        if showWidget:
+            self.pages.setCurrentWidget(showWidget)
+            self.tabBar.setCurrentIndex(index)
+            self._tabChanged.emit(index)
+
+    def tab(self, index):
+        return self.pages.widget(index)
 
 class SidePanel(QtGui.QWidget):
     requestOpen = QtCore.pyqtSignal(str)
@@ -216,14 +236,31 @@ class SubtitleEditor(QtGui.QWidget):
 
         self.setLayout(grid)
 
+        # Some signals
+        self._subtitleData.fileChanged.connect(self.fileChanged)
+
+    @QtCore.pyqtSlot(str)
+    def fileChanged(self, filePath):
+        if filePath == self._filePath:
+            self.updateSubtitles()
+
     def updateSubtitles(self):
-        self._subtitles = self._subtitleData.subtitles(self._filePath)
+        data = self._subtitleData.data(self._filePath)
+        self._subtitles = data.subtitles
         self._model.removeRows(0, self._model.rowCount())
         for sub in self._subtitles:
             timeStart = QtGui.QStandardItem(sub.start.toStr())
             timeEnd = QtGui.QStandardItem(sub.end.toStr())
             text = QtGui.QStandardItem(sub.text)
             self._model.appendRow([timeStart, timeEnd, text])
+
+    def saveContent(self):
+        # TODO: check if subtitleData.fileExists(filePath) ???
+        self._subtitleData.fileChanged.disconnect(self.fileChanged)
+        data = self._subtitleData.data(self._filePath)
+        data.subtitles = self._subtitles
+        self._subtitleData.update(self._filePath, data)
+        self._subtitleData.fileChanged.connect(self.fileChanged)
 
     @property
     def filePath(self):

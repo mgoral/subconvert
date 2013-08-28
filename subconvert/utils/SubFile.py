@@ -52,6 +52,14 @@ class File:
     def path(self):
         return self._filePath
 
+    @classmethod
+    def exists(cls, filePath):
+        try:
+            with open(filePath):
+                return True
+        except IOError:
+            return False
+
     def detectEncoding(self):
         encoding = self.DEFAULT_ENCODING
 
@@ -95,7 +103,8 @@ class File:
         except LookupError as msg:
             raise LookupError(_("Unknown encoding name: '%s'.") % encoding)
 
-    def write(self, filePath, encoding = None):
+    @classmethod
+    def write(cls, filePath, content, encoding = None):
         assert(len(content) > 0)
         if encoding is None:
             encoding = self.DEFAULT_ENCODING

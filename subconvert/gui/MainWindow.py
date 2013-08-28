@@ -27,14 +27,12 @@ from PyQt4 import QtGui, QtCore
 from subconvert.parsing.Core import SubManager, SubParser, SubConverter
 from subconvert.parsing.Formats import *
 from subconvert.gui import SubtitleWindow
-from subconvert.gui.DataModel import DataController
+from subconvert.gui.DataModel import DataController, SubtitleData
 from subconvert.utils.SubFile import File
 
 log = logging.getLogger('Subconvert.%s' % __name__)
 
 class MainWindow(QtGui.QMainWindow):
-    #subExtensions = "*.txt *.srt"
-
     def __init__(self):
         super(MainWindow, self).__init__()
 
@@ -60,37 +58,64 @@ class MainWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.mainWidget)
 
         self._subtitleData = DataController(self)
-        self.tabs = SubtitleWindow.SubTabWidget(self._subtitleData)
+        self._tabs = SubtitleWindow.SubTabWidget(self._subtitleData)
         self.fileDialog = QtGui.QFileDialog
         self.directory = os.environ['HOME'] # TODO: read from config
 
-        mainLayout.addWidget(self.tabs)
+        mainLayout.addWidget(self._tabs)
 
         self.__initMenuBar()
 
         self.statusBar()
         self.menuBar()
+        self._updateMenuItemsState()
 
         self.mainWidget.setLayout(mainLayout)
         self.setWindowTitle('Subconvert') # TODO: current file path
 
+        # Some signals
+        self._subtitleData.fileAdded.connect(self._updateMenuItemsState)
+        self._subtitleData.fileRemoved.connect(self._updateMenuItemsState)
+        self._tabs.tabChanged.connect(self._updateMenuItemsState)
+
     def __initMenuBar(self):
         menubar = self.menuBar()
 
-        openLogAction = QtGui.QAction(QtGui.QIcon.fromTheme('document-open'),
-            _('&Open File'), self)
-        openLogAction.setStatusTip(_("Open log file in current tab."))
-        openLogAction.setShortcut('ctrl+o')    # TODO: read this from settings
-        openLogAction.triggered.connect(self.openFile)
+        self.openAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('document-open'), _('&Open'), self)
+        self.openAction.setStatusTip(_("Open log file in current tab."))
+        self.openAction.setShortcut('ctrl+o')    # TODO: read this from settings
+        self.openAction.triggered.connect(self.openFile)
 
-        exitApp= QtGui.QAction(QtGui.QIcon.fromTheme('application-exit'),
-            _('&Exit'), self)
-        exitApp.setStatusTip(_("Exit Subconvert"))
-        exitApp.triggered.connect(QtGui.qApp.quit)
+        self.saveAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('document-save'), _('&Save'), self)
+        self.saveAction.setStatusTip(_("Save currently opened file."))
+        self.saveAction.setShortcut('ctrl+s')    # TODO: read this from settings
+        self.saveAction.triggered.connect(self.saveFile)
+
+        self.saveAsAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('document-save'), _('S&ave as...'), self)
+        self.saveAsAction.setShortcut('ctrl+shift+s')    # TODO: read this from settings
+        self.saveAsAction.setStatusTip(_("Save currently opened file under different name"))
+        self.saveAsAction.triggered.connect(self.saveFileAs)
+
+        self.saveAllAction = QtGui.QAction(
+            QtGui.QIcon.fromTheme('document-save'), _('Sa&ve all'), self)
+        self.saveAllAction.setStatusTip(_("Save all opened files."))
+        self.saveAllAction.triggered.connect(self.saveAll)
+
+        self.exitApp= QtGui.QAction(QtGui.QIcon.fromTheme('application-exit'), _('&Exit'), self)
+        self.exitApp.setStatusTip(_("Exit Subconvert"))
+        self.exitApp.triggered.connect(QtGui.qApp.quit)
 
         fileMenu = menubar.addMenu(_('&File'))
-        fileMenu.addAction(openLogAction)
-        fileMenu.addAction(exitApp)
+        fileMenu.addAction(self.openAction)
+        fileMenu.addSeparator()
+        fileMenu.addAction(self.saveAction)
+        fileMenu.addAction(self.saveAsAction)
+        fileMenu.addAction(self.saveAllAction)
+        fileMenu.addSeparator()
+        fileMenu.addAction(self.exitApp)
 
     def __getAllSubExtensions(self):
         formats = SubFormat.__subclasses__()
@@ -102,8 +127,8 @@ class MainWindow(QtGui.QMainWindow):
     def __createSubtitles(self, file_):
         # TODO: fetch fps and encoding from user input (e.g. commandline options, settings, etc)
         fps = 25
-        encoding = None
-        fileContent = file_.read(encoding)
+        inputEncoding = None
+        fileContent = file_.read(inputEncoding)
         subtitles = self._parser.parse(fileContent)
         return subtitles
 
@@ -114,8 +139,42 @@ class MainWindow(QtGui.QMainWindow):
             except IOError as msg:
                 log.error(msg)
                 return
-            subtitles = self.__createSubtitles(file_)
-            self._subtitleData.addFile(filePath, subtitles)
+            data = SubtitleData()
+            data.subtitles = self.__createSubtitles(file_)
+            # TODO: fetch those somehow
+            data.outputFormat = self._parser.parsedFormat()
+            data.outputEncoding = "utf8"
+            self._subtitleData.add(filePath, data)
+
+    def _writeFile(self, filePath, newFilePath=None):
+        if newFilePath is None:
+            newFilePath = filePath
+
+        data = self._subtitleData.data(filePath)
+        converter = SubConverter()
+        content = converter.convert(data.outputFormat, data.subtitles)
+
+        if File.exists(newFilePath):
+            file_ = File(newFilePath)
+            file_.overwrite(content, data.outputEncoding)
+        else:
+            File.write(newFilePath, content, data.outputEncoding)
+
+    def _saveDirectory(self, filename):
+        try:
+            self.directory = os.path.split(filename)[0]
+        except IndexError:
+            pass    # Normal error when hitting "Cancel"
+
+    @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot(str)
+    def _updateMenuItemsState(self):
+        dataAvailable = self._subtitleData.count() != 0
+        anyTabOpen = self._tabs.currentPage() is not None
+
+        self.saveAllAction.setEnabled(dataAvailable)
+        self.saveAction.setEnabled(anyTabOpen)
+        self.saveAsAction.setEnabled(anyTabOpen)
 
     def openFile(self):
         sub_extensions = self.__getAllSubExtensions()
@@ -124,12 +183,34 @@ class MainWindow(QtGui.QMainWindow):
             parent = self,
             caption = _('Open file'),
             directory = self.directory,
-            filter = _("Subtitles (%s);;All files (*.*)") % str_sub_exts)
-        try:
-            self.directory = os.path.split(filenames[0])[0]
-        except IndexError:
-            pass    # Normal error when hitting "Cancel"
+            filter = _("Subtitles (%s);;All files (*.*)") % str_sub_exts
+        )
+        self._saveDirectory(filenames[0])
         for filePath in filenames:
             self.__addFile(filePath)
+
+    def saveFile(self):
+        currentTab = self._tabs.currentPage()
+        currentTab.saveContent()
+        self._writeFile(currentTab.filePath)
+
+    def saveFileAs(self):
+        currentTab = self._tabs.currentPage()
+        newFileName = self.fileDialog.getSaveFileName(
+            parent = self,
+            caption = _('Save as...'),
+            directory = self.directory
+        )
+        if newFileName:
+            currentTab.saveContent()
+            self._saveDirectory(newFileName)
+            self._writeFile(currentTab.filePath, newFileName)
+
+    def saveAll(self):
+        for i in range(self._tabs.count()):
+            tab = self._tabs.tab(i)
+            if tab is not None:
+                tab.saveContent()
+                self._writeFile(tab.filePath)
 
 

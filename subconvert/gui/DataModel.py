@@ -24,7 +24,7 @@ from subconvert.parsing.Core import SubManager, SubParser, SubConverter, SubMana
 from subconvert.parsing.Formats import *
 from subconvert.utils.SubFile import File
 
-class Data:
+class SubtitleData:
     subtitles = None
     outputFormat = None
     outputEncoding = None
@@ -57,22 +57,40 @@ class DataController(QtCore.QObject):
         if not isinstance(outputEncoding, str):
             raise TypeError(_("Incorrect outputEncoding type!"))
 
-    def addFile(self, filePath, subtitles, outputFormat=SubRip, outputEncoding=File.DEFAULT_ENCODING):
-        """Add a file with a given filePath, subtitles and an output format and output encoding."""
+    def _addData(self, filePath, data):
+        """An actual function that checks and adds data given for add/update operation"""
+        if type(data) is not SubtitleData:
+            raise TypeError(_("Incorrect data type!"))
+
         self._checkFilePath(filePath)
-        self._checkSubtitles(subtitles)
-        self._checkOutputFormat(outputFormat)
-        self._checkOutputEncoding(outputEncoding)
+        self._checkSubtitles(data.subtitles)
+        self._checkOutputFormat(data.outputFormat)
+        self._checkOutputEncoding(data.outputEncoding)
 
-        if self._storage.get(filePath) is not None:
+        insertData = copy.deepcopy(data)
+        self._storage[filePath] = insertData
+
+    def add(self, filePath, data):
+        """Add a file with a given filePath, subtitles and an output format and output encoding."""
+        if filePath in self._storage:
             raise KeyError(_("Entry for '%s' cannot be added twice") % filePath)
-
-        data = Data()
-        data.subtitles = copy.deepcopy(subtitles)
-        data.outputEncoding = outputEncoding
-        data.outputFormat = outputFormat
-        self._storage[filePath] = data
+        self._addData(filePath, data)
         self._fileAdded.emit(filePath)
+
+    def update(self, filePath, data):
+        """Update an already existing entry."""
+        if filePath not in self._storage:
+            raise KeyError(_("No entry to update for %s") % filePath)
+        self._addData(filePath, data)
+        self._fileChanged.emit(filePath)
+
+    def remove(self, filePath):
+        """Remove a file with a given filePath"""
+        del self._storage[filePath]
+        self._fileRemoved.emit(item.text())
+
+    def count(self):
+        return len(self._storage)
 
     def fileExists(self, filePath):
         """Return whether there is an entry for a given filePath.
@@ -80,16 +98,9 @@ class DataController(QtCore.QObject):
         stored for a given filePath."""
         return filePath in self._storage.keys()
 
-    def removeFile(self, filePath):
-        """Remove a file with a given filePath"""
-        del self._storage[filePath]
-        self._fileRemoved.emit(item.text())
-
-    def changeSubtitles(self, filePath, subtitles):
-        """Replace stored subtitles with a given ones."""
-        self._checkSubtitles(subtitles)
-        self._storage[filePath].subtitles = copy.deepcopy(subtitles)
-        self._fileChanged.emit(filePath)
+    def data(self, filePath):
+        data = self._storage[filePath]
+        return copy.deepcopy(data)
 
     def subtitles(self, filePath):
         data = self._storage[filePath]
