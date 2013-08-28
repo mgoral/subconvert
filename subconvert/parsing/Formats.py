@@ -395,9 +395,11 @@ class TMP(SubFormat):
         )
 
     def frametime(self, fps, string):
-        time = self.time_fmt.search(string)
-        return FrameTime(fps, time = "%d:%02d:%02d" % \
-            (int(time.group('h')), int(time.group('m')), int(time.group('s'))))
+        if string:
+            time = self.time_fmt.search(string)
+            return FrameTime(fps, time = "%d:%02d:%02d" % \
+                (int(time.group('h')), int(time.group('m')), int(time.group('s'))))
+        return None
 
     def convertTime(self, frametime, which):
         if which == 'time_from':
