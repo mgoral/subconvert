@@ -141,10 +141,13 @@ class MainWindow(QtGui.QMainWindow):
                 return
             data = SubtitleData()
             data.subtitles = self.__createSubtitles(file_)
-            # TODO: fetch those somehow
-            data.outputFormat = self._parser.parsedFormat()
-            data.outputEncoding = "utf8"
-            self._subtitleData.add(filePath, data)
+            if self._parser.isParsed:
+                # TODO: fetch those somehow
+                data.outputFormat = self._parser.parsedFormat()
+                data.outputEncoding = "utf8"
+                self._subtitleData.add(filePath, data)
+            else:
+                log.error(_("Unable to parse file '%s'.") % filePath)
 
     def _writeFile(self, filePath, newFilePath=None):
         if newFilePath is None:
