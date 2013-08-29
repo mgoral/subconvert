@@ -240,7 +240,8 @@ class SubtitleTab(SubTab):
 
 class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):
-        super(SubtitleEditor, self).__init__(filePath, False, parent)
+        name = os.path.split(filePath)[1]
+        super(SubtitleEditor, self).__init__(name, False, parent)
 
         self._filePath = filePath # for __eq__
         self._subtitleData = subtitleData
