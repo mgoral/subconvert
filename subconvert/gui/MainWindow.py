@@ -169,12 +169,14 @@ class MainWindow(QtGui.QMainWindow):
     @QtCore.pyqtSlot(int)
     @QtCore.pyqtSlot(str)
     def _updateMenuItemsState(self):
+        tab = self._tabs.currentPage()
         dataAvailable = self._subtitleData.count() != 0
-        anyTabOpen = self._tabs.currentPage() is not None
+        anyTabOpen = tab is not None
+        tabIsStatic = tab.isStatic if anyTabOpen else False
 
         self.saveAllAction.setEnabled(dataAvailable)
-        self.saveAction.setEnabled(anyTabOpen)
-        self.saveAsAction.setEnabled(anyTabOpen)
+        self.saveAction.setEnabled(anyTabOpen and not tabIsStatic)
+        self.saveAsAction.setEnabled(anyTabOpen and not tabIsStatic)
 
     def openFile(self):
         sub_extensions = self.__getAllSubExtensions()

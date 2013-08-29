@@ -46,6 +46,8 @@ class SubTabWidget(QtGui.QWidget):
         # Splitter (bookmarks + pages)
         self.splitter = QtGui.QSplitter(self)
 
+        # TODO: leftPanel is left so there might be displayed e.g. some information about currently
+        # focused file
         self.leftPanel = QtGui.QWidget()
         leftLayout = QtGui.QVBoxLayout()
         leftLayout.setMargin(0)
@@ -56,11 +58,13 @@ class SubTabWidget(QtGui.QWidget):
         rightLayout.setMargin(0)
         self.rightPanel.setLayout(rightLayout)
 
-        self.sidePanel = SidePanel(self._subtitleData, self)
-        leftLayout.addWidget(self.sidePanel)
+        self._mainTab = SubtitleTab(_("Subtitles"), self._subtitleData, self)
 
         self.pages = QtGui.QStackedWidget(self)
         rightLayout.addWidget(self.pages, 0, 0)
+
+        self.tabBar.addTab(self._mainTab.name)
+        self.pages.addWidget(self._mainTab)
 
         self.splitter.addWidget(self.leftPanel)
         self.splitter.addWidget(self.rightPanel)
@@ -85,7 +89,7 @@ class SubTabWidget(QtGui.QWidget):
         self.tabBar.currentChanged.connect(self.showTab)
         self.tabBar.tabCloseRequested.connect(self.closeTab)
         self.tabBar.tabMoved.connect(self.moveTab)
-        self.sidePanel.requestOpen.connect(self.showEditor)
+        self._mainTab.requestOpen.connect(self.showEditor)
 
         self.setLayout(mainLayout)
 
@@ -94,11 +98,12 @@ class SubTabWidget(QtGui.QWidget):
         """Returns existing tab index. Creates a new one if it isn't opened and returns its index
         otherwise."""
         for i in range(self.tabBar.count()):
-            if filePath == self.pages.widget(i).filePath:
+            widget = self.pages.widget(i)
+            if not widget.isStatic and filePath == widget.filePath:
                 return i
         tab = SubtitleEditor(filePath, self._subtitleData, self.pages)
         # FIXME: too many tab-change signals
-        newIndex = self.tabBar.addTab(filePath)
+        newIndex = self.tabBar.addTab(tab.name)
         self.pages.addWidget(tab)
         return newIndex
 
@@ -127,18 +132,19 @@ class SubTabWidget(QtGui.QWidget):
 
     @QtCore.pyqtSlot(int)
     def closeTab(self, index):
-        widgetToRemove = self.pages.widget(index)
-        self.tabBar.removeTab(index)
-        self.pages.removeWidget(widgetToRemove)
-        widgetToRemove.close()
-        # FIXME: too many tab-change signals
-        # Hack
-        # when last tab is closed, tabBar should emit tabCloseRequested and then currentChanged.
-        # Unfortunately it emits these signals the other way round and when clients receive
-        # self.tabChanged, they have no possibility to know if there's no tab opened. This hack
-        # will inform them additionaly when last tab is closed.
-        if self.currentIndex() == -1:
-            self._tabChanged.emit(self.currentIndex())
+        if not self.tab(index).isStatic:
+            widgetToRemove = self.pages.widget(index)
+            self.tabBar.removeTab(index)
+            self.pages.removeWidget(widgetToRemove)
+            widgetToRemove.close()
+            # FIXME: too many tab-change signals
+            # Hack
+            # when last tab is closed, tabBar should emit tabCloseRequested and then currentChanged.
+            # Unfortunately it emits these signals the other way round and when clients receive
+            # self.tabChanged, they have no possibility to know if there's no tab opened. This hack
+            # will inform them additionaly when last tab is closed.
+            if self.currentIndex() == -1:
+                self._tabChanged.emit(self.currentIndex())
 
     def currentIndex(self):
         return self.tabBar.currentIndex()
@@ -150,21 +156,26 @@ class SubTabWidget(QtGui.QWidget):
     def moveTab(self, fromIndex, toIndex):
         fromWidget = self.pages.widget(fromIndex)
         toWidget = self.pages.widget(toIndex)
-
-        self.pages.removeWidget(fromWidget)
-        self.pages.removeWidget(toWidget)
-
-        if fromIndex < toIndex:
-            self.pages.insertWidget(fromIndex, toWidget)
-            self.pages.insertWidget(toIndex, fromWidget)
+        if fromWidget.isStatic or toWidget.isStatic:
+            self.tabBar.blockSignals(True) # signals would cause infinite recursion
+            self.tabBar.moveTab(toIndex, fromIndex)
+            self.tabBar.blockSignals(False)
+            return
         else:
-            self.pages.insertWidget(toIndex, fromWidget)
-            self.pages.insertWidget(fromIndex, toWidget)
+            self.pages.removeWidget(fromWidget)
+            self.pages.removeWidget(toWidget)
 
-        # Hack
-        # Qt changes tabs during mouse drag and dropping. The next line is added
-        # to prevent it.
-        self.showTab(self.tabBar.currentIndex())
+            if fromIndex < toIndex:
+                self.pages.insertWidget(fromIndex, toWidget)
+                self.pages.insertWidget(toIndex, fromWidget)
+            else:
+                self.pages.insertWidget(toIndex, fromWidget)
+                self.pages.insertWidget(fromIndex, toWidget)
+
+            # Hack
+            # Qt changes tabs during mouse drag and dropping. The next line is added
+            # to prevent it.
+            self.showTab(self.tabBar.currentIndex())
 
     @QtCore.pyqtSlot(int)
     def showTab(self, index):
@@ -178,11 +189,25 @@ class SubTabWidget(QtGui.QWidget):
     def tab(self, index):
         return self.pages.widget(index)
 
-class SidePanel(QtGui.QWidget):
+class SubTab(QtGui.QWidget):
+    def __init__(self, displayName, isStaticTab, parent = None):
+        super(SubTab, self).__init__(parent)
+        self._displayName = displayName
+        self._isStaticTab = isStaticTab
+
+    @property
+    def isStatic(self):
+        return self._isStaticTab
+
+    @property
+    def name(self):
+        return self._displayName
+
+class SubtitleTab(SubTab):
     requestOpen = QtCore.pyqtSignal(str)
 
-    def __init__(self, subtitleData, parent = None):
-        super(SidePanel, self).__init__(parent)
+    def __init__(self, name, subtitleData, parent = None):
+        super(SubtitleTab, self).__init__(name, True, parent)
         mainLayout = QtGui.QVBoxLayout(self)
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
@@ -213,9 +238,9 @@ class SidePanel(QtGui.QWidget):
         item = self.__fileList.currentItem()
         self.requestOpen.emit(item.text())
 
-class SubtitleEditor(QtGui.QWidget):
+class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):
-        super(SubtitleEditor, self).__init__(parent)
+        super(SubtitleEditor, self).__init__(filePath, False, parent)
 
         self._filePath = filePath # for __eq__
         self._subtitleData = subtitleData
