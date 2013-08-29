@@ -21,7 +21,9 @@ import os
 import gettext
 import logging
 
+# TODO prefer separate modules to lower the memory footprint
 from PyQt4 import QtGui, QtCore, Qt
+from subconvert.gui.Detail import ClickableListWidget
 
 import subconvert.resources
 
@@ -120,10 +122,12 @@ class SubTabWidget(QtGui.QWidget):
         splitterLayout.addWidget(line)
         splitterHandle.setLayout(splitterLayout)
 
-    @QtCore.pyqtSlot(str)
-    def showEditor(self, filePath):
+    @QtCore.pyqtSlot(str, bool)
+    def showEditor(self, filePath, background=False):
         if self._subtitleData.fileExists(filePath):
-            self.showTab(self.__addTab(filePath))
+            tabIndex = self.__addTab(filePath)
+            if background is False:
+                self.showTab(tabIndex)
         else:
             log.error(_("SubtitleEditor not created for %s!" % filePath))
 
@@ -202,9 +206,8 @@ class SubTab(QtGui.QWidget):
     @property
     def name(self):
         return self._displayName
-
 class SubtitleTab(SubTab):
-    requestOpen = QtCore.pyqtSignal(str)
+    requestOpen = QtCore.pyqtSignal(str, bool)
 
     def __init__(self, name, subtitleData, parent = None):
         super(SubtitleTab, self).__init__(name, True, parent)
@@ -212,10 +215,11 @@ class SubtitleTab(SubTab):
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
 
-        self.__fileList = QtGui.QListWidget()
+        self.__fileList = ClickableListWidget()
         mainLayout.addWidget(self.__fileList)
 
-        self.__fileList.itemDoubleClicked.connect(self.informFileRequest)
+        self.__fileList.mouseButtonDoubleClicked.connect(self.handleDoubleClick)
+        self.__fileList.mouseButtonClicked.connect(self.handleClick)
         subtitleData.fileAdded.connect(self.addFile)
 
         self.setLayout(mainLayout)
@@ -234,9 +238,18 @@ class SubtitleTab(SubTab):
     def getCurrentFile(self):
         return self.__fileList.currentItem()
 
-    def informFileRequest(self):
+    def handleClick(self, button):
         item = self.__fileList.currentItem()
-        self.requestOpen.emit(item.text())
+        if button == QtCore.Qt.MiddleButton:
+            self.requestOpen.emit(item.text(), True)
+
+    def handleDoubleClick(self, button):
+        item = self.__fileList.currentItem()
+        if button == QtCore.Qt.LeftButton:
+            self.requestOpen.emit(item.text(), False)
+
+    #def informFileRequest(self, item, mouseButton):
+    #    if mouseButton == QtCore.Qt.MiddleButton
 
 class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):
