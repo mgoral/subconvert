@@ -95,7 +95,8 @@ class MainWindow(QtGui.QMainWindow):
         if connection is not None:
             action.triggered.connect(connection)
 
-        self._actions[name] = action
+        self.addAction(action)
+        self._actions[name] = action # This way all actions can be immediately used
         return self._actions[name]
 
     def __initActions(self):
@@ -111,6 +112,9 @@ class MainWindow(QtGui.QMainWindow):
             "document-save", _("&Sa&ve all"), _("Save all opened files."), None, self.saveAll)
         self._createAction("exit",
             "application-exit", _("&Exit"), _("Exit Subconvert."), None, QtGui.qApp.quit)
+        self._createAction("nextTab", None, None, None, "ctrl+tab", self.nextTab)
+        self._createAction("previousTab", None, None, None, "ctrl+shift+tab", self.previousTab)
+        self._createAction("closeTab", None, None, None, "ctrl+w", self.closeTab)
 
     def __initMenuBar(self):
         menubar = self.menuBar()
@@ -183,6 +187,25 @@ class MainWindow(QtGui.QMainWindow):
         self._actions["saveAllFiles"].setEnabled(dataAvailable)
         self._actions["saveFile"].setEnabled(anyTabOpen and not tabIsStatic)
         self._actions["saveFileAs"].setEnabled(anyTabOpen and not tabIsStatic)
+
+    def nextTab(self):
+        if self._tabs.count() > 0:
+            index = self._tabs.currentIndex() + 1
+            if index > self._tabs.count() - 1:
+                index = 0
+            self._tabs.showTab(index)
+
+    def previousTab(self):
+        if self._tabs.count() > 0:
+            index = self._tabs.currentIndex() - 1
+            if index < 0:
+                index = self._tabs.count() - 1
+            self._tabs.showTab(index)
+
+    def closeTab(self):
+        if self._tabs.count() > 0:
+            index = self._tabs.currentIndex()
+            self._tabs.closeTab(index)
 
     def openFile(self):
         sub_extensions = self.__getAllSubExtensions()
