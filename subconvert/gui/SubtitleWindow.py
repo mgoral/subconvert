@@ -21,16 +21,19 @@ import os
 import gettext
 import logging
 
-# TODO prefer separate modules to lower the memory footprint
-from PyQt4 import QtGui, QtCore, Qt
+from PyQt4.QtGui import QWidget, QFrame, QVBoxLayout, QGridLayout, QTabBar, QStackedWidget
+from PyQt4.QtGui import QIcon, QListWidgetItem, QTableView, QHeaderView, QSplitter
+from PyQt4.QtGui import QStandardItemModel, QStandardItem
+from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
+
 from subconvert.gui.Detail import ClickableListWidget
 
 import subconvert.resources
 
 log = logging.getLogger('subconvert.%s' % __name__)
 
-class SubTabWidget(QtGui.QWidget):
-    _tabChanged = QtCore.pyqtSignal(int, name = "tabChanged")
+class SubTabWidget(QWidget):
+    _tabChanged = pyqtSignal(int, name = "tabChanged")
 
     def __init__(self, subtitleData, parent = None):
         super(SubTabWidget, self).__init__(parent)
@@ -38,31 +41,31 @@ class SubTabWidget(QtGui.QWidget):
         self.__initTabWidget()
 
     def __initTabWidget(self):
-        mainLayout = QtGui.QVBoxLayout(self)
+        mainLayout = QVBoxLayout(self)
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
 
         #TabBar
-        self.tabBar = QtGui.QTabBar(self)
+        self.tabBar = QTabBar(self)
 
         # Splitter (bookmarks + pages)
-        self.splitter = QtGui.QSplitter(self)
+        self.splitter = QSplitter(self)
 
         # TODO: leftPanel is left so there might be displayed e.g. some information about currently
         # focused file
-        self.leftPanel = QtGui.QWidget()
-        leftLayout = QtGui.QVBoxLayout()
+        self.leftPanel = QWidget()
+        leftLayout = QVBoxLayout()
         leftLayout.setMargin(0)
         self.leftPanel.setLayout(leftLayout)
 
-        self.rightPanel = QtGui.QWidget()
-        rightLayout = QtGui.QGridLayout()
+        self.rightPanel = QWidget()
+        rightLayout = QGridLayout()
         rightLayout.setMargin(0)
         self.rightPanel.setLayout(rightLayout)
 
         self._mainTab = SubtitleTab(_("Subtitles"), self._subtitleData, self)
 
-        self.pages = QtGui.QStackedWidget(self)
+        self.pages = QStackedWidget(self)
         rightLayout.addWidget(self.pages, 0, 0)
 
         self.tabBar.addTab(self._mainTab.name)
@@ -112,17 +115,17 @@ class SubTabWidget(QtGui.QWidget):
     def __drawSplitterHandle(self, index):
         splitterHandle = self.splitter.handle(index)
 
-        splitterLayout = QtGui.QVBoxLayout(splitterHandle)
+        splitterLayout = QVBoxLayout(splitterHandle)
         splitterLayout.setSpacing(0)
         splitterLayout.setMargin(0)
 
-        line = QtGui.QFrame(splitterHandle)
-        line.setFrameShape(QtGui.QFrame.HLine)
-        line.setFrameShadow(QtGui.QFrame.Sunken)
+        line = QFrame(splitterHandle)
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
         splitterLayout.addWidget(line)
         splitterHandle.setLayout(splitterLayout)
 
-    @QtCore.pyqtSlot(str, bool)
+    @pyqtSlot(str, bool)
     def showEditor(self, filePath, background=False):
         if self._subtitleData.fileExists(filePath):
             tabIndex = self.__addTab(filePath)
@@ -134,7 +137,7 @@ class SubTabWidget(QtGui.QWidget):
     def count(self):
         return self.tabBar.count()
 
-    @QtCore.pyqtSlot(int)
+    @pyqtSlot(int)
     def closeTab(self, index):
         if not self.tab(index).isStatic:
             widgetToRemove = self.pages.widget(index)
@@ -156,7 +159,7 @@ class SubTabWidget(QtGui.QWidget):
     def currentPage(self):
         return self.pages.currentWidget()
 
-    @QtCore.pyqtSlot(int, int)
+    @pyqtSlot(int, int)
     def moveTab(self, fromIndex, toIndex):
         fromWidget = self.pages.widget(fromIndex)
         toWidget = self.pages.widget(toIndex)
@@ -181,7 +184,7 @@ class SubTabWidget(QtGui.QWidget):
             # to prevent it.
             self.showTab(self.tabBar.currentIndex())
 
-    @QtCore.pyqtSlot(int)
+    @pyqtSlot(int)
     def showTab(self, index):
         # FIXME: too many tab-change signals
         showWidget = self.pages.widget(index)
@@ -193,7 +196,7 @@ class SubTabWidget(QtGui.QWidget):
     def tab(self, index):
         return self.pages.widget(index)
 
-class SubTab(QtGui.QWidget):
+class SubTab(QWidget):
     def __init__(self, displayName, isStaticTab, parent = None):
         super(SubTab, self).__init__(parent)
         self._displayName = displayName
@@ -207,11 +210,11 @@ class SubTab(QtGui.QWidget):
     def name(self):
         return self._displayName
 class SubtitleTab(SubTab):
-    requestOpen = QtCore.pyqtSignal(str, bool)
+    requestOpen = pyqtSignal(str, bool)
 
     def __init__(self, name, subtitleData, parent = None):
         super(SubtitleTab, self).__init__(name, True, parent)
-        mainLayout = QtGui.QVBoxLayout(self)
+        mainLayout = QVBoxLayout(self)
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
 
@@ -224,10 +227,10 @@ class SubtitleTab(SubTab):
 
         self.setLayout(mainLayout)
 
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def addFile(self, filePath):
-        icon = QtGui.QIcon(":/img/initial_list.png")
-        item = QtGui.QListWidgetItem(icon, filePath)
+        icon = QIcon(":/img/initial_list.png")
+        item = QListWidgetItem(icon, filePath)
         item.setToolTip(filePath)
         self.__fileList.addItem(item)
 
@@ -240,16 +243,13 @@ class SubtitleTab(SubTab):
 
     def handleClick(self, button):
         item = self.__fileList.currentItem()
-        if button == QtCore.Qt.MiddleButton:
+        if button == Qt.MiddleButton:
             self.requestOpen.emit(item.text(), True)
 
     def handleDoubleClick(self, button):
         item = self.__fileList.currentItem()
-        if button == QtCore.Qt.LeftButton:
+        if button == Qt.LeftButton:
             self.requestOpen.emit(item.text(), False)
-
-    #def informFileRequest(self, item, mouseButton):
-    #    if mouseButton == QtCore.Qt.MiddleButton
 
 class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):
@@ -259,14 +259,14 @@ class SubtitleEditor(SubTab):
         self._filePath = filePath # for __eq__
         self._subtitleData = subtitleData
 
-        grid = QtGui.QGridLayout(self)
+        grid = QGridLayout(self)
 
-        self._model = QtGui.QStandardItemModel(0, 3, self)
+        self._model = QStandardItemModel(0, 3, self)
         self._model.setHorizontalHeaderLabels([_("Begin"), _("End"), _("Subtitle")])
-        self.subList = QtGui.QTableView(self)
+        self.subList = QTableView(self)
         self.subList.setModel(self._model)
 
-        self.subList.horizontalHeader().setResizeMode(2, QtGui.QHeaderView.Stretch)
+        self.subList.horizontalHeader().setResizeMode(2, QHeaderView.Stretch)
 
         grid.setSpacing(10)
         grid.addWidget(self.subList, 0, 0)
@@ -278,7 +278,7 @@ class SubtitleEditor(SubTab):
         # Some signals
         self._subtitleData.fileChanged.connect(self.fileChanged)
 
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(str)
     def fileChanged(self, filePath):
         if filePath == self._filePath:
             self.updateSubtitles()
@@ -288,9 +288,9 @@ class SubtitleEditor(SubTab):
         self._subtitles = data.subtitles
         self._model.removeRows(0, self._model.rowCount())
         for sub in self._subtitles:
-            timeStart = QtGui.QStandardItem(sub.start.toStr())
-            timeEnd = QtGui.QStandardItem(sub.end.toStr())
-            text = QtGui.QStandardItem(sub.text)
+            timeStart = QStandardItem(sub.start.toStr())
+            timeEnd = QStandardItem(sub.end.toStr())
+            text = QStandardItem(sub.text)
             self._model.appendRow([timeStart, timeEnd, text])
 
     def saveContent(self):

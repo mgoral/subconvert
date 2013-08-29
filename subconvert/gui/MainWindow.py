@@ -22,7 +22,8 @@ import os
 import gettext
 import logging
 
-from PyQt4 import QtGui, QtCore
+from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QGridLayout, QAction, QIcon, qApp
+from PyQt4.QtCore import pyqtSlot, QDir
 
 from subconvert.parsing.Core import SubManager, SubParser, SubConverter
 from subconvert.parsing.Formats import *
@@ -32,7 +33,7 @@ from subconvert.utils.SubFile import File
 
 log = logging.getLogger('Subconvert.%s' % __name__)
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
@@ -55,16 +56,16 @@ class MainWindow(QtGui.QMainWindow):
             self._parser.registerFormat(Format)
 
     def __initGui(self):
-        self.mainWidget = QtGui.QWidget(self)
-        mainLayout = QtGui.QGridLayout()
+        self.mainWidget = QWidget(self)
+        mainLayout = QGridLayout()
         mainLayout.setContentsMargins(3, 3, 3, 3)
 
         self.setCentralWidget(self.mainWidget)
 
         self._subtitleData = DataController(self)
         self._tabs = SubtitleWindow.SubTabWidget(self._subtitleData)
-        self.fileDialog = QtGui.QFileDialog
-        self.directory = QtCore.QDir.homePath() # TODO: read from config
+        self.fileDialog = QFileDialog
+        self.directory = QDir.homePath() # TODO: read from config
 
         mainLayout.addWidget(self._tabs)
 
@@ -79,11 +80,11 @@ class MainWindow(QtGui.QMainWindow):
         self._tabs.tabChanged.connect(self.__updateMenuItemsState)
 
     def _createAction(self, name, icon=None, title=None, tip=None, shortcut=None, connection=None):
-        action = QtGui.QAction(self)
+        action = QAction(self)
 
         if icon is not None:
             try:
-                action.setIcon(QtGui.QIcon.fromTheme(icon))
+                action.setIcon(QIcon.fromTheme(icon))
             except TypeError:
                 action.setIcon(icon)
         if title is not None:
@@ -111,7 +112,7 @@ class MainWindow(QtGui.QMainWindow):
         self._createAction("saveAllFiles",
             "document-save", _("&Sa&ve all"), _("Save all opened files."), None, self.saveAll)
         self._createAction("exit",
-            "application-exit", _("&Exit"), _("Exit Subconvert."), None, QtGui.qApp.quit)
+            "application-exit", _("&Exit"), _("Exit Subconvert."), None, qApp.quit)
         self._createAction("nextTab", None, None, None, "ctrl+tab", self.nextTab)
         self._createAction("previousTab", None, None, None, "ctrl+shift+tab", self.previousTab)
         self._createAction("closeTab", None, None, None, "ctrl+w", self.closeTab)
@@ -176,8 +177,8 @@ class MainWindow(QtGui.QMainWindow):
     def _saveFileDirectory(self, filename):
             self.directory = os.path.split(filename)[0]
 
-    @QtCore.pyqtSlot(int)
-    @QtCore.pyqtSlot(str)
+    @pyqtSlot(int)
+    @pyqtSlot(str)
     def __updateMenuItemsState(self):
         tab = self._tabs.currentPage()
         dataAvailable = self._subtitleData.count() != 0

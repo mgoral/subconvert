@@ -18,7 +18,7 @@
 """
 
 import copy
-from PyQt4 import QtGui, QtCore, Qt
+from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
 
 from subconvert.parsing.Core import SubManager, SubParser, SubConverter, SubManager
 from subconvert.parsing.Formats import *
@@ -29,10 +29,10 @@ class SubtitleData:
     outputFormat = None
     outputEncoding = None
 
-class DataController(QtCore.QObject):
-    _fileAdded = QtCore.pyqtSignal(str, name = "fileAdded")
-    _fileRemoved = QtCore.pyqtSignal(str, name = "fileRemoved")
-    _fileChanged = QtCore.pyqtSignal(str, name = "fileChanged")
+class DataController(QObject):
+    _fileAdded = pyqtSignal(str, name = "fileAdded")
+    _fileRemoved = pyqtSignal(str, name = "fileRemoved")
+    _fileChanged = pyqtSignal(str, name = "fileChanged")
 
     def __init__(self, parent = None):
         super(DataController, self).__init__(parent)
