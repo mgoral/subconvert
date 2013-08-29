@@ -60,7 +60,7 @@ class MainWindow(QtGui.QMainWindow):
         self._subtitleData = DataController(self)
         self._tabs = SubtitleWindow.SubTabWidget(self._subtitleData)
         self.fileDialog = QtGui.QFileDialog
-        self.directory = os.environ['HOME'] # TODO: read from config
+        self.directory = QtCore.QDir.homePath() # TODO: read from config
 
         mainLayout.addWidget(self._tabs)
 
