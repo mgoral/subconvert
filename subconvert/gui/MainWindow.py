@@ -163,11 +163,8 @@ class MainWindow(QtGui.QMainWindow):
         else:
             File.write(newFilePath, content, data.outputEncoding)
 
-    def _saveDirectory(self, filename):
-        try:
+    def _saveFileDirectory(self, filename):
             self.directory = os.path.split(filename)[0]
-        except IndexError:
-            pass    # Normal error when hitting "Cancel"
 
     @QtCore.pyqtSlot(int)
     @QtCore.pyqtSlot(str)
@@ -188,7 +185,10 @@ class MainWindow(QtGui.QMainWindow):
             directory = self.directory,
             filter = _("Subtitles (%s);;All files (*.*)") % str_sub_exts
         )
-        self._saveDirectory(filenames[0])
+        try:
+            self._saveFileDirectory(filenames[0])
+        except IndexError:
+            pass    # Normal error when hitting "Cancel" - list of fileNames is empty
         for filePath in filenames:
             self.__addFile(filePath)
 
@@ -206,7 +206,7 @@ class MainWindow(QtGui.QMainWindow):
         )
         if newFileName:
             currentTab.saveContent()
-            self._saveDirectory(newFileName)
+            self._saveFileDirectory(newFileName)
             self._writeFile(currentTab.filePath, newFileName)
 
     def saveAll(self):
