@@ -43,6 +43,10 @@ class MainWindow(QtGui.QMainWindow):
 
         self.__createParser()
         self.__initGui()
+        self.__initActions()
+        self.__initMenuBar()
+        self.__updateMenuItemsState()
+        self.__connectSignals()
         self.show()
 
     def __createParser(self):
@@ -64,58 +68,60 @@ class MainWindow(QtGui.QMainWindow):
 
         mainLayout.addWidget(self._tabs)
 
-        self.__initMenuBar()
-
         self.statusBar()
-        self.menuBar()
-        self._updateMenuItemsState()
 
         self.mainWidget.setLayout(mainLayout)
         self.setWindowTitle('Subconvert') # TODO: current file path
 
-        # Some signals
-        self._subtitleData.fileAdded.connect(self._updateMenuItemsState)
-        self._subtitleData.fileRemoved.connect(self._updateMenuItemsState)
-        self._tabs.tabChanged.connect(self._updateMenuItemsState)
+    def __connectSignals(self):
+        self._subtitleData.fileAdded.connect(self.__updateMenuItemsState)
+        self._subtitleData.fileRemoved.connect(self.__updateMenuItemsState)
+        self._tabs.tabChanged.connect(self.__updateMenuItemsState)
+
+    def _createAction(self, name, icon=None, title=None, tip=None, shortcut=None, connection=None):
+        action = QtGui.QAction(self)
+
+        if icon is not None:
+            try:
+                action.setIcon(QtGui.QIcon.fromTheme(icon))
+            except TypeError:
+                action.setIcon(icon)
+        if title is not None:
+            action.setText(title)
+        if tip is not None:
+            action.setToolTip(tip)
+        if shortcut is not None:
+            action.setShortcut(shortcut)
+        if connection is not None:
+            action.triggered.connect(connection)
+
+        self._actions[name] = action
+        return self._actions[name]
+
+    def __initActions(self):
+        self._actions = {}
+        self._createAction("openFile",
+            "document-open", _("&Open"), _("Open subtitle file."), "ctrl+o", self.openFile)
+        self._createAction("saveFile",
+            "document-save", _("&Save"), _("Save current file."), "ctrl+s", self.saveFile)
+        self._createAction("saveFileAs",
+            "document-save",_("&S&ave as..."), _("Save current file as..."), "ctrl++shift+s",
+            self.saveFileAs)
+        self._createAction("saveAllFiles",
+            "document-save", _("&Sa&ve all"), _("Save all opened files."), None, self.saveAll)
+        self._createAction("exit",
+            "application-exit", _("&Exit"), _("Exit Subconvert."), None, QtGui.qApp.quit)
 
     def __initMenuBar(self):
         menubar = self.menuBar()
-
-        self.openAction = QtGui.QAction(
-            QtGui.QIcon.fromTheme('document-open'), _('&Open'), self)
-        self.openAction.setStatusTip(_("Open log file in current tab."))
-        self.openAction.setShortcut('ctrl+o')    # TODO: read this from settings
-        self.openAction.triggered.connect(self.openFile)
-
-        self.saveAction = QtGui.QAction(
-            QtGui.QIcon.fromTheme('document-save'), _('&Save'), self)
-        self.saveAction.setStatusTip(_("Save currently opened file."))
-        self.saveAction.setShortcut('ctrl+s')    # TODO: read this from settings
-        self.saveAction.triggered.connect(self.saveFile)
-
-        self.saveAsAction = QtGui.QAction(
-            QtGui.QIcon.fromTheme('document-save'), _('S&ave as...'), self)
-        self.saveAsAction.setShortcut('ctrl+shift+s')    # TODO: read this from settings
-        self.saveAsAction.setStatusTip(_("Save currently opened file under different name"))
-        self.saveAsAction.triggered.connect(self.saveFileAs)
-
-        self.saveAllAction = QtGui.QAction(
-            QtGui.QIcon.fromTheme('document-save'), _('Sa&ve all'), self)
-        self.saveAllAction.setStatusTip(_("Save all opened files."))
-        self.saveAllAction.triggered.connect(self.saveAll)
-
-        self.exitApp= QtGui.QAction(QtGui.QIcon.fromTheme('application-exit'), _('&Exit'), self)
-        self.exitApp.setStatusTip(_("Exit Subconvert"))
-        self.exitApp.triggered.connect(QtGui.qApp.quit)
-
         fileMenu = menubar.addMenu(_('&File'))
-        fileMenu.addAction(self.openAction)
+        fileMenu.addAction(self._actions["openFile"])
         fileMenu.addSeparator()
-        fileMenu.addAction(self.saveAction)
-        fileMenu.addAction(self.saveAsAction)
-        fileMenu.addAction(self.saveAllAction)
+        fileMenu.addAction(self._actions["saveFile"])
+        fileMenu.addAction(self._actions["saveFileAs"])
+        fileMenu.addAction(self._actions["saveAllFiles"])
         fileMenu.addSeparator()
-        fileMenu.addAction(self.exitApp)
+        fileMenu.addAction(self._actions["exit"])
 
     def __getAllSubExtensions(self):
         formats = SubFormat.__subclasses__()
@@ -168,15 +174,15 @@ class MainWindow(QtGui.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     @QtCore.pyqtSlot(str)
-    def _updateMenuItemsState(self):
+    def __updateMenuItemsState(self):
         tab = self._tabs.currentPage()
         dataAvailable = self._subtitleData.count() != 0
         anyTabOpen = tab is not None
         tabIsStatic = tab.isStatic if anyTabOpen else False
 
-        self.saveAllAction.setEnabled(dataAvailable)
-        self.saveAction.setEnabled(anyTabOpen and not tabIsStatic)
-        self.saveAsAction.setEnabled(anyTabOpen and not tabIsStatic)
+        self._actions["saveAllFiles"].setEnabled(dataAvailable)
+        self._actions["saveFile"].setEnabled(anyTabOpen and not tabIsStatic)
+        self._actions["saveFileAs"].setEnabled(anyTabOpen and not tabIsStatic)
 
     def openFile(self):
         sub_extensions = self.__getAllSubExtensions()
