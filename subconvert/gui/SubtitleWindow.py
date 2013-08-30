@@ -94,7 +94,7 @@ class SubTabWidget(QWidget):
         self.tabBar.currentChanged.connect(self.showTab)
         self.tabBar.tabCloseRequested.connect(self.closeTab)
         self.tabBar.tabMoved.connect(self.moveTab)
-        self._mainTab.requestOpen.connect(self.showEditor)
+        self._mainTab.requestOpen.connect(self.openTab)
 
         self.setLayout(mainLayout)
 
@@ -126,16 +126,13 @@ class SubTabWidget(QWidget):
         splitterHandle.setLayout(splitterLayout)
 
     @pyqtSlot(str, bool)
-    def showEditor(self, filePath, background=False):
+    def openTab(self, filePath, background=False):
         if self._subtitleData.fileExists(filePath):
             tabIndex = self.__addTab(filePath)
             if background is False:
                 self.showTab(tabIndex)
         else:
             log.error(_("SubtitleEditor not created for %s!" % filePath))
-
-    def count(self):
-        return self.tabBar.count()
 
     @pyqtSlot(int)
     def closeTab(self, index):
@@ -152,6 +149,9 @@ class SubTabWidget(QWidget):
             # will inform them additionaly when last tab is closed.
             if self.currentIndex() == -1:
                 self._tabChanged.emit(self.currentIndex())
+
+    def count(self):
+        return self.tabBar.count()
 
     def currentIndex(self):
         return self.tabBar.currentIndex()
@@ -209,6 +209,7 @@ class SubTab(QWidget):
     @property
     def name(self):
         return self._displayName
+
 class SubtitleTab(SubTab):
     requestOpen = pyqtSignal(str, bool)
 
