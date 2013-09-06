@@ -1,3 +1,9 @@
+Note about current development
+==============================
+Subconvert is currently developed on ```gui``` branch (where heavy refactoring
+is ongoing)! It's considered really unstable (and probably unusable), but if 
+you're into the latest news, please take a look.
+
 Subconvert - movie subtitles converter.
 ====================
 
