@@ -29,6 +29,7 @@ from subconvert.parsing.Core import SubManager, SubParser, SubConverter
 from subconvert.parsing.Formats import *
 from subconvert.gui import SubtitleWindow
 from subconvert.gui.DataModel import DataController, SubtitleData
+from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File
 
 log = logging.getLogger('Subconvert.%s' % __name__)
@@ -36,11 +37,6 @@ log = logging.getLogger('Subconvert.%s' % __name__)
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-
-        #self.userSettings = QtCore.QSettings(QtCore.QSettings.IniFormat,
-        #    QtCore.QSettings.UserScope, "logmaster", "rc")
-        #self.windowSettings = QtCore.QSettings(QtCore.QSettings.IniFormat,
-        #    QtCore.QSettings.UserScope, "logmaster", "window")
 
         self.__createParser()
         self.__initGui()
@@ -56,6 +52,7 @@ class MainWindow(QMainWindow):
             self._parser.registerFormat(Format)
 
     def __initGui(self):
+        self._settings = SubSettings()
         self.mainWidget = QWidget(self)
         mainLayout = QGridLayout()
         mainLayout.setContentsMargins(3, 3, 3, 3)
@@ -65,7 +62,6 @@ class MainWindow(QMainWindow):
         self._subtitleData = DataController(self)
         self._tabs = SubtitleWindow.SubTabWidget(self._subtitleData)
         self.fileDialog = QFileDialog
-        self.directory = QDir.homePath() # TODO: read from config
 
         mainLayout.addWidget(self._tabs)
 
@@ -174,9 +170,6 @@ class MainWindow(QMainWindow):
         else:
             File.write(newFilePath, content, data.outputEncoding)
 
-    def _saveFileDirectory(self, filename):
-            self.directory = os.path.split(filename)[0]
-
     @pyqtSlot(int)
     @pyqtSlot(str)
     def __updateMenuItemsState(self):
@@ -214,11 +207,11 @@ class MainWindow(QMainWindow):
         filenames = self.fileDialog.getOpenFileNames(
             parent = self,
             caption = _('Open file'),
-            directory = self.directory,
+            directory = self._settings.getLatestDirectory(),
             filter = _("Subtitles (%s);;All files (*.*)") % str_sub_exts
         )
         try:
-            self._saveFileDirectory(filenames[0])
+            self._settings.setLatestDirectory(os.path.dirname(filenames[0]))
         except IndexError:
             pass    # Normal error when hitting "Cancel" - list of fileNames is empty
         for filePath in filenames:
@@ -234,11 +227,11 @@ class MainWindow(QMainWindow):
         newFileName = self.fileDialog.getSaveFileName(
             parent = self,
             caption = _('Save as...'),
-            directory = self.directory
+            directory = self._settings.getLatestDirectory()
         )
         if newFileName:
             currentTab.saveContent()
-            self._saveFileDirectory(newFileName)
+            self._settings.setLatestDirectory(os.path.dirname(newFileName))
             self._writeFile(currentTab.filePath, newFileName)
 
     def saveAll(self):
