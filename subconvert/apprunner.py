@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt4 import QtGui, QtCore
+from PyQt4.QtGui import QApplication
 
 import os
 import sys
@@ -53,7 +53,7 @@ def prepareOptions():
     return parser
 
 def startApp():
-    app = QtGui.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     gui = MainWindow.MainWindow()
     sys.exit(app.exec_())
 
