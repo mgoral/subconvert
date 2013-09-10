@@ -63,7 +63,7 @@ class SubTabWidget(QWidget):
         rightLayout.setMargin(0)
         self.rightPanel.setLayout(rightLayout)
 
-        self._mainTab = SubtitleTab(_("Subtitles"), self._subtitleData, self)
+        self._mainTab = FileList(_("Subtitles"), self._subtitleData, self)
 
         self.pages = QStackedWidget(self)
         rightLayout.addWidget(self.pages, 0, 0)
@@ -210,11 +210,11 @@ class SubTab(QWidget):
     def name(self):
         return self._displayName
 
-class SubtitleTab(SubTab):
+class FileList(SubTab):
     requestOpen = pyqtSignal(str, bool)
 
     def __init__(self, name, subtitleData, parent = None):
-        super(SubtitleTab, self).__init__(name, True, parent)
+        super(FileList, self).__init__(name, True, parent)
         mainLayout = QVBoxLayout(self)
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
