@@ -204,10 +204,19 @@ class MainWindow(QMainWindow):
             self._writeFile(currentTab.filePath, newFileName)
 
     def saveAll(self):
+        # BUG!!!!!!!!!!!!
+        # FIXME: fetch self._tabs.fileList list of opened files instead of opened tabs. We want to
+        # save all files, not only those shown in tabs. 
+        # When asked to save file, FileList should check whether it's parsed and parse it if it's
+        # not (in future the parsing moment might be moved to invrease responsibility when opening
+        # a lot of files - i.e. only a file list will be printed and files will be actually parsed
+        # on their first use (e.g. on tab open, fps change etc.). I'll have to think about it).
+        # END OF FIXME
         for i in range(self._tabs.count()):
             tab = self._tabs.tab(i)
             if tab is not None and not tab.isStatic:
                 tab.saveContent()
                 self._writeFile(tab.filePath)
+        # END OF BUG!!!!!!!!!!!!!
 
 
