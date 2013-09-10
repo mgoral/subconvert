@@ -25,7 +25,7 @@ import logging
 from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QGridLayout, QAction, QIcon, qApp
 from PyQt4.QtCore import pyqtSlot, QDir
 
-from subconvert.parsing.Core import SubManager, SubParser, SubConverter
+from subconvert.parsing.Core import SubConverter
 from subconvert.parsing.Formats import *
 from subconvert.gui import SubtitleWindow
 from subconvert.gui.DataModel import DataController, SubtitleData
@@ -38,18 +38,12 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
-        self.__createParser()
         self.__initGui()
         self.__initActions()
         self.__initMenuBar()
         self.__updateMenuItemsState()
         self.__connectSignals()
         self.show()
-
-    def __createParser(self):
-        self._parser = SubParser()
-        for Format in SubFormat.__subclasses__():
-            self._parser.registerFormat(Format)
 
     def __initGui(self):
         self._settings = SubSettings()
@@ -131,31 +125,6 @@ class MainWindow(QMainWindow):
         exts.sort()
         return exts
 
-    def __createSubtitles(self, file_):
-        # TODO: fetch fps and encoding from user input (e.g. commandline options, settings, etc)
-        fps = 25
-        inputEncoding = None
-        fileContent = file_.read(inputEncoding)
-        subtitles = self._parser.parse(fileContent)
-        return subtitles
-
-    def __addFile(self, filePath):
-        if not self._subtitleData.fileExists(filePath):
-            try:
-                file_ = File(filePath)
-            except IOError as msg:
-                log.error(msg)
-                return
-            data = SubtitleData()
-            data.subtitles = self.__createSubtitles(file_)
-            if self._parser.isParsed:
-                # TODO: fetch those somehow
-                data.outputFormat = self._parser.parsedFormat()
-                data.outputEncoding = "utf8"
-                self._subtitleData.add(filePath, data)
-            else:
-                log.error(_("Unable to parse file '%s'.") % filePath)
-
     def _writeFile(self, filePath, newFilePath=None):
         if newFilePath is None:
             newFilePath = filePath
@@ -215,7 +184,7 @@ class MainWindow(QMainWindow):
         except IndexError:
             pass    # Normal error when hitting "Cancel" - list of fileNames is empty
         for filePath in filenames:
-            self.__addFile(filePath)
+            self._tabs.fileList.addFile(filePath)
 
     def saveFile(self):
         currentTab = self._tabs.currentPage()
@@ -237,7 +206,7 @@ class MainWindow(QMainWindow):
     def saveAll(self):
         for i in range(self._tabs.count()):
             tab = self._tabs.tab(i)
-            if tab is not None:
+            if tab is not None and not tab.isStatic:
                 tab.saveContent()
                 self._writeFile(tab.filePath)
 

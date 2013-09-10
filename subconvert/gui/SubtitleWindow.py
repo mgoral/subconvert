@@ -196,6 +196,10 @@ class SubTabWidget(QWidget):
     def tab(self, index):
         return self.pages.widget(index)
 
+    @property
+    def fileList(self):
+        return self._mainTab
+
 class SubTab(QWidget):
     def __init__(self, displayName, isStaticTab, parent = None):
         super(SubTab, self).__init__(parent)
@@ -224,16 +228,19 @@ class FileList(SubTab):
 
         self.__fileList.mouseButtonDoubleClicked.connect(self.handleDoubleClick)
         self.__fileList.mouseButtonClicked.connect(self.handleClick)
-        subtitleData.fileAdded.connect(self.addFile)
+        self._subtitleData = subtitleData
 
         self.setLayout(mainLayout)
 
-    @pyqtSlot(str)
     def addFile(self, filePath):
-        icon = QIcon(":/img/initial_list.png")
-        item = QListWidgetItem(icon, filePath)
-        item.setToolTip(filePath)
-        self.__fileList.addItem(item)
+        if not self._subtitleData.fileExists(filePath):
+            data = self._subtitleData.createDataFromFile(filePath)
+            icon = QIcon(":/img/initial_list.png")
+            item = QListWidgetItem(icon, filePath)
+            item.setToolTip(filePath)
+
+            self._subtitleData.add(filePath, data)
+            self.__fileList.addItem(item)
 
     def removeFile(self):
         item = self.__fileList.takeItem(self.__fileList.currentRow())
@@ -244,12 +251,12 @@ class FileList(SubTab):
 
     def handleClick(self, button):
         item = self.__fileList.currentItem()
-        if button == Qt.MiddleButton:
+        if item is not None and button == Qt.MiddleButton:
             self.requestOpen.emit(item.text(), True)
 
     def handleDoubleClick(self, button):
         item = self.__fileList.currentItem()
-        if button == Qt.LeftButton:
+        if item is not None and button == Qt.LeftButton:
             self.requestOpen.emit(item.text(), False)
 
 class SubtitleEditor(SubTab):

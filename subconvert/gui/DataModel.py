@@ -29,6 +29,13 @@ class SubtitleData:
     outputFormat = None
     outputEncoding = None
 
+    def empty(self):
+        return (
+            self.subtitles is None and
+            self.outputFormat is None and
+            self.outputEncoding is None
+        )
+
 class DataController(QObject):
     _fileAdded = pyqtSignal(str, name = "fileAdded")
     _fileRemoved = pyqtSignal(str, name = "fileRemoved")
@@ -39,23 +46,32 @@ class DataController(QObject):
         self._storage = {
             # filePath: Data
         }
+        self._parser = SubParser()
+        for Format in SubFormat.__subclasses__():
+            self._parser.registerFormat(Format)
 
     def _checkFilePath(self, filePath):
         if not isinstance(filePath, str):
             raise TypeError(_("filePath is not a string!"))
 
-    def _checkSubtitles(self, subtitles):
-        if type(subtitles) is not SubManager:
-            raise TypeError(_("Incorrect subtitles type!"))
+    def _addSubtitles(self, filePath, subtitles):
+        if subtitles is not None:
+            if type(subtitles) is not SubManager:
+                raise TypeError(_("Incorrect subtitles type!"))
+            self._storage[filePath].subtitles = copy.deepcopy(subtitles)
 
-    def _checkOutputFormat(self, outputFormat):
-        if not issubclass(outputFormat, SubFormat):
-            raise TypeError(_("Incorrect outputFormat type!"))
+    def _addOutputFormat(self, filePath, outputFormat):
+        if outputFormat is not None:
+            if not issubclass(outputFormat, SubFormat):
+                raise TypeError(_("Incorrect outputFormat type!"))
+            self._storage[filePath].outputFormat = copy.deepcopy(outputFormat)
 
-    def _checkOutputEncoding(self, outputEncoding):
-        # TODO: proper check
-        if not isinstance(outputEncoding, str):
-            raise TypeError(_("Incorrect outputEncoding type!"))
+    def _addOutputEncoding(self, filePath, outputEncoding):
+        if outputEncoding is not None:
+            # TODO: proper check
+            if not isinstance(outputEncoding, str):
+                raise TypeError(_("Incorrect outputEncoding type!"))
+            self._storage[filePath].outputEncoding = copy.deepcopy(outputEncoding)
 
     def _addData(self, filePath, data):
         """An actual function that checks and adds data given for add/update operation"""
@@ -63,26 +79,57 @@ class DataController(QObject):
             raise TypeError(_("Incorrect data type!"))
 
         self._checkFilePath(filePath)
-        self._checkSubtitles(data.subtitles)
-        self._checkOutputFormat(data.outputFormat)
-        self._checkOutputEncoding(data.outputEncoding)
 
-        insertData = copy.deepcopy(data)
-        self._storage[filePath] = insertData
+        if self._storage.get(filePath) is None:
+            self._storage[filePath] = SubtitleData()
+
+        self._addSubtitles(filePath, data.subtitles)
+        self._addOutputFormat(filePath, data.outputFormat)
+        self._addOutputEncoding(filePath, data.outputEncoding)
+
+    def _parseFile(self, file_, inputEncoding):
+        fileContent = file_.read(inputEncoding)
+        return self._parser.parse(fileContent)
 
     def add(self, filePath, data):
         """Add a file with a given filePath, subtitles and an output format and output encoding."""
         if filePath in self._storage:
             raise KeyError(_("Entry for '%s' cannot be added twice") % filePath)
-        self._addData(filePath, data)
-        self._fileAdded.emit(filePath)
+        if not data.empty():
+            self._addData(filePath, data)
+            self._fileAdded.emit(filePath)
+
+    def createDataFromFile(self, filePath, inputEncoding = None):
+        """Fetch a given filePath and parse its contents.
+
+        May raise the following exceptions:
+        * RuntimeError - generic exception telling that parsing was unsuccessfull
+        * IOError - failed to open a file at given filePath
+
+        @return SubtitleData filled with non-empty, default datafields. Client should modify them
+                and then perform an add/update operation"""
+
+        file_ = File(filePath)
+        if inputEncoding is None:
+            inputEncoding = file_.detectEncoding()
+
+        subtitles = self._parseFile(file_, inputEncoding)
+        if self._parser.isParsed:
+            data = SubtitleData()
+            data.subtitles = subtitles
+            data.outputEncoding = inputEncoding
+            data.outputFormat = self._parser.parsedFormat()
+            return data
+        else:
+            raise RuntimeError(_("Unable to parse file '%s'.") % filePath)
 
     def update(self, filePath, data):
         """Update an already existing entry."""
         if filePath not in self._storage:
             raise KeyError(_("No entry to update for %s") % filePath)
-        self._addData(filePath, data)
-        self._fileChanged.emit(filePath)
+        if not data.empty():
+            self._addData(filePath, data)
+            self._fileChanged.emit(filePath)
 
     def remove(self, filePath):
         """Remove a file with a given filePath"""
