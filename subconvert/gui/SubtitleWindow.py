@@ -20,10 +20,12 @@
 import os
 import gettext
 import logging
+import pkgutil
+import encodings
 
-from PyQt4.QtGui import QWidget, QFrame, QVBoxLayout, QGridLayout, QTabBar, QStackedWidget
-from PyQt4.QtGui import QIcon, QListWidgetItem, QTableView, QHeaderView, QSplitter
-from PyQt4.QtGui import QStandardItemModel, QStandardItem
+from PyQt4.QtGui import QWidget, QFrame, QHBoxLayout, QVBoxLayout, QGridLayout, QTabBar
+from PyQt4.QtGui import QIcon, QListWidgetItem, QTableView, QHeaderView, QSplitter, QStackedWidget
+from PyQt4.QtGui import QStandardItemModel, QStandardItem, QComboBox, QSizePolicy
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
 
 from subconvert.gui.Detail import ClickableListWidget
@@ -31,6 +33,15 @@ from subconvert.gui.Detail import ClickableListWidget
 import subconvert.resources
 
 log = logging.getLogger('subconvert.%s' % __name__)
+
+def pythonEncodings():
+    # http://stackoverflow.com/questions/1707709/list-all-the-modules-that-are-part-of-a-python-package/1707786#1707786
+    false_positives = set(["aliases"])
+    found = set(name for imp, name, ispkg in pkgutil.iter_modules(encodings.__path__) if not ispkg)
+    found.difference_update(false_positives)
+    found = list(found)
+    found.sort()
+    return found
 
 class SubTabWidget(QWidget):
     _tabChanged = pyqtSignal(int, name = "tabChanged")
@@ -263,28 +274,44 @@ class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):
         name = os.path.split(filePath)[1]
         super(SubtitleEditor, self).__init__(name, False, parent)
+        self.__initWidgets()
 
-        self._filePath = filePath # for __eq__
+        self._filePath = filePath
         self._subtitleData = subtitleData
-
-        grid = QGridLayout(self)
-
-        self._model = QStandardItemModel(0, 3, self)
-        self._model.setHorizontalHeaderLabels([_("Begin"), _("End"), _("Subtitle")])
-        self.subList = QTableView(self)
-        self.subList.setModel(self._model)
-
-        self.subList.horizontalHeader().setResizeMode(2, QHeaderView.Stretch)
-
-        grid.setSpacing(10)
-        grid.addWidget(self.subList, 0, 0)
 
         self.updateSubtitles()
 
-        self.setLayout(grid)
-
         # Some signals
         self._subtitleData.fileChanged.connect(self.fileChanged)
+
+    def __initWidgets(self):
+        minimalSizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
+        # Encodings combo box
+        # TODO: show only encodings selected by user in preferences
+        self._encodings = QComboBox(self)
+        self._encodings.addItem(_("[Auto]"))
+        self._encodings.addItems(pythonEncodings())
+
+        # List of subtitles
+        self._model = QStandardItemModel(0, 3, self)
+        self._model.setHorizontalHeaderLabels([_("Begin"), _("End"), _("Subtitle")])
+        self._subList = QTableView(self)
+        self._subList.setModel(self._model)
+        self._subList.horizontalHeader().setResizeMode(2, QHeaderView.Stretch)
+
+        # Top toolbar
+        toolbar = QHBoxLayout()
+        toolbar.setAlignment(Qt.AlignLeft)
+        toolbar.addWidget(self._encodings)
+        toolbar.addStretch(1)
+
+        # Main layout
+        grid = QGridLayout()
+        grid.setSpacing(10)
+        grid.addLayout(toolbar, 0, 0, 1, 1) # stretch to the right
+        grid.addWidget(self._subList, 1, 0)
+        self.setLayout(grid)
 
     @pyqtSlot(str)
     def fileChanged(self, filePath):
