@@ -176,17 +176,17 @@ class SubManager:
 
     # TODO: test
     def changeSubText(self, subNo, newText):
-        self._subs(subNo).change(text = newText)
+        self._subs[subNo].change(text = newText)
         return self
 
     # TODO: test
     def changeSubStart(self, subNo, newTime):
-        self._subs(subNo).change(start = newTime)
+        self._subs[subNo].change(start = newTime)
         return self
 
     # TODO: test
     def changeSubEnd(self, subNo, newTime):
-        self._subs(subNo).change(end = newTime)
+        self._subs[subNo].change(end = newTime)
         if subNo == self.size() - 1:
             self._invalidTime = False
         return self
