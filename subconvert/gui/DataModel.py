@@ -27,12 +27,14 @@ from subconvert.utils.SubFile import File
 class SubtitleData:
     subtitles = None
     outputFormat = None
+    inputEncoding = None
     outputEncoding = None
 
     def empty(self):
         return (
             self.subtitles is None and
             self.outputFormat is None and
+            self.inputEncoding is None and
             self.outputEncoding is None
         )
 
@@ -66,6 +68,13 @@ class DataController(QObject):
                 raise TypeError(_("Incorrect outputFormat type!"))
             self._storage[filePath].outputFormat = copy.deepcopy(outputFormat)
 
+    def _addInputEncoding(self, filePath, inputEncoding):
+        if inputEncoding is not None:
+            # TODO: proper check
+            if not isinstance(inputEncoding, str):
+                raise TypeError(_("Incorrect inputEncoding type!"))
+            self._storage[filePath].inputEncoding = copy.deepcopy(inputEncoding)
+
     def _addOutputEncoding(self, filePath, outputEncoding):
         if outputEncoding is not None:
             # TODO: proper check
@@ -85,6 +94,7 @@ class DataController(QObject):
 
         self._addSubtitles(filePath, data.subtitles)
         self._addOutputFormat(filePath, data.outputFormat)
+        self._addInputEncoding(filePath, data.inputEncoding)
         self._addOutputEncoding(filePath, data.outputEncoding)
 
     def _parseFile(self, file_, inputEncoding):
@@ -117,6 +127,7 @@ class DataController(QObject):
         if self._parser.isParsed:
             data = SubtitleData()
             data.subtitles = subtitles
+            data.inputEncoding = inputEncoding
             data.outputEncoding = inputEncoding
             data.outputFormat = self._parser.parsedFormat()
             return data

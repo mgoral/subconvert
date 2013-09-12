@@ -22,17 +22,31 @@ import gettext
 import logging
 import pkgutil
 import encodings
+import copy
 
 from PyQt4.QtGui import QWidget, QFrame, QHBoxLayout, QVBoxLayout, QGridLayout, QTabBar
 from PyQt4.QtGui import QIcon, QListWidgetItem, QTableView, QHeaderView, QSplitter, QStackedWidget
-from PyQt4.QtGui import QStandardItemModel, QStandardItem, QComboBox, QSizePolicy
+from PyQt4.QtGui import QStandardItemModel, QStandardItem, QComboBox, QSizePolicy, QMessageBox
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
 
+from subconvert.utils import SubPath
+from subconvert.utils.SubFile import File
 from subconvert.gui.Detail import ClickableListWidget
+from subconvert.gui.DataModel import SubtitleData
 
 import subconvert.resources
 
 log = logging.getLogger('subconvert.%s' % __name__)
+
+t = gettext.translation(
+    domain='subconvert',
+    localedir=SubPath.getLocalePath(__file__),
+    fallback=True)
+gettext.install('subconvert')
+_ = t.gettext
+
+# define globally to avoid mistakes
+AUTO_ENCODING_STR = _("[Auto]")
 
 def pythonEncodings():
     # http://stackoverflow.com/questions/1707709/list-all-the-modules-that-are-part-of-a-python-package/1707786#1707786
@@ -283,15 +297,18 @@ class SubtitleEditor(SubTab):
 
         # Some signals
         self._subtitleData.fileChanged.connect(self.fileChanged)
+        self._inputEncodings.currentIndexChanged.connect(self.changeEncoding)
 
     def __initWidgets(self):
         minimalSizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         # Encodings combo box
         # TODO: show only encodings selected by user in preferences
-        self._encodings = QComboBox(self)
-        self._encodings.addItem(_("[Auto]"))
-        self._encodings.addItems(pythonEncodings())
+        self._inputEncodings = QComboBox(self)
+        self._inputEncodings.addItem(AUTO_ENCODING_STR)
+        self._inputEncodings.addItems(pythonEncodings())
+        self._inputEncodings.setToolTip(_("Change input file encoding"))
+        self._inputEncodings.setEditable(True)
 
         # List of subtitles
         self._model = QStandardItemModel(0, 3, self)
@@ -303,7 +320,7 @@ class SubtitleEditor(SubTab):
         # Top toolbar
         toolbar = QHBoxLayout()
         toolbar.setAlignment(Qt.AlignLeft)
-        toolbar.addWidget(self._encodings)
+        toolbar.addWidget(self._inputEncodings)
         toolbar.addStretch(1)
 
         # Main layout
@@ -314,26 +331,61 @@ class SubtitleEditor(SubTab):
         self.setLayout(grid)
 
     @pyqtSlot(str)
+    def changeEncoding(self, index):
+        encoding = self._inputEncodings.itemText(index)
+        if encoding == AUTO_ENCODING_STR:
+            file_ = File(self._filePath)
+            encoding = file_.detectEncoding()
+
+        # Operate on a copy so we can fallback to the old subtitles in case wrong encoding has been
+        # chosen
+        subtitlesCopy = copy.deepcopy(self._data.subtitles)
+        try:
+            for i, subtitle in enumerate(subtitlesCopy):
+                encodedBits = subtitle.text.encode(self._data.inputEncoding)
+                subtitlesCopy.changeSubText(i, encodedBits.decode(encoding))
+        except UnicodeDecodeError:
+            message = QMessageBox(
+                QMessageBox.Warning,
+                _("Decoding error"),
+                _("Cannot decode subtitles to '%s' encoding.\nPlease try different encoding.") % encoding,
+                QMessageBox.Ok, self
+            )
+            message.exec()
+        except LookupError:
+            message = QMessageBox(
+                QMessageBox.Warning, _("Unknown encoding"), _("Unknown encoding: '%s'") % encoding,
+                QMessageBox.Ok, self
+            )
+            message.exec()
+            # TODO: turn of signal handling for a sec. and set previous encoding
+            addedIncorrectEncodingIndex = self._inputEncodings.findText(encoding)
+            self._inputEncodings.removeItem(addedIncorrectEncodingIndex)
+        else:
+            self._data.inputEncoding = encoding
+            self._data.subtitles = subtitlesCopy
+            self.refreshSubtitles()
+
     def fileChanged(self, filePath):
         if filePath == self._filePath:
             self.updateSubtitles()
 
-    def updateSubtitles(self):
-        data = self._subtitleData.data(self._filePath)
-        self._subtitles = data.subtitles
+    def refreshSubtitles(self):
         self._model.removeRows(0, self._model.rowCount())
-        for sub in self._subtitles:
+        for sub in self._data.subtitles:
             timeStart = QStandardItem(sub.start.toStr())
             timeEnd = QStandardItem(sub.end.toStr())
             text = QStandardItem(sub.text)
             self._model.appendRow([timeStart, timeEnd, text])
 
+    def updateSubtitles(self):
+        self._data = self._subtitleData.data(self._filePath)
+        self.refreshSubtitles()
+
     def saveContent(self):
         # TODO: check if subtitleData.fileExists(filePath) ???
         self._subtitleData.fileChanged.disconnect(self.fileChanged)
-        data = self._subtitleData.data(self._filePath)
-        data.subtitles = self._subtitles
-        self._subtitleData.update(self._filePath, data)
+        self._subtitleData.update(self._filePath, self._data)
         self._subtitleData.fileChanged.connect(self.fileChanged)
 
     @property
@@ -342,4 +394,4 @@ class SubtitleEditor(SubTab):
 
     @property
     def subtitles(self):
-        return self._subtitles
+        return self._data.subtitles
