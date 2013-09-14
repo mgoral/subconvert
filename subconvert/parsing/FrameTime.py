@@ -90,12 +90,15 @@ class FrameTime(object):
             raise AttributeError(_("Incorrect string type: '%s'") % strType)
 
     def __setTime__(self, value):
-        time = re.match(r"(?P<h>\d+):(?P<m>[0-5][0-9]):(?P<s>[0-5][0-9])(?:.(?P<ms>\d{3}))?", value)
+        time = re.match(r"(?P<h>\d+):(?P<m>[0-5][0-9]):(?P<s>[0-5][0-9])(?:$|\.(?P<ms>\d{1,3}))", value)
         if time is None:
             raise ValueError(_("Incorrect time format."))
 
         if time.group('ms') is not None:
-            self._miliseconds = int(time.group('ms'))
+            # ljust explenation:
+            # 10.1 != 10.001
+            # 10.1 == 10.100
+            self._miliseconds = int(time.group('ms').ljust(3, '0'))
         else:
             self._miliseconds = 0
         self._seconds = int(time.group('s'))
