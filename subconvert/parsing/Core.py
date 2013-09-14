@@ -166,6 +166,13 @@ class SubManager:
         self._subs = []
         self._invalidTime = False
 
+    # TODO: test
+    @property
+    def fps(self):
+        if self.size() > 0:
+            return self._subs[0].fps
+        return None
+
     def changeFps(self, fps):
         if not fps > 0:
             raise ValueError("Incorrect FPS value")

@@ -29,6 +29,8 @@ from PyQt4.QtGui import QIcon, QListWidgetItem, QTableView, QHeaderView, QSplitt
 from PyQt4.QtGui import QStandardItemModel, QStandardItem, QComboBox, QSizePolicy, QMessageBox
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
 
+from subconvert.parsing.FrameTime import FrameTime
+
 from subconvert.utils import SubPath
 from subconvert.utils.SubFile import File
 from subconvert.gui.Detail import ClickableListWidget
@@ -298,6 +300,7 @@ class SubtitleEditor(SubTab):
         # Some signals
         self._subtitleData.fileChanged.connect(self.fileChanged)
         self._inputEncodings.currentIndexChanged.connect(self.changeEncoding)
+        self._model.itemChanged.connect(self._subtitleChanged)
 
     def __initWidgets(self):
         minimalSizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -329,6 +332,34 @@ class SubtitleEditor(SubTab):
         grid.addLayout(toolbar, 0, 0, 1, 1) # stretch to the right
         grid.addWidget(self._subList, 1, 0)
         self.setLayout(grid)
+
+    def _createRow(self, sub):
+        timeStart = QStandardItem(sub.start.toStr())
+        timeEnd = QStandardItem(sub.end.toStr())
+        text = QStandardItem(sub.text)
+        return [timeStart, timeEnd, text]
+
+    def _subtitleChanged(self, item):
+        modelIndex = item.index()
+        column = modelIndex.column()
+        subNo = modelIndex.row()
+
+        # TODO: timeStart and timeEnd might be displayed in a frame format in a bright future. 
+        # Check it and create FrameTime properly in that case.
+        # TODO: Maybe add column numbers to some kind of enum to avoid magic numbers?
+        try:
+            if 0 == column:
+                timeStart = FrameTime(time=item.text(), fps = self._data.subtitles.fps)
+                self._data.subtitles.changeSubStart(subNo, timeStart)
+            elif 1 == column:
+                timeEnd = FrameTime(time=item.text(), fps = self._data.subtitles.fps)
+                self._data.subtitles.changeSubEnd(subNo, timeEnd)
+            elif 2 == column:
+                self._data.subtitles.changeSubText(subNo, item.text())
+        except Exception as msg:
+            # TODO: highlight incorrect column or field with a color on any error
+            log.error(msg)
+        self.refreshSubtitle(subNo)
 
     @pyqtSlot(str)
     def changeEncoding(self, index):
@@ -370,13 +401,15 @@ class SubtitleEditor(SubTab):
         if filePath == self._filePath:
             self.updateSubtitles()
 
+    def refreshSubtitle(self, subNo):
+        sub = self._data.subtitles[subNo]
+        self._model.removeRow(subNo)
+        self._model.insertRow(subNo, self._createRow(sub))
+
     def refreshSubtitles(self):
         self._model.removeRows(0, self._model.rowCount())
         for sub in self._data.subtitles:
-            timeStart = QStandardItem(sub.start.toStr())
-            timeEnd = QStandardItem(sub.end.toStr())
-            text = QStandardItem(sub.text)
-            self._model.appendRow([timeStart, timeEnd, text])
+            self._model.appendRow(self._createRow(sub))
 
     def updateSubtitles(self):
         self._data = self._subtitleData.data(self._filePath)
