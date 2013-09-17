@@ -299,7 +299,7 @@ class SubtitleEditor(SubTab):
 
         # Some signals
         self._subtitleData.fileChanged.connect(self.fileChanged)
-        self._inputEncodings.currentIndexChanged.connect(self.changeEncoding)
+        self._inputEncodings.currentIndexChanged.connect(self._changeEncodingFromIndex)
         self._model.itemChanged.connect(self._subtitleChanged)
 
     def __initWidgets(self):
@@ -361,9 +361,12 @@ class SubtitleEditor(SubTab):
             log.error(msg)
         self.refreshSubtitle(subNo)
 
-    @pyqtSlot(str)
-    def changeEncoding(self, index):
+    @pyqtSlot(int)
+    def _changeEncodingFromIndex(self, index):
         encoding = self._inputEncodings.itemText(index)
+        self.changeEncoding(encoding)
+
+    def changeEncoding(self, encoding):
         if encoding == AUTO_ENCODING_STR:
             file_ = File(self._filePath)
             encoding = file_.detectEncoding()
