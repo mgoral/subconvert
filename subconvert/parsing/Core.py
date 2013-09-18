@@ -22,6 +22,7 @@ import locale
 import gettext
 import re
 import codecs
+from copy import copy, deepcopy
 
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils.Alias import *
@@ -218,11 +219,11 @@ class SubManager:
 
     # Do not implement __setitem__ as we want to keep explicit control over things that are added
     def __getitem__(self, key):
-        return self._subs[key]
+        return copy(self._subs[key])
 
     def __iter__(self):
         for sub in self._subs:
-            yield sub
+            yield copy(sub)
 
 class SubParser:
     def __init__(self):

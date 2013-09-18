@@ -68,6 +68,7 @@ class MainWindow(QMainWindow):
         self._subtitleData.fileAdded.connect(self.__updateMenuItemsState)
         self._subtitleData.fileRemoved.connect(self.__updateMenuItemsState)
         self._tabs.tabChanged.connect(self.__updateMenuItemsState)
+        self._tabs.tabChanged.connect(self.__connectUndoRedo)
 
     def _createAction(self, name, icon=None, title=None, tip=None, shortcut=None, connection=None):
         action = QAction(self)
@@ -107,6 +108,9 @@ class MainWindow(QMainWindow):
         self._createAction("previousTab", None, None, None, "ctrl+shift+tab", self.previousTab)
         self._createAction("closeTab", None, None, None, "ctrl+w", self.closeTab)
 
+        self._createAction("undo", None, _("Undo"), None, "ctrl+z", self.undo)
+        self._createAction("redo", None, _("Redo"), None, "ctrl+shift+z", self.redo)
+
     def __initMenuBar(self):
         menubar = self.menuBar()
         fileMenu = menubar.addMenu(_('&File'))
@@ -117,6 +121,10 @@ class MainWindow(QMainWindow):
         fileMenu.addAction(self._actions["saveAllFiles"])
         fileMenu.addSeparator()
         fileMenu.addAction(self._actions["exit"])
+
+        editMenu = menubar.addMenu(_("&Edit"))
+        editMenu.addAction(self._actions["undo"])
+        editMenu.addAction(self._actions["redo"])
 
     def __getAllSubExtensions(self):
         formats = SubFormat.__subclasses__()
@@ -139,6 +147,20 @@ class MainWindow(QMainWindow):
         else:
             File.write(newFilePath, content, data.outputEncoding)
 
+
+    @pyqtSlot(int)
+    def __connectUndoRedo(self):
+        tab = self._tabs.currentPage()
+        anyTabOpen = tab is not None
+        tabIsStatic = tab.isStatic if anyTabOpen else False
+
+        if anyTabOpen and not tabIsStatic:
+            # yeah, __updateMenuItemsState is called too frequently but that's a low price for
+            # increased code readability
+            tab.history.canRedoChanged.connect(self.__updateMenuItemsState)
+            tab.history.canUndoChanged.connect(self.__updateMenuItemsState)
+
+    @pyqtSlot(bool)
     @pyqtSlot(int)
     @pyqtSlot(str)
     def __updateMenuItemsState(self):
@@ -150,6 +172,9 @@ class MainWindow(QMainWindow):
         self._actions["saveAllFiles"].setEnabled(dataAvailable)
         self._actions["saveFile"].setEnabled(anyTabOpen and not tabIsStatic)
         self._actions["saveFileAs"].setEnabled(anyTabOpen and not tabIsStatic)
+
+        self._actions["undo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canUndo())
+        self._actions["redo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canRedo())
 
     def nextTab(self):
         if self._tabs.count() > 0:
@@ -206,7 +231,7 @@ class MainWindow(QMainWindow):
     def saveAll(self):
         # BUG!!!!!!!!!!!!
         # FIXME: fetch self._tabs.fileList list of opened files instead of opened tabs. We want to
-        # save all files, not only those shown in tabs. 
+        # save all files, not only those shown in tabs.
         # When asked to save file, FileList should check whether it's parsed and parse it if it's
         # not (in future the parsing moment might be moved to invrease responsibility when opening
         # a lot of files - i.e. only a file list will be printed and files will be actually parsed
@@ -219,4 +244,11 @@ class MainWindow(QMainWindow):
                 self._writeFile(tab.filePath)
         # END OF BUG!!!!!!!!!!!!!
 
+    def undo(self):
+        currentTab = self._tabs.currentPage()
+        currentTab.history.undo()
+
+    def redo(self):
+        currentTab = self._tabs.currentPage()
+        currentTab.history.redo()
 

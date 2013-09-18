@@ -17,8 +17,8 @@
     along with Subconvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt4.QtGui import QListWidget
-from PyQt4.QtCore import pyqtSignal
+from PyQt4.QtGui import QListWidget, QComboBox
+from PyQt4.QtCore import Qt, pyqtSignal
 
 class ClickableListWidget(QListWidget):
     """QListWidget wrapper that sends additional signals with clicked mouse button identifier"""
@@ -36,3 +36,23 @@ class ClickableListWidget(QListWidget):
     def mouseDoubleClickEvent(self, mouseEvent):
         super(ClickableListWidget, self).mouseDoubleClickEvent(mouseEvent)
         self.mouseButtonDoubleClicked.emit(mouseEvent.button())
+
+class ComboBoxWithHistory(QComboBox):
+    def __init__(self, parent = None):
+        super(ComboBoxWithHistory, self).__init__(parent)
+        self._previousText = None
+
+    def previousText(self):
+        return self._previousText
+
+    def mousePressEvent(self, mouseEvent):
+        self._previousText = self.currentText()
+        super(ComboBoxWithHistory, self).mousePressEvent(mouseEvent)
+
+    def keyPressEvent(self, keyEvent):
+        key = keyEvent.key()
+        if key == Qt.Key_Enter or key == Qt.Key_Tab:
+            self._previousText = self.currentText()
+        super(ComboBoxWithHistory, self).keyPressEvent(keyEvent)
+
+

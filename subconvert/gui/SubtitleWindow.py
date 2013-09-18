@@ -22,19 +22,20 @@ import gettext
 import logging
 import pkgutil
 import encodings
-import copy
+from copy import deepcopy
 
 from PyQt4.QtGui import QWidget, QFrame, QHBoxLayout, QVBoxLayout, QGridLayout, QTabBar
 from PyQt4.QtGui import QIcon, QListWidgetItem, QTableView, QHeaderView, QSplitter, QStackedWidget
-from PyQt4.QtGui import QStandardItemModel, QStandardItem, QComboBox, QSizePolicy, QMessageBox
+from PyQt4.QtGui import QStandardItemModel, QStandardItem, QSizePolicy, QMessageBox, QUndoStack
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
 
 from subconvert.parsing.FrameTime import FrameTime
 
 from subconvert.utils import SubPath
 from subconvert.utils.SubFile import File
-from subconvert.gui.Detail import ClickableListWidget
+from subconvert.gui.Detail import ClickableListWidget, ComboBoxWithHistory
 from subconvert.gui.DataModel import SubtitleData
+from subconvert.gui.SubtitleEditorCommands import *
 
 import subconvert.resources
 
@@ -294,6 +295,7 @@ class SubtitleEditor(SubTab):
 
         self._filePath = filePath
         self._subtitleData = subtitleData
+        self._undoStack = QUndoStack(self)
 
         self.updateSubtitles()
 
@@ -307,7 +309,7 @@ class SubtitleEditor(SubTab):
 
         # Encodings combo box
         # TODO: show only encodings selected by user in preferences
-        self._inputEncodings = QComboBox(self)
+        self._inputEncodings = ComboBoxWithHistory(self)
         self._inputEncodings.addItem(AUTO_ENCODING_STR)
         self._inputEncodings.addItems(pythonEncodings())
         self._inputEncodings.setToolTip(_("Change input file encoding"))
@@ -344,22 +346,25 @@ class SubtitleEditor(SubTab):
         column = modelIndex.column()
         subNo = modelIndex.row()
 
-        # TODO: timeStart and timeEnd might be displayed in a frame format in a bright future. 
+        # TODO: timeStart and timeEnd might be displayed in a frame format in a bright future.
         # Check it and create FrameTime properly in that case.
         # TODO: Maybe add column numbers to some kind of enum to avoid magic numbers?
         try:
+            subtitle = self._data.subtitles[subNo]
             if 0 == column:
                 timeStart = FrameTime(time=item.text(), fps = self._data.subtitles.fps)
-                self._data.subtitles.changeSubStart(subNo, timeStart)
+                subtitle.change(start = timeStart)
             elif 1 == column:
                 timeEnd = FrameTime(time=item.text(), fps = self._data.subtitles.fps)
-                self._data.subtitles.changeSubEnd(subNo, timeEnd)
+                subtitle.change(end = timeEnd)
             elif 2 == column:
-                self._data.subtitles.changeSubText(subNo, item.text())
+                subtitle.change(text = item.text())
         except Exception as msg:
             # TODO: highlight incorrect column or field with a color on any error
             log.error(msg)
-        self.refreshSubtitle(subNo)
+
+        command = ChangeSubtitle(self, subtitle, subNo)
+        self._undoStack.push(command)
 
     @pyqtSlot(int)
     def _changeEncodingFromIndex(self, index):
@@ -373,7 +378,7 @@ class SubtitleEditor(SubTab):
 
         # Operate on a copy so we can fallback to the old subtitles in case wrong encoding has been
         # chosen
-        subtitlesCopy = copy.deepcopy(self._data.subtitles)
+        subtitlesCopy = deepcopy(self._data.subtitles)
         try:
             for i, subtitle in enumerate(subtitlesCopy):
                 encodedBits = subtitle.text.encode(self._data.inputEncoding)
@@ -396,9 +401,9 @@ class SubtitleEditor(SubTab):
             addedIncorrectEncodingIndex = self._inputEncodings.findText(encoding)
             self._inputEncodings.removeItem(addedIncorrectEncodingIndex)
         else:
-            self._data.inputEncoding = encoding
-            self._data.subtitles = subtitlesCopy
-            self.refreshSubtitles()
+            # TODO: outputEncoding
+            command = ChangeEncoding(self, encoding, encoding, subtitlesCopy)
+            self._undoStack.push(command)
 
     def fileChanged(self, filePath):
         if filePath == self._filePath:
@@ -415,6 +420,9 @@ class SubtitleEditor(SubTab):
             self._model.appendRow(self._createRow(sub))
 
     def updateSubtitles(self):
+        # TODO: Should it save current subtitles so that user can undo or should it inform via
+        # a messagebox that this change cannot be reverted?
+        self._undoStack.clear()
         self._data = self._subtitleData.data(self._filePath)
         self.refreshSubtitles()
 
@@ -431,3 +439,15 @@ class SubtitleEditor(SubTab):
     @property
     def subtitles(self):
         return self._data.subtitles
+
+    @property
+    def history(self):
+        return self._undoStack
+
+    @property
+    def inputEncoding(self):
+        return self._data.inputEncoding
+
+    @property
+    def outputEncoding(self):
+        return self._data.outputEncoding
