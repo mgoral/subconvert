@@ -71,6 +71,9 @@ class SubTab(QWidget):
     def name(self):
         return self._displayName
 
+    def updateTab(self):
+        pass
+
 class FileList(SubTab):
     requestOpen = pyqtSignal(str, bool)
 
@@ -132,9 +135,10 @@ class SubtitleEditor(SubTab):
 
         self._filePath = filePath
         self._subtitleData = subtitleData
+        self._subtitleDataChanged = True
         self._undoStack = QUndoStack(self)
 
-        self.updateSubtitles()
+        self.updateTab()
 
         # Some signals
         self._subtitleData.fileChanged.connect(self.fileChanged)
@@ -229,8 +233,8 @@ class SubtitleEditor(SubTab):
             )
             message.exec()
         except LookupError:
-            message = QMessageBox(
-                QMessageBox.Warning, _("Unknown encoding"), _("Unknown encoding: '%s'") % encoding,
+            message = QMessageBox(QMessageBox.Warning,
+                _("Unknown encoding"), _("Unknown encoding: '%s'") % encoding,
                 QMessageBox.Ok, self
             )
             message.exec()
@@ -244,7 +248,12 @@ class SubtitleEditor(SubTab):
 
     def fileChanged(self, filePath):
         if filePath == self._filePath:
-            self.updateSubtitles()
+            parent = self.parentWidget()
+
+            # Postpone updating subtitles until this tab is visible.
+            self._subtitleDataChanged = True
+            if parent.currentPage() is self:
+                self.updateTab()
 
     def refreshSubtitle(self, subNo):
         sub = self._data.subtitles[subNo]
@@ -256,12 +265,21 @@ class SubtitleEditor(SubTab):
         for sub in self._data.subtitles:
             self._model.appendRow(self._createRow(sub))
 
-    def updateSubtitles(self):
-        # TODO: Should it save current subtitles so that user can undo or should it inform via
-        # a messagebox that this change cannot be reverted?
-        self._undoStack.clear()
-        self._data = self._subtitleData.data(self._filePath)
-        self.refreshSubtitles()
+    def updateTab(self):
+        if self._subtitleDataChanged:
+            self._subtitleDataChanged = False
+            if not self._undoStack.isClean():
+                message = QMessageBox(QMessageBox.Warning,
+                    _("Subtitles changed"), _("Subtitles data has been changed. Reload?"),
+                    QMessageBox.Yes | QMessageBox.No, self
+                )
+                closeDecision = message.exec()
+                if closeDecision == QMessageBox.No:
+                    return
+
+            self._undoStack.clear()
+            self._data = self._subtitleData.data(self._filePath)
+            self.refreshSubtitles()
 
     def saveContent(self):
         # TODO: check if subtitleData.fileExists(filePath) ???

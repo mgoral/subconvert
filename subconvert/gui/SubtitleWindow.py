@@ -200,6 +200,10 @@ class SubTabWidget(QWidget):
         if showWidget:
             self.pages.setCurrentWidget(showWidget)
             self.tabBar.setCurrentIndex(index)
+
+            # Try to update current tab.
+            showWidget.updateTab()
+
             self._tabChanged.emit(index)
 
     def tab(self, index):
