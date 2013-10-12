@@ -29,6 +29,7 @@ from subconvert.parsing.Core import SubConverter
 from subconvert.parsing.Formats import *
 from subconvert.gui import SubtitleWindow
 from subconvert.gui.DataModel import DataController, SubtitleData
+from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File
 
@@ -98,10 +99,10 @@ class MainWindow(QMainWindow):
         self._createAction("saveFile",
             "document-save", _("&Save"), _("Save current file."), "ctrl+s", self.saveFile)
         self._createAction("saveFileAs",
-            "document-save",_("&S&ave as..."), _("Save current file as..."), "ctrl++shift+s",
+            "document-save",_("S&ave as..."), _("Save current file as..."), "ctrl++shift+s",
             self.saveFileAs)
         self._createAction("saveAllFiles",
-            "document-save", _("&Sa&ve all"), _("Save all opened files."), None, self.saveAll)
+            "document-save", _("Sa&ve all"), _("Save all opened files."), None, self.saveAll)
         self._createAction("exit",
             "application-exit", _("&Exit"), _("Exit Subconvert."), None, qApp.quit)
         self._createAction("nextTab", None, None, None, "ctrl+tab", self.nextTab)
@@ -110,6 +111,9 @@ class MainWindow(QMainWindow):
 
         self._createAction("undo", None, _("Undo"), None, "ctrl+z", self.undo)
         self._createAction("redo", None, _("Redo"), None, "ctrl+shift+z", self.redo)
+
+        self._createAction("pfileEditor", None, _("Subtitle &Properties Editor"), None, None,
+                self.openPropertyEditor)
 
     def __initMenuBar(self):
         menubar = self.menuBar()
@@ -125,6 +129,9 @@ class MainWindow(QMainWindow):
         editMenu = menubar.addMenu(_("&Edit"))
         editMenu.addAction(self._actions["undo"])
         editMenu.addAction(self._actions["redo"])
+
+        toolsMenu = menubar.addMenu(_("&Tools"))
+        toolsMenu.addAction(self._actions["pfileEditor"])
 
     def __getAllSubExtensions(self):
         formats = SubFormat.__subclasses__()
@@ -202,7 +209,7 @@ class MainWindow(QMainWindow):
             parent = self,
             caption = _('Open file'),
             directory = self._settings.getLatestDirectory(),
-            filter = _("Subtitles (%s);;All files (*.*)") % str_sub_exts
+            filter = _("Subtitles (%s);;All files (*)") % str_sub_exts
         )
         try:
             self._settings.setLatestDirectory(os.path.dirname(filenames[0]))
@@ -251,4 +258,8 @@ class MainWindow(QMainWindow):
     def redo(self):
         currentTab = self._tabs.currentPage()
         currentTab.history.redo()
+
+    def openPropertyEditor(self):
+        editor = PropertyFileEditor(self)
+        editor.exec()
 
