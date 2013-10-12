@@ -20,22 +20,27 @@
 from PyQt4.QtGui import QListWidget, QComboBox
 from PyQt4.QtCore import Qt, pyqtSignal
 
-class ClickableListWidget(QListWidget):
+class SubtitleList(QListWidget):
     """QListWidget wrapper that sends additional signals with clicked mouse button identifier"""
 
     mouseButtonDoubleClicked = pyqtSignal(int)
     mouseButtonClicked = pyqtSignal(int)
+    keyPressed = pyqtSignal(int)
 
     def __init__(self, parent = None):
-        super(ClickableListWidget, self).__init__(parent)
+        super(SubtitleList, self).__init__(parent)
 
     def mousePressEvent(self, mouseEvent):
-        super(ClickableListWidget, self).mousePressEvent(mouseEvent)
+        super(SubtitleList, self).mousePressEvent(mouseEvent)
         self.mouseButtonClicked.emit(mouseEvent.button())
 
     def mouseDoubleClickEvent(self, mouseEvent):
-        super(ClickableListWidget, self).mouseDoubleClickEvent(mouseEvent)
+        super(SubtitleList, self).mouseDoubleClickEvent(mouseEvent)
         self.mouseButtonDoubleClicked.emit(mouseEvent.button())
+
+    def keyPressEvent(self, keyEvent):
+        super(SubtitleList, self).keyPressEvent(keyEvent)
+        self.keyPressed.emit(keyEvent.key())
 
 class ComboBoxWithHistory(QComboBox):
     def __init__(self, parent = None):
@@ -51,7 +56,7 @@ class ComboBoxWithHistory(QComboBox):
 
     def keyPressEvent(self, keyEvent):
         key = keyEvent.key()
-        if key == Qt.Key_Enter or key == Qt.Key_Tab:
+        if key in (Qt.Key_Enter, Qt.Key_Return, Qt.Key_Tab):
             self._previousText = self.currentText()
         super(ComboBoxWithHistory, self).keyPressEvent(keyEvent)
 

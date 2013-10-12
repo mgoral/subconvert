@@ -26,13 +26,13 @@ from copy import deepcopy
 
 from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QIcon, QListWidgetItem
 from PyQt4.QtGui import QTableView, QHeaderView,QStandardItemModel, QStandardItem, QSizePolicy
-from PyQt4.QtGui import QMessageBox, QUndoStack
+from PyQt4.QtGui import QMessageBox, QUndoStack, QAbstractItemView
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
 
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils import SubPath
 from subconvert.utils.SubFile import File
-from subconvert.gui.Detail import ClickableListWidget, ComboBoxWithHistory
+from subconvert.gui.Detail import SubtitleList, ComboBoxWithHistory
 from subconvert.gui.DataModel import SubtitleData
 from subconvert.gui.SubtitleEditorCommands import *
 
@@ -80,11 +80,13 @@ class FileList(SubTab):
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
 
-        self.__fileList = ClickableListWidget()
+        self.__fileList = SubtitleList()
+        self.__fileList.setSelectionMode(QAbstractItemView.ExtendedSelection)
         mainLayout.addWidget(self.__fileList)
 
         self.__fileList.mouseButtonDoubleClicked.connect(self.handleDoubleClick)
         self.__fileList.mouseButtonClicked.connect(self.handleClick)
+        self.__fileList.keyPressed.connect(self.handleKeyPress)
         self._subtitleData = subtitleData
 
         self.setLayout(mainLayout)
@@ -115,6 +117,12 @@ class FileList(SubTab):
         item = self.__fileList.currentItem()
         if item is not None and button == Qt.LeftButton:
             self.requestOpen.emit(item.text(), False)
+
+    def handleKeyPress(self, key):
+        items = self.__fileList.selectedItems()
+        if key in (Qt.Key_Enter, Qt.Key_Return):
+            for item in items:
+                self.requestOpen.emit(item.text(), False)
 
 class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):

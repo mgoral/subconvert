@@ -20,9 +20,6 @@
 import os
 import gettext
 import logging
-import pkgutil
-import encodings
-from copy import deepcopy
 
 from PyQt4.QtGui import QWidget, QFrame, QHBoxLayout, QVBoxLayout, QGridLayout, QTabBar
 from PyQt4.QtGui import  QSplitter, QStackedWidget
