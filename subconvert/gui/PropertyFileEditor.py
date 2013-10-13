@@ -44,7 +44,6 @@ class PropertyFileEditor(QDialog):
     def __init__(self, parent=None):
         super(PropertyFileEditor, self).__init__(parent)
         self._settings = SubSettings()
-        self._fileDialog = QFileDialog
 
         self.__createPropertyFilesDirectory()
         self.__initAllSubFormats()
@@ -192,7 +191,7 @@ class PropertyFileEditor(QDialog):
             raise RuntimeError(_("Subtitle format doesn't match any of known formats!"))
 
     def saveProperties(self):
-        filename = self._fileDialog.getSaveFileName(
+        filename = QFileDialog.getSaveFileName(
             parent = self,
             caption = _('Save Subtitle Properties'),
             directory = self._settings.getPropertyFilesPath()
@@ -205,7 +204,7 @@ class PropertyFileEditor(QDialog):
             savePropertyFile(filename, subProperties)
 
     def openProperties(self):
-        filename = self._fileDialog.getOpenFileName(
+        filename = QFileDialog.getOpenFileName(
             parent = self,
             caption = _("Open Subtitle Properties"),
             directory = self._settings.getPropertyFilesPath(),
