@@ -43,6 +43,22 @@ class SubtitleChangeCommand(QUndoCommand):
     def editor(self):
         return self._editor
 
+class ComboCommand(SubtitleChangeCommand):
+    def __init__(self, editor, text, parent = None):
+        super().__init__(editor, text, parent)
+        self._commandList = []
+
+    def addCommand(self, command):
+        self._commandList.append(command)
+
+    def redo(self):
+        for command in self._commandList:
+            command.redo()
+
+    def undo(self):
+        for command in reversed(self._commandList):
+            command.undo()
+
 class ChangeSubtitle(SubtitleChangeCommand):
     def __init__(self, editor, subtitle, index, parent = None):
         super(ChangeSubtitle, self).__init__(editor, _("Subtitle change"), parent)
@@ -64,23 +80,25 @@ class ChangeSubtitle(SubtitleChangeCommand):
         self.editor.refreshSubtitle(self._subNo)
 
 class ChangeEncoding(SubtitleChangeCommand):
-    def __init__(self, editor, inputEncoding, outputEncoding, subtitles, parent = None):
-        super(ChangeEncoding, self).__init__(editor, _("Encoding change"), parent)
+    def __init__(self, editor, newInputEnc, newOutputEnc, oldInputEnc, oldOutputEnc, newSubtitles, parent = None):
+        super().__init__(editor, _("Encoding change"), parent)
 
-        self._newInputEnc = inputEncoding
-        self._newOutputEnc = outputEncoding
-        self._newSubtitles = subtitles
-        self._newInputBoxText = editor._inputEncodings.currentText()
+        self._newInputEnc = newInputEnc
+        self._newOutputEnc = newOutputEnc
+        self._newSubtitles = newSubtitles
 
-        self._oldInputEnc = editor.inputEncoding
-        self._oldOutputEnc = editor.outputEncoding
+        self._oldInputEnc = oldInputEnc
+        self._oldOutputEnc = oldOutputEnc
         self._oldSubtitles = editor.subtitles
-        self._oldInputBoxText = editor._inputEncodings.previousText()
 
     def _updateComboBox(self, text):
         # TODO: outputEncoding when it's available
         self.editor._inputEncodings.blockSignals(True)
         index = self.editor._inputEncodings.findText(text)
+        # FIXME: quick and dirty fix for lack of [AUTO] on "FileList autodetection"
+        # FIXME: See SubtitleTabs (FileList::_updateDataWithProperties) description.
+        if index < 0:
+            index = 0
         self.editor._inputEncodings.setCurrentIndex(index)
         self.editor._inputEncodings.blockSignals(False)
 
@@ -88,13 +106,13 @@ class ChangeEncoding(SubtitleChangeCommand):
         self.editor._data.inputEncoding = self._newInputEnc
         self.editor._data.outputEncoding = self._newOutputEnc
         self.editor._data.subtitles = self._newSubtitles
-        self._updateComboBox(self._newInputBoxText)
+        self._updateComboBox(self._newInputEnc)
         self.editor.refreshSubtitles()
 
     def undo(self):
         self.editor._data.inputEncoding = self._oldInputEnc
         self.editor._data.outputEncoding = self._oldOutputEnc
         self.editor._data.subtitles = self._oldSubtitles
-        self._updateComboBox(self._oldInputBoxText)
+        self._updateComboBox(self._oldInputEnc)
         self.editor.refreshSubtitles()
 

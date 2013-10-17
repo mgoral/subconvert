@@ -135,8 +135,12 @@ class File:
         shutil.copyfile(self._filePath, backupFilePath)
         return backupFilePath
 
-    def detectFps(movieFile):
+    def detectFps(self, movieFile = None):
         """Fetch movie FPS from MPlayer output or return given default."""
+
+        # TODO: search for known movie file extensions
+        if movieFile is None:
+            movieFile = ""
 
         fps = 25
         command = ['mplayer',
@@ -145,7 +149,7 @@ class File:
             mpOut, mpErr = Popen(command, stdout=PIPE, stderr=PIPE).communicate()
             log.debug(mpOut)
             log.debug(mpErr)
-            fps = re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', mpOut).group(1)
+            fps = re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', str(mpOut)).group(1)
         except OSError:
             log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH \
                 to detect FPS."))

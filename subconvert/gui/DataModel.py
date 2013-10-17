@@ -26,6 +26,7 @@ from subconvert.utils.SubFile import File
 
 class SubtitleData:
     subtitles = None
+    fps = None
     outputFormat = None
     inputEncoding = None
     outputEncoding = None
@@ -33,6 +34,7 @@ class SubtitleData:
     def empty(self):
         return (
             self.subtitles is None and
+            self.fps is None and
             self.outputFormat is None and
             self.inputEncoding is None and
             self.outputEncoding is None
@@ -61,6 +63,9 @@ class DataController(QObject):
             if type(subtitles) is not SubManager:
                 raise TypeError(_("Incorrect subtitles type!"))
             self._storage[filePath].subtitles = copy.deepcopy(subtitles)
+
+    def _addFps(self, filePath, fps):
+        self._storage[filePath].fps = float(fps)
 
     def _addOutputFormat(self, filePath, outputFormat):
         if outputFormat is not None:
@@ -93,6 +98,7 @@ class DataController(QObject):
             self._storage[filePath] = SubtitleData()
 
         self._addSubtitles(filePath, data.subtitles)
+        self._addFps(filePath, data.fps)
         self._addOutputFormat(filePath, data.outputFormat)
         self._addInputEncoding(filePath, data.inputEncoding)
         self._addOutputEncoding(filePath, data.outputEncoding)
@@ -109,7 +115,7 @@ class DataController(QObject):
             self._addData(filePath, data)
             self._fileAdded.emit(filePath)
 
-    def createDataFromFile(self, filePath, inputEncoding = None):
+    def createDataFromFile(self, filePath, inputEncoding = None, fps = 25):
         """Fetch a given filePath and parse its contents.
 
         May raise the following exceptions:
@@ -127,6 +133,7 @@ class DataController(QObject):
         if self._parser.isParsed:
             data = SubtitleData()
             data.subtitles = subtitles
+            data.fps = fps
             data.inputEncoding = inputEncoding
             data.outputEncoding = inputEncoding
             data.outputFormat = self._parser.parsedFormat()
@@ -163,4 +170,13 @@ class DataController(QObject):
     def subtitles(self, filePath):
         data = self._storage[filePath]
         return copy.deepcopy(data.subtitles)
+
+    def changeDataEncoding(self, data, encoding):
+        dataCopy = copy.deepcopy(data)
+        for i, subtitle in enumerate(dataCopy.subtitles):
+            encodedBits = subtitle.text.encode(dataCopy.inputEncoding)
+            dataCopy.subtitles.changeSubText(i, encodedBits.decode(encoding))
+        dataCopy.inputEncoding = encoding
+        return dataCopy
+
 

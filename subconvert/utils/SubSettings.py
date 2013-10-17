@@ -67,25 +67,28 @@ class SubSettings:
 
     def getPropertyFilesPath(self):
         defaultDirName = "pfiles"
-        defaultPath = os.path.join(os.path.dirname(self._settings.fileName()), defaultDirName)
-        return self._settings.value("pfiles/path", defaultPath)
+        defaultPath = os.path.join(os.path.dirname(self._programState.fileName()), defaultDirName)
+        return self._programState.value("pfiles/path", defaultPath)
 
     def setPropertyFilesPath(self, val):
-        self._settings.setValue("pfiles/path", val)
+        self._programState.setValue("pfiles/path", val)
 
     def getMaxRememberedPropertyFiles(self):
         defaultMaxValue = 5
-        return self._settings.value("pfiles/max", defaultMaxValue)
+        return self._programState.value("pfiles/max", defaultMaxValue)
 
     def setMaxRememberedPropertyFiles(self, val):
-        self._settings.setValue("pfiles/max", val)
+        self._programState.setValue("pfiles/max", val)
 
     def getLatestPropertyFiles(self):
-        self._settings.setValue("pfiles/latest", [])
+        return self._programState.value("pfiles/latest", [])
 
     def addPropertyFile(self, val):
-        maxPropertyFiles = getMaxRememberedPropertyFiles() - 1
-        propertyFiles = getLatestPropertyFiles()
-        propertyFiles = propertyFiles[:maxPropertyFiles]
+        maxPropertyFiles = self.getMaxRememberedPropertyFiles() - 1
+        propertyFiles = self.getLatestPropertyFiles()
+        if val in propertyFiles:
+            propertyFiles.remove(val)
+        else:
+            propertyFiles = propertyFiles[:maxPropertyFiles]
         propertyFiles.insert(0, val)
-        self._settings.setValue("pfiles/latest", propertyFiles)
+        self._programState.setValue("pfiles/latest", propertyFiles)

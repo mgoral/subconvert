@@ -48,7 +48,17 @@ class ComboBoxWithHistory(QComboBox):
         self._previousText = None
 
     def previousText(self):
-        return self._previousText
+        if self._previousText:
+            return self._previousText
+        return self.currentText()
+
+    def setCurrentIndex(self, index):
+        previousTextCopy = self.currentText()
+        try:
+            self._previousText = self.currentText()
+            super().setCurrentIndex(index)
+        except:
+            self._previousText = previousTextCopy
 
     def mousePressEvent(self, mouseEvent):
         self._previousText = self.currentText()

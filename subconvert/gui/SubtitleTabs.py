@@ -26,12 +26,15 @@ from copy import deepcopy
 
 from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QIcon, QListWidgetItem
 from PyQt4.QtGui import QTableView, QHeaderView,QStandardItemModel, QStandardItem, QSizePolicy
-from PyQt4.QtGui import QMessageBox, QUndoStack, QAbstractItemView
+from PyQt4.QtGui import QMessageBox, QUndoStack, QAbstractItemView, QAction, QMenu, QCursor
+from PyQt4.QtGui import QFileDialog
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
 
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils import SubPath
 from subconvert.utils.SubFile import File
+from subconvert.utils.SubSettings import SubSettings
+from subconvert.utils.PropertyFile import loadPropertyFile
 from subconvert.gui.Detail import SubtitleList, ComboBoxWithHistory
 from subconvert.gui.DataModel import SubtitleData
 from subconvert.gui.SubtitleEditorCommands import *
@@ -79,6 +82,14 @@ class FileList(SubTab):
 
     def __init__(self, name, subtitleData, parent = None):
         super(FileList, self).__init__(name, True, parent)
+        self._subtitleData = subtitleData
+        self._settings = SubSettings()
+
+        self.__initGui()
+        self.__initContextMenu()
+        self.__connectSignals()
+
+    def __initGui(self):
         mainLayout = QVBoxLayout(self)
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
@@ -87,14 +98,46 @@ class FileList(SubTab):
         self.__fileList.setSelectionMode(QAbstractItemView.ExtendedSelection)
         mainLayout.addWidget(self.__fileList)
 
-        self.__fileList.mouseButtonDoubleClicked.connect(self.handleDoubleClick)
-        self.__fileList.mouseButtonClicked.connect(self.handleClick)
-        self.__fileList.keyPressed.connect(self.handleKeyPress)
-        self._subtitleData = subtitleData
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
 
         self.setLayout(mainLayout)
 
+    def _createAction(self, name, title, shortcut=None, connection=None):
+        action = QAction(self)
+        action.setText(title)
+
+        if shortcut is not None:
+            action.setShortcut(shortcut)
+        if connection is not None:
+            action.triggered.connect(connection)
+
+        self._actions[name] = action # This way all actions can be immediately used
+        return self._actions[name]
+
+    def __initContextMenu(self):
+        self._contextMenu = QMenu()
+        self._actions = {}
+
+        pfileMenu = self._contextMenu.addMenu(_("Use Subtitle Properties"))
+        for pfile in self._settings.getLatestPropertyFiles():
+            # A hacky way to store pfile in lambda
+            action = self._createAction(
+                pfile, pfile, None, lambda _, pfile=pfile: self._useSubProperties(pfile))
+            pfileMenu.addAction(action)
+        pfileMenu.addSeparator()
+        pfileMenu.addAction(self._createAction(
+            "chooseProps", _("Open file"), None, self._chooseSubProperties))
+
+    def __connectSignals(self):
+        self.__fileList.mouseButtonDoubleClicked.connect(self.handleDoubleClick)
+        self.__fileList.mouseButtonClicked.connect(self.handleClick)
+        self.__fileList.keyPressed.connect(self.handleKeyPress)
+        self.customContextMenuRequested.connect(self.showContextMenu)
+
     def addFile(self, filePath):
+        # TODO: separate reading file and adding to the list.
+        # TODO: there should be readDataFromFile(filePath, properties=None), which should set
+        # TODO: default properties from Subtitle Properties File
         if not self._subtitleData.fileExists(filePath):
             data = self._subtitleData.createDataFromFile(filePath)
             icon = QIcon(":/img/initial_list.png")
@@ -127,6 +170,69 @@ class FileList(SubTab):
             for item in items:
                 self.requestOpen.emit(item.text(), False)
 
+    def showContextMenu(self):
+        # if self.count() > 0:
+        self._contextMenu.exec(QCursor.pos())
+
+    def changeSelectedSubtitleProperties(self, subProperties):
+        # TODO: indicate the change somehow
+        items = self.__fileList.selectedItems()
+        for item in items:
+            filePath = item.text()
+            data = self._subtitleData.data(filePath)
+            data = self._updateDataWithProperties(filePath, data, subProperties)
+            self._subtitleData.update(filePath, data)
+
+    def _chooseSubProperties(self):
+        filename = QFileDialog.getOpenFileName(
+            parent = self,
+            caption = _("Open Subtitle Properties"),
+            directory = self._settings.getPropertyFilesPath(),
+            filter = _("Subtitle Properties (*.spf);;All files (*)")
+        )
+        self._useSubProperties(filename)
+
+    def _useSubProperties(self, propertyPath):
+        if propertyPath:
+            try:
+                subProperties = loadPropertyFile(propertyPath)
+            except:
+                log.error(_("Cannot read %s as Subtitle Property file.") % propertyPath)
+                return
+
+            # Don't change the call order. We don't want to change settings or redraw context menu
+            # if something goes wrong.
+            self.changeSelectedSubtitleProperties(subProperties)
+            self._settings.addPropertyFile(propertyPath)
+            self.__initContextMenu() # redraw menu
+
+    def _updateDataWithProperties(self, filePath, data, subProperties):
+        subtitleFile = File(filePath)
+
+        # FIXME: we cannot pass [AUTO] encoding through DataModel because if it will try to parse
+        # it, it will always throw an exception (unknown encoding). PFiles and DataModel have to
+        # support additional value: 'Auto Encoding' which can be e.g. represented by a checkbox or
+        # interpreted anyhow by SuTabs.
+        # When it'll be implemented, remove also an appropriate FIXME in
+        # ChangeEncoding::_updateComboBox
+        inputEncoding = subtitleFile.detectEncoding()
+        if subProperties.inputEncoding == AUTO_ENCODING_STR:
+            subProperties.inputEncoding = subtitleFile.detectEncoding()
+        data = self._subtitleData.changeDataEncoding(data, subProperties.inputEncoding)
+
+        data.outputFormat = subProperties.outputFormat
+
+        if subProperties.autoFps:
+            data.fps = subtitleFile.detectFps()
+        else:
+            data.fps = subProperties.fps
+
+        if subProperties.changeEncoding:
+            data.outputEncoding = subProperties.outputEncoding
+        else:
+            data.outputEncoding = subProperties.inputEncoding
+        return data
+
 class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):
         name = os.path.split(filePath)[1]
@@ -135,10 +241,11 @@ class SubtitleEditor(SubTab):
 
         self._filePath = filePath
         self._subtitleData = subtitleData
-        self._subtitleDataChanged = True
+        self._subtitleDataChanged = False
         self._undoStack = QUndoStack(self)
 
-        self.updateTab()
+        self._data = self._subtitleData.data(self._filePath)
+        self.refreshSubtitles()
 
         # Some signals
         self._subtitleData.fileChanged.connect(self.fileChanged)
@@ -206,6 +313,7 @@ class SubtitleEditor(SubTab):
 
         command = ChangeSubtitle(self, subtitle, subNo)
         self._undoStack.push(command)
+        self.refreshSubtitle(subNo)
 
     @pyqtSlot(int)
     def _changeEncodingFromIndex(self, index):
@@ -217,13 +325,8 @@ class SubtitleEditor(SubTab):
             file_ = File(self._filePath)
             encoding = file_.detectEncoding()
 
-        # Operate on a copy so we can fallback to the old subtitles in case wrong encoding has been
-        # chosen
-        subtitlesCopy = deepcopy(self._data.subtitles)
         try:
-            for i, subtitle in enumerate(subtitlesCopy):
-                encodedBits = subtitle.text.encode(self._data.inputEncoding)
-                subtitlesCopy.changeSubText(i, encodedBits.decode(encoding))
+            encodedData = self._subtitleData.changeDataEncoding(self._data, encoding)
         except UnicodeDecodeError:
             message = QMessageBox(
                 QMessageBox.Warning,
@@ -238,21 +341,23 @@ class SubtitleEditor(SubTab):
                 QMessageBox.Ok, self
             )
             message.exec()
-            # TODO: turn of signal handling for a sec. and set previous encoding
+            # TODO: turn off signal handling for a sec. and set previous encoding
             addedIncorrectEncodingIndex = self._inputEncodings.findText(encoding)
             self._inputEncodings.removeItem(addedIncorrectEncodingIndex)
         else:
             # TODO: outputEncoding
-            command = ChangeEncoding(self, encoding, encoding, subtitlesCopy)
+            command = ChangeEncoding(
+                self,
+                encodedData.inputEncoding, encodedData.outputEncoding,
+                self._inputEncodings.previousText(), self._inputEncodings.previousText(),
+                encodedData.subtitles)
             self._undoStack.push(command)
 
     def fileChanged(self, filePath):
         if filePath == self._filePath:
-            parent = self.parentWidget()
-
             # Postpone updating subtitles until this tab is visible.
             self._subtitleDataChanged = True
-            if parent.currentPage() is self:
+            if self._creator.currentPage() is self:
                 self.updateTab()
 
     def refreshSubtitle(self, subNo):
@@ -268,18 +373,25 @@ class SubtitleEditor(SubTab):
     def updateTab(self):
         if self._subtitleDataChanged:
             self._subtitleDataChanged = False
-            if not self._undoStack.isClean():
-                message = QMessageBox(QMessageBox.Warning,
-                    _("Subtitles changed"), _("Subtitles data has been changed. Reload?"),
-                    QMessageBox.Yes | QMessageBox.No, self
-                )
-                closeDecision = message.exec()
-                if closeDecision == QMessageBox.No:
-                    return
+            #if not self._undoStack.isClean():
+            message = QMessageBox(QMessageBox.Warning,
+                _("Subtitles changed"), _("Subtitles data has been changed. Reload?"),
+                QMessageBox.Yes | QMessageBox.No, self
+            )
+            closeDecision = message.exec()
+            if closeDecision == QMessageBox.No:
+                return
 
-            self._undoStack.clear()
-            self._data = self._subtitleData.data(self._filePath)
-            self.refreshSubtitles()
+            newData = self._subtitleData.data(self._filePath)
+            comboCommand = ComboCommand(self, _("Subtitles update"))
+            changeEncodingCommand = ChangeEncoding(
+                self,
+                newData.inputEncoding, newData.outputEncoding,
+                self.inputEncoding, self.outputEncoding,
+                newData.subtitles)
+
+            comboCommand.addCommand(changeEncodingCommand)
+            self._undoStack.push(comboCommand)
 
     def saveContent(self):
         # TODO: check if subtitleData.fileExists(filePath) ???
