@@ -207,7 +207,7 @@ class MainWindow(QMainWindow):
         str_sub_exts = ' '.join(['*.%s' % ext for ext in sub_extensions[1:]])
         filenames = self.fileDialog.getOpenFileNames(
             parent = self,
-            caption = _('Open file'),
+            caption = _("Open file"),
             directory = self._settings.getLatestDirectory(),
             filter = _("Subtitles (%s);;All files (*)") % str_sub_exts
         )

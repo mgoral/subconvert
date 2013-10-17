@@ -115,7 +115,7 @@ class SubTabWidget(QWidget):
             widget = self.pages.widget(i)
             if not widget.isStatic and filePath == widget.filePath:
                 return i
-        tab = SubtitleEditor(filePath, self._subtitleData, self.pages)
+        tab = SubtitleEditor(filePath, self._subtitleData, self)
         # FIXME: too many tab-change signals
         newIndex = self.tabBar.addTab(tab.name)
         self.pages.addWidget(tab)
