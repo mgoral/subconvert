@@ -197,8 +197,8 @@ class PropertyFileEditor(QDialog):
             directory = self._settings.getPropertyFilesPath()
         )
         if filename:
-            if not filename.endswith(".pfile"):
-                filename = "%s%s" % (filename, ".pfile")
+            if not filename.endswith(".spf"):
+                filename = "%s%s" % (filename, ".spf")
             self._settings.setPropertyFilesPath(os.path.dirname(filename))
             subProperties = self._createSubtitleProperties()
             savePropertyFile(filename, subProperties)
@@ -208,7 +208,7 @@ class PropertyFileEditor(QDialog):
             parent = self,
             caption = _("Open Subtitle Properties"),
             directory = self._settings.getPropertyFilesPath(),
-            filter = _("Subtitle Properties (*.pfile);;All files (*)")
+            filter = _("Subtitle Properties (*.spf);;All files (*)")
         )
         if filename:
             self._settings.setPropertyFilesPath(os.path.dirname(filename))
