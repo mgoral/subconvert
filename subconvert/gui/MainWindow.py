@@ -56,7 +56,6 @@ class MainWindow(QMainWindow):
 
         self._subtitleData = DataController(self)
         self._tabs = SubtitleWindow.SubTabWidget(self._subtitleData)
-        self.fileDialog = QFileDialog
 
         mainLayout.addWidget(self._tabs)
 
@@ -205,7 +204,7 @@ class MainWindow(QMainWindow):
     def openFile(self):
         sub_extensions = self.__getAllSubExtensions()
         str_sub_exts = ' '.join(['*.%s' % ext for ext in sub_extensions[1:]])
-        filenames = self.fileDialog.getOpenFileNames(
+        filenames = QFileDialog.getOpenFileNames(
             parent = self,
             caption = _("Open file"),
             directory = self._settings.getLatestDirectory(),
@@ -225,7 +224,7 @@ class MainWindow(QMainWindow):
 
     def saveFileAs(self):
         currentTab = self._tabs.currentPage()
-        newFileName = self.fileDialog.getSaveFileName(
+        newFileName = QFileDialog.getSaveFileName(
             parent = self,
             caption = _('Save as...'),
             directory = self._settings.getLatestDirectory()
