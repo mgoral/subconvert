@@ -35,7 +35,8 @@ from subconvert.utils import SubPath
 from subconvert.utils.SubFile import File
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.PropertyFile import loadPropertyFile
-from subconvert.gui.Detail import SubtitleList, ComboBoxWithHistory
+from subconvert.gui.FileDialogs import FileDialog
+from subconvert.gui.Detail import SubtitleList, ComboBoxWithHistory, AUTO_ENCODING_STR
 from subconvert.gui.DataModel import SubtitleData
 from subconvert.gui.SubtitleEditorCommands import *
 
@@ -47,9 +48,6 @@ t = gettext.translation(
     fallback=True)
 gettext.install('subconvert')
 _ = t.gettext
-
-# define globally to avoid mistakes
-AUTO_ENCODING_STR = _("[Auto]")
 
 def pythonEncodings():
     # http://stackoverflow.com/questions/1707709/list-all-the-modules-that-are-part-of-a-python-package/1707786#1707786
@@ -184,13 +182,17 @@ class FileList(SubTab):
             self._subtitleData.update(filePath, data)
 
     def _chooseSubProperties(self):
-        filename = QFileDialog.getOpenFileName(
+        fileDialog = FileDialog(
             parent = self,
             caption = _("Open Subtitle Properties"),
             directory = self._settings.getPropertyFilesPath(),
             filter = _("Subtitle Properties (*.spf);;All files (*)")
         )
-        self._useSubProperties(filename)
+        fileDialog.setFileMode(QFileDialog.ExistingFile)
+
+        if fileDialog.exec():
+            filename = fileDialog.selectedFiles()[0]
+            self._useSubProperties(filename)
 
     def _useSubProperties(self, propertyPath):
         if propertyPath:
@@ -236,6 +238,7 @@ class FileList(SubTab):
 class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):
         name = os.path.split(filePath)[1]
+        self._creator = parent
         super(SubtitleEditor, self).__init__(name, False, parent)
         self.__initWidgets()
 

@@ -27,7 +27,8 @@ from PyQt4.QtGui import QDialog, QGridLayout, QWidget, QFileDialog, QComboBox, Q
 from PyQt4.QtGui import QCheckBox, QLabel, QGroupBox, QHBoxLayout, QVBoxLayout, QWidget
 from PyQt4.QtGui import QPushButton
 
-from subconvert.gui.SubtitleTabs import AUTO_ENCODING_STR
+from subconvert.gui.FileDialogs import FileDialog
+from subconvert.gui.Detail import AUTO_ENCODING_STR
 from subconvert.parsing.Formats import *
 from subconvert.utils import SubPath
 from subconvert.utils.PropertyFile import SubtitleProperties, savePropertyFile, loadPropertyFile
@@ -191,12 +192,16 @@ class PropertyFileEditor(QDialog):
             raise RuntimeError(_("Subtitle format doesn't match any of known formats!"))
 
     def saveProperties(self):
-        filename = QFileDialog.getSaveFileName(
+        fileDialog = FileDialog(
             parent = self,
             caption = _('Save Subtitle Properties'),
             directory = self._settings.getPropertyFilesPath()
         )
-        if filename:
+        fileDialog.setAcceptMode(QFileDialog.AcceptSave)
+        fileDialog.setFileMode(QFileDialog.AnyFile)
+
+        if fileDialog.exec():
+            filename = fileDialog.selectedFiles()[0]
             if not filename.endswith(".spf"):
                 filename = "%s%s" % (filename, ".spf")
             self._settings.setPropertyFilesPath(os.path.dirname(filename))
@@ -204,13 +209,16 @@ class PropertyFileEditor(QDialog):
             savePropertyFile(filename, subProperties)
 
     def openProperties(self):
-        filename = QFileDialog.getOpenFileName(
+        fileDialog = FileDialog(
             parent = self,
             caption = _("Open Subtitle Properties"),
             directory = self._settings.getPropertyFilesPath(),
             filter = _("Subtitle Properties (*.spf);;All files (*)")
         )
-        if filename:
+        fileDialog.setFileMode(QFileDialog.ExistingFile)
+
+        if fileDialog.exec():
+            filename = fileDialog.selectedFiles()[0]
             self._settings.setPropertyFilesPath(os.path.dirname(filename))
             subProperties = loadPropertyFile(filename)
             self.changeProperties(subProperties)

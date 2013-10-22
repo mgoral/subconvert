@@ -17,8 +17,22 @@
     along with Subconvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import gettext
+
+from subconvert.utils import SubPath
+
 from PyQt4.QtGui import QListWidget, QComboBox
 from PyQt4.QtCore import Qt, pyqtSignal
+
+t = gettext.translation(
+    domain='subconvert',
+    localedir=SubPath.getLocalePath(__file__),
+    fallback=True)
+gettext.install('subconvert')
+_ = t.gettext
+
+# define globally to avoid mistakes
+AUTO_ENCODING_STR = _("[Auto]")
 
 class SubtitleList(QListWidget):
     """QListWidget wrapper that sends additional signals with clicked mouse button identifier"""
@@ -69,5 +83,4 @@ class ComboBoxWithHistory(QComboBox):
         if key in (Qt.Key_Enter, Qt.Key_Return, Qt.Key_Tab):
             self._previousText = self.currentText()
         super(ComboBoxWithHistory, self).keyPressEvent(keyEvent)
-
 

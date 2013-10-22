@@ -30,6 +30,7 @@ from subconvert.parsing.Formats import *
 from subconvert.gui import SubtitleWindow
 from subconvert.gui.DataModel import DataController, SubtitleData
 from subconvert.gui.PropertyFileEditor import PropertyFileEditor
+from subconvert.gui.FileDialogs import FileDialog
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File
 
@@ -204,18 +205,24 @@ class MainWindow(QMainWindow):
     def openFile(self):
         sub_extensions = self.__getAllSubExtensions()
         str_sub_exts = ' '.join(['*.%s' % ext for ext in sub_extensions[1:]])
-        filenames = QFileDialog.getOpenFileNames(
+
+        fileDialog = FileDialog(
             parent = self,
             caption = _("Open file"),
             directory = self._settings.getLatestDirectory(),
             filter = _("Subtitles (%s);;All files (*)") % str_sub_exts
         )
-        try:
-            self._settings.setLatestDirectory(os.path.dirname(filenames[0]))
-        except IndexError:
-            pass    # Normal error when hitting "Cancel" - list of fileNames is empty
-        for filePath in filenames:
-            self._tabs.fileList.addFile(filePath)
+        fileDialog.addEncodings(True)
+        fileDialog.setFileMode(QFileDialog.ExistingFiles)
+
+        if fileDialog.exec():
+            filenames = fileDialog.selectedFiles()
+            try:
+                self._settings.setLatestDirectory(os.path.dirname(filenames[0]))
+            except IndexError:
+                pass    # Normal error when hitting "Cancel" - list of fileNames is empty
+            for filePath in filenames:
+                self._tabs.fileList.addFile(filePath)
 
     def saveFile(self):
         currentTab = self._tabs.currentPage()
@@ -223,13 +230,19 @@ class MainWindow(QMainWindow):
         self._writeFile(currentTab.filePath)
 
     def saveFileAs(self):
-        currentTab = self._tabs.currentPage()
-        newFileName = QFileDialog.getSaveFileName(
+        fileDialog = FileDialog(
             parent = self,
             caption = _('Save as...'),
             directory = self._settings.getLatestDirectory()
         )
-        if newFileName:
+        fileDialog.addFormats()
+        fileDialog.addEncodings(True)
+        fileDialog.setAcceptMode(QFileDialog.AcceptSave)
+        fileDialog.setFileMode(QFileDialog.AnyFile)
+
+        if fileDialog.exec():
+            newFileName = fileDialog.selectedFiles()[0]
+            currentTab = self._tabs.currentPage()
             currentTab.saveContent()
             self._settings.setLatestDirectory(os.path.dirname(newFileName))
             self._writeFile(currentTab.filePath, newFileName)
