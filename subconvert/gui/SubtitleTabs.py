@@ -132,12 +132,15 @@ class FileList(SubTab):
         self.__fileList.keyPressed.connect(self.handleKeyPress)
         self.customContextMenuRequested.connect(self.showContextMenu)
 
-    def addFile(self, filePath):
+    def addFile(self, filePath, encoding):
         # TODO: separate reading file and adding to the list.
         # TODO: there should be readDataFromFile(filePath, properties=None), which should set
         # TODO: default properties from Subtitle Properties File
         if not self._subtitleData.fileExists(filePath):
-            data = self._subtitleData.createDataFromFile(filePath)
+            if encoding == AUTO_ENCODING_STR:
+                data = self._subtitleData.createDataFromFile(filePath)
+            else:
+                data = self._subtitleData.createDataFromFile(filePath, encoding)
             icon = QIcon(":/img/initial_list.png")
             item = QListWidgetItem(icon, filePath)
             item.setToolTip(filePath)

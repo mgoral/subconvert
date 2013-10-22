@@ -217,12 +217,10 @@ class MainWindow(QMainWindow):
 
         if fileDialog.exec():
             filenames = fileDialog.selectedFiles()
-            try:
-                self._settings.setLatestDirectory(os.path.dirname(filenames[0]))
-            except IndexError:
-                pass    # Normal error when hitting "Cancel" - list of fileNames is empty
+            encoding = fileDialog.getEncoding()
+            self._settings.setLatestDirectory(os.path.dirname(filenames[0]))
             for filePath in filenames:
-                self._tabs.fileList.addFile(filePath)
+                self._tabs.fileList.addFile(filePath, encoding)
 
     def saveFile(self):
         currentTab = self._tabs.currentPage()
