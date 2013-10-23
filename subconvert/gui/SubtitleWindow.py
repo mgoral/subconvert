@@ -18,14 +18,13 @@
 """
 
 import os
-import gettext
 import logging
 
 from PyQt4.QtGui import QWidget, QFrame, QHBoxLayout, QVBoxLayout, QGridLayout, QTabBar
 from PyQt4.QtGui import  QSplitter, QStackedWidget
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 
-from subconvert.utils import SubPath
+from subconvert.utils.Locale import _
 from subconvert.utils.SubFile import File
 from subconvert.gui.DataModel import SubtitleData
 from subconvert.gui.SubtitleTabs import FileList, SubtitleEditor
@@ -33,13 +32,6 @@ from subconvert.gui.SubtitleTabs import FileList, SubtitleEditor
 import subconvert.resources
 
 log = logging.getLogger('subconvert.%s' % __name__)
-
-t = gettext.translation(
-    domain='subconvert',
-    localedir=SubPath.getLocalePath(__file__),
-    fallback=True)
-gettext.install('subconvert')
-_ = t.gettext
 
 class SubTabWidget(QWidget):
     _tabChanged = pyqtSignal(int, name = "tabChanged")

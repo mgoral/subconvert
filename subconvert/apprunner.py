@@ -19,23 +19,12 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 
 from PyQt4.QtGui import QApplication
 
-import os
 import sys
-import codecs
-import locale
 import logging
 import argparse
-import gettext
 
-from subconvert.utils import SubPath
+from subconvert.utils.Locale import _
 from subconvert.gui import MainWindow
-
-t = gettext.translation(
-    domain='subconvert',
-    localedir=SubPath.getLocalePath(__file__),
-    fallback=True)
-gettext.install('subconvert')
-_ = t.gettext
 
 MAX_MEGS = 5 * 1048576
 

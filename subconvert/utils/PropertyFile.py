@@ -95,6 +95,6 @@ class SubtitleProperties:
     @outputFormat.setter
     def outputFormat(self, val):
         if not issubclass(val, SubFormat):
-            raise TypeError(_("Incorrect outputFormat type!"))
+            raise TypeError("Incorrect outputFormat type!")
         self._outputFormat = val
 

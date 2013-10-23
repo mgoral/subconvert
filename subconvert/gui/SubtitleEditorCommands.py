@@ -19,6 +19,8 @@
     along with Subconvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from subconvert.utils.Locale import _
+
 from PyQt4.QtGui import QUndoCommand
 
 # TODO/FIXME: Maybe it's a good idea to copy local subtitles saved in commands but as long as during

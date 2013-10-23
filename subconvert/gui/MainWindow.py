@@ -19,7 +19,6 @@
 
 
 import os
-import gettext
 import logging
 
 from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QGridLayout, QAction, QIcon, qApp
@@ -31,7 +30,8 @@ from subconvert.gui import SubtitleWindow
 from subconvert.gui.DataModel import DataController, SubtitleData
 from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
-from subconvert.gui.Detail import _, ActionFactory
+from subconvert.gui.Detail import ActionFactory
+from subconvert.utils.Locale import _
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File
 

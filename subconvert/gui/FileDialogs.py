@@ -22,7 +22,8 @@ import encodings
 
 from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.parsing.Formats import *
-from subconvert.gui.Detail import AUTO_ENCODING_STR, _
+from subconvert.gui.Detail import AUTO_ENCODING_STR
+from subconvert.utils.Locale import _
 from subconvert.utils import SubPath
 
 from PyQt4.QtGui import QFileDialog, QHBoxLayout, QComboBox, QLabel

@@ -17,19 +17,10 @@
     along with Subconvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import gettext
-
 from subconvert.utils import SubPath
 
 from PyQt4.QtGui import QListWidget, QComboBox, QAction, QIcon
 from PyQt4.QtCore import Qt, pyqtSignal
-
-t = gettext.translation(
-    domain='subconvert',
-    localedir=SubPath.getLocalePath(__file__),
-    fallback=True)
-gettext.install('subconvert')
-_ = t.gettext
 
 # define globally to avoid mistakes
 AUTO_ENCODING_STR = _("[Auto]")

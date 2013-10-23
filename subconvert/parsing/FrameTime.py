@@ -17,8 +17,9 @@ You should have received a copy of the GNU General Public License
 along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import gettext
 import re
+
+from subconvert.utils.Locale import _
 
 # TODO: change asserts to exceptions!
 class FrameTime(object):

@@ -30,13 +30,13 @@ from PyQt4.QtGui import QFileDialog
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
 
 from subconvert.parsing.FrameTime import FrameTime
-from subconvert.utils import SubPath
+from subconvert.utils.Locale import _
 from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.SubFile import File
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.PropertyFile import loadPropertyFile
 from subconvert.gui.FileDialogs import FileDialog
-from subconvert.gui.Detail import _, AUTO_ENCODING_STR
+from subconvert.gui.Detail import AUTO_ENCODING_STR
 from subconvert.gui.Detail import ActionFactory, SubtitleList, ComboBoxWithHistory
 from subconvert.gui.DataModel import SubtitleData
 from subconvert.gui.SubtitleEditorCommands import *
@@ -255,7 +255,7 @@ class SubtitleEditor(SubTab):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         af = ActionFactory(self)
 
-        encodingsMenu = self._contextMenu.addMenu(_("&Encodings"))
+        encodingsMenu = self._contextMenu.addMenu(_("&Encoding"))
         for encoding in ALL_ENCODINGS:
             action = af.create(
                 title = encoding,

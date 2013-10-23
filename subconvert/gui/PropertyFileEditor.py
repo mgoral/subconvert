@@ -19,7 +19,6 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import errno
-import gettext
 import pkgutil
 import encodings
 
@@ -30,17 +29,10 @@ from PyQt4.QtGui import QPushButton
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import AUTO_ENCODING_STR
 from subconvert.parsing.Formats import *
-from subconvert.utils import SubPath
+from subconvert.utils.Locale import _
 from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.PropertyFile import SubtitleProperties, savePropertyFile, loadPropertyFile
 from subconvert.utils.SubSettings import SubSettings
-
-t = gettext.translation(
-    domain='subconvert',
-    localedir=SubPath.getLocalePath(__file__),
-    fallback=True)
-gettext.install('subconvert')
-_ = t.gettext
 
 class PropertyFileEditor(QDialog):
     def __init__(self, parent=None):

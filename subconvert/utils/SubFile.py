@@ -24,6 +24,8 @@ import codecs
 import re
 import logging
 
+from subconvert.utils.Locale import _
+
 try:
     import chardet
     IS_CHARDET = True

@@ -18,13 +18,12 @@ along with SubConvert.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
-import locale
-import gettext
 import re
 import codecs
 from copy import copy, deepcopy
 
 from subconvert.parsing.FrameTime import FrameTime
+from subconvert.utils.Locale import _
 from subconvert.utils.Alias import *
 
 #TODO: add comparing Subtitles (i.e. __eq__, __ne__ etc.)
