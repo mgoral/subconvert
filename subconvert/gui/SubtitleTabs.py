@@ -18,7 +18,6 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
-import gettext
 import logging
 import pkgutil
 import encodings
@@ -32,31 +31,17 @@ from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
 
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils import SubPath
+from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.SubFile import File
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.PropertyFile import loadPropertyFile
 from subconvert.gui.FileDialogs import FileDialog
-from subconvert.gui.Detail import SubtitleList, ComboBoxWithHistory, AUTO_ENCODING_STR
+from subconvert.gui.Detail import _, AUTO_ENCODING_STR
+from subconvert.gui.Detail import ActionFactory, SubtitleList, ComboBoxWithHistory
 from subconvert.gui.DataModel import SubtitleData
 from subconvert.gui.SubtitleEditorCommands import *
 
 log = logging.getLogger('subconvert.%s' % __name__)
-
-t = gettext.translation(
-    domain='subconvert',
-    localedir=SubPath.getLocalePath(__file__),
-    fallback=True)
-gettext.install('subconvert')
-_ = t.gettext
-
-def pythonEncodings():
-    # http://stackoverflow.com/questions/1707709/list-all-the-modules-that-are-part-of-a-python-package/1707786#1707786
-    false_positives = set(["aliases"])
-    found = set(name for imp, name, ispkg in pkgutil.iter_modules(encodings.__path__) if not ispkg)
-    found.difference_update(false_positives)
-    found = list(found)
-    found.sort()
-    return found
 
 class SubTab(QWidget):
     def __init__(self, displayName, isStaticTab, parent = None):
@@ -100,31 +85,21 @@ class FileList(SubTab):
 
         self.setLayout(mainLayout)
 
-    def _createAction(self, name, title, shortcut=None, connection=None):
-        action = QAction(self)
-        action.setText(title)
-
-        if shortcut is not None:
-            action.setShortcut(shortcut)
-        if connection is not None:
-            action.triggered.connect(connection)
-
-        self._actions[name] = action # This way all actions can be immediately used
-        return self._actions[name]
-
     def __initContextMenu(self):
         self._contextMenu = QMenu()
-        self._actions = {}
+        af = ActionFactory(self)
 
         pfileMenu = self._contextMenu.addMenu(_("Use Subtitle Properties"))
         for pfile in self._settings.getLatestPropertyFiles():
             # A hacky way to store pfile in lambda
-            action = self._createAction(
-                pfile, pfile, None, lambda _, pfile=pfile: self._useSubProperties(pfile))
+            action = af.create(
+                title = pfile, 
+                connection = lambda _, pfile=pfile: self._useSubProperties(pfile)
+            )
             pfileMenu.addAction(action)
         pfileMenu.addSeparator()
-        pfileMenu.addAction(self._createAction(
-            "chooseProps", _("Open file"), None, self._chooseSubProperties))
+        pfileMenu.addAction(af.create(
+            title = _("Open file"), connection = self._chooseSubProperties))
 
     def __connectSignals(self):
         self.__fileList.mouseButtonDoubleClicked.connect(self.handleDoubleClick)
@@ -172,7 +147,6 @@ class FileList(SubTab):
                 self.requestOpen.emit(item.text(), False)
 
     def showContextMenu(self):
-        # if self.count() > 0:
         self._contextMenu.exec(QCursor.pos())
 
     def changeSelectedSubtitleProperties(self, subProperties):
@@ -214,13 +188,6 @@ class FileList(SubTab):
     def _updateDataWithProperties(self, filePath, data, subProperties):
         subtitleFile = File(filePath)
 
-        # FIXME: we cannot pass [AUTO] encoding through DataModel because if it will try to parse
-        # it, it will always throw an exception (unknown encoding). PFiles and DataModel have to
-        # support additional value: 'Auto Encoding' which can be e.g. represented by a checkbox or
-        # interpreted anyhow by SuTabs.
-        # When it'll be implemented, remove also an appropriate FIXME in
-        # ChangeEncoding::_updateComboBox
-        inputEncoding = subtitleFile.detectEncoding()
         if subProperties.inputEncoding == AUTO_ENCODING_STR:
             subProperties.inputEncoding = subtitleFile.detectEncoding()
         data = self._subtitleData.changeDataEncoding(data, subProperties.inputEncoding)
@@ -241,9 +208,11 @@ class FileList(SubTab):
 class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):
         name = os.path.split(filePath)[1]
-        self._creator = parent
         super(SubtitleEditor, self).__init__(name, False, parent)
         self.__initWidgets()
+        self.__initContextMenu()
+
+        self._creator = parent
 
         self._filePath = filePath
         self._subtitleData = subtitleData
@@ -255,19 +224,11 @@ class SubtitleEditor(SubTab):
 
         # Some signals
         self._subtitleData.fileChanged.connect(self.fileChanged)
-        self._inputEncodings.currentIndexChanged.connect(self._changeEncodingFromIndex)
         self._model.itemChanged.connect(self._subtitleChanged)
+        self.customContextMenuRequested.connect(self.showContextMenu)
 
     def __initWidgets(self):
         minimalSizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
-        # Encodings combo box
-        # TODO: show only encodings selected by user in preferences
-        self._inputEncodings = ComboBoxWithHistory(self)
-        self._inputEncodings.addItem(AUTO_ENCODING_STR)
-        self._inputEncodings.addItems(pythonEncodings())
-        self._inputEncodings.setToolTip(_("Change input file encoding"))
-        self._inputEncodings.setEditable(True)
 
         # List of subtitles
         self._model = QStandardItemModel(0, 3, self)
@@ -279,7 +240,7 @@ class SubtitleEditor(SubTab):
         # Top toolbar
         toolbar = QHBoxLayout()
         toolbar.setAlignment(Qt.AlignLeft)
-        toolbar.addWidget(self._inputEncodings)
+        #toolbar.addWidget(someWidget....)
         toolbar.addStretch(1)
 
         # Main layout
@@ -288,6 +249,19 @@ class SubtitleEditor(SubTab):
         grid.addLayout(toolbar, 0, 0, 1, 1) # stretch to the right
         grid.addWidget(self._subList, 1, 0)
         self.setLayout(grid)
+
+    def __initContextMenu(self):
+        self._contextMenu = QMenu()
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        af = ActionFactory(self)
+
+        encodingsMenu = self._contextMenu.addMenu(_("&Encodings"))
+        for encoding in ALL_ENCODINGS:
+            action = af.create(
+                title = encoding,
+                connection = lambda _, encoding=encoding: self.changeEncoding(encoding)
+            )
+            encodingsMenu.addAction(action)
 
     def _createRow(self, sub):
         timeStart = QStandardItem(sub.start.toStr())
@@ -321,43 +295,31 @@ class SubtitleEditor(SubTab):
         self._undoStack.push(command)
         self.refreshSubtitle(subNo)
 
-    @pyqtSlot(int)
-    def _changeEncodingFromIndex(self, index):
-        encoding = self._inputEncodings.itemText(index)
-        self.changeEncoding(encoding)
+    def showContextMenu(self):
+        self._contextMenu.exec(QCursor.pos())
 
     def changeEncoding(self, encoding):
-        if encoding == AUTO_ENCODING_STR:
-            file_ = File(self._filePath)
-            encoding = file_.detectEncoding()
-
-        try:
-            encodedData = self._subtitleData.changeDataEncoding(self._data, encoding)
-        except UnicodeDecodeError:
-            message = QMessageBox(
-                QMessageBox.Warning,
-                _("Decoding error"),
-                _("Cannot decode subtitles to '%s' encoding.\nPlease try different encoding.") % encoding,
-                QMessageBox.Ok, self
-            )
-            message.exec()
-        except LookupError:
-            message = QMessageBox(QMessageBox.Warning,
-                _("Unknown encoding"), _("Unknown encoding: '%s'") % encoding,
-                QMessageBox.Ok, self
-            )
-            message.exec()
-            # TODO: turn off signal handling for a sec. and set previous encoding
-            addedIncorrectEncodingIndex = self._inputEncodings.findText(encoding)
-            self._inputEncodings.removeItem(addedIncorrectEncodingIndex)
-        else:
-            # TODO: outputEncoding
-            command = ChangeEncoding(
-                self,
-                encodedData.inputEncoding, encodedData.outputEncoding,
-                self._inputEncodings.previousText(), self._inputEncodings.previousText(),
-                encodedData.subtitles)
-            self._undoStack.push(command)
+        if encoding != self.inputEncoding:
+            try:
+                encodedData = self._subtitleData.changeDataEncoding(self._data, encoding)
+            except UnicodeDecodeError:
+                message = QMessageBox(
+                    QMessageBox.Warning,
+                    _("Decoding error"),
+                    _("Cannot decode subtitles to '%s' encoding.\nPlease try different encoding.") % encoding,
+                    QMessageBox.Ok, self
+                )
+                message.exec()
+            except LookupError:
+                message = QMessageBox(QMessageBox.Warning,
+                    _("Unknown encoding"), _("Unknown encoding: '%s'") % encoding,
+                    QMessageBox.Ok, self
+                )
+                message.exec()
+            else:
+                # TODO: outputEncoding
+                command = ChangeData(self, encodedData, self._data)
+                self._undoStack.push(command)
 
     def fileChanged(self, filePath):
         if filePath == self._filePath:
@@ -390,13 +352,9 @@ class SubtitleEditor(SubTab):
 
             newData = self._subtitleData.data(self._filePath)
             comboCommand = ComboCommand(self, _("Subtitles update"))
-            changeEncodingCommand = ChangeEncoding(
-                self,
-                newData.inputEncoding, newData.outputEncoding,
-                self.inputEncoding, self.outputEncoding,
-                newData.subtitles)
+            changeDataCommand = ChangeData(self, newData, self._data)
 
-            comboCommand.addCommand(changeEncodingCommand)
+            comboCommand.addCommand(changeDataCommand)
             self._undoStack.push(comboCommand)
 
     def saveContent(self):

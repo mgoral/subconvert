@@ -17,35 +17,19 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import gettext
 import pkgutil
 import encodings
 
+from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.parsing.Formats import *
-from subconvert.gui.Detail import AUTO_ENCODING_STR
+from subconvert.gui.Detail import AUTO_ENCODING_STR, _
 from subconvert.utils import SubPath
 
 from PyQt4.QtGui import QFileDialog, QHBoxLayout, QComboBox, QLabel
 
-t = gettext.translation(
-    domain='subconvert',
-    localedir=SubPath.getLocalePath(__file__),
-    fallback=True)
-gettext.install('subconvert')
-_ = t.gettext
-
 class SubFileDialog(QFileDialog):
     def __init__(self, parent = None, caption = "", directory = "", filter = ""):
         super().__init__(parent, caption, directory, filter)
-
-    def _pythonEncodings(self):
-        # http://stackoverflow.com/questions/1707709/list-all-the-modules-that-are-part-of-a-python-package/1707786#1707786
-        false_positives = set(["aliases"])
-        found = set(name for imp, name, ispkg in pkgutil.iter_modules(encodings.__path__) if not ispkg)
-        found.difference_update(false_positives)
-        found = list(found)
-        found.sort()
-        return found
 
     def _initAllSubFormats(self):
         formats = SubFormat.__subclasses__()
@@ -61,7 +45,7 @@ class SubFileDialog(QFileDialog):
         self._encodingBox = QComboBox(self)
         if addAuto is True:
             self._encodingBox.addItem(AUTO_ENCODING_STR)
-        self._encodingBox.addItems(self._pythonEncodings())
+        self._encodingBox.addItems(ALL_ENCODINGS)
         self._encodingBox.setToolTip(_("Change file encoding"))
         self._encodingBox.setEditable(True)
 

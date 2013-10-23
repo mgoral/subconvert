@@ -31,6 +31,7 @@ from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import AUTO_ENCODING_STR
 from subconvert.parsing.Formats import *
 from subconvert.utils import SubPath
+from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.PropertyFile import SubtitleProperties, savePropertyFile, loadPropertyFile
 from subconvert.utils.SubSettings import SubSettings
 
@@ -48,7 +49,6 @@ class PropertyFileEditor(QDialog):
 
         self.__createPropertyFilesDirectory()
         self.__initAllSubFormats()
-        self.__initPythonEncodings()
         self.__initGui()
 
     def __createPropertyFilesDirectory(self):
@@ -65,14 +65,6 @@ class PropertyFileEditor(QDialog):
         self._formats = {}
         for f in formats:
             self._formats[f.NAME] = f
-
-    def __initPythonEncodings(self):
-        # http://stackoverflow.com/questions/1707709/list-all-the-modules-that-are-part-of-a-python-package/1707786#1707786
-        false_positives = set(["aliases"])
-        found = set(name for imp, name, ispkg in pkgutil.iter_modules(encodings.__path__) if not ispkg)
-        found.difference_update(false_positives)
-        self._availableEncodings = list(found)
-        self._availableEncodings.sort()
 
     def __initGui(self):
         layout = QVBoxLayout()
@@ -115,12 +107,12 @@ class PropertyFileEditor(QDialog):
 
         self._inputEncoding = QComboBox(self)
         self._inputEncoding.addItem(AUTO_ENCODING_STR)
-        self._inputEncoding.addItems(self._availableEncodings)
+        self._inputEncoding.addItems(ALL_ENCODINGS)
         inputLabel = QLabel(_("Input encoding"))
 
         self._outputEncoding = QComboBox(self)
-        self._outputEncoding.addItem(AUTO_ENCODING_STR)
-        self._outputEncoding.addItems(self._availableEncodings)
+        self._outputEncoding.addItem(AUTO_ENCODING_STR) # FIXME: bool flag instead
+        self._outputEncoding.addItems(ALL_ENCODINGS)
         outputLabel = QLabel(_("Output encoding"))
 
         layout.addWidget(self._changeEncoding, 0, 0)

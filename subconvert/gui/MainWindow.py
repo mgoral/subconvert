@@ -31,6 +31,7 @@ from subconvert.gui import SubtitleWindow
 from subconvert.gui.DataModel import DataController, SubtitleData
 from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
+from subconvert.gui.Detail import _, ActionFactory
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File
 
@@ -43,6 +44,7 @@ class MainWindow(QMainWindow):
         self.__initGui()
         self.__initActions()
         self.__initMenuBar()
+        self.__initShortcuts()
         self.__updateMenuItemsState()
         self.__connectSignals()
         self.show()
@@ -71,49 +73,42 @@ class MainWindow(QMainWindow):
         self._tabs.tabChanged.connect(self.__updateMenuItemsState)
         self._tabs.tabChanged.connect(self.__connectUndoRedo)
 
-    def _createAction(self, name, icon=None, title=None, tip=None, shortcut=None, connection=None):
-        action = QAction(self)
-
-        if icon is not None:
-            try:
-                action.setIcon(QIcon.fromTheme(icon))
-            except TypeError:
-                action.setIcon(icon)
-        if title is not None:
-            action.setText(title)
-        if tip is not None:
-            action.setToolTip(tip)
-        if shortcut is not None:
-            action.setShortcut(shortcut)
-        if connection is not None:
-            action.triggered.connect(connection)
-
-        self.addAction(action)
-        self._actions[name] = action # This way all actions can be immediately used
-        return self._actions[name]
-
     def __initActions(self):
         self._actions = {}
-        self._createAction("openFile",
+        af = ActionFactory(self)
+
+        # open / save
+        self._actions["openFile"] = af.create(
             "document-open", _("&Open"), _("Open subtitle file."), "ctrl+o", self.openFile)
-        self._createAction("saveFile",
+        self._actions["saveFile"] = af.create(
             "document-save", _("&Save"), _("Save current file."), "ctrl+s", self.saveFile)
-        self._createAction("saveFileAs",
+        self._actions["saveFileAs"] = af.create(
             "document-save",_("S&ave as..."), _("Save current file as..."), "ctrl++shift+s",
             self.saveFileAs)
-        self._createAction("saveAllFiles",
+        self._actions["saveAllFiles"] = af.create(
             "document-save", _("Sa&ve all"), _("Save all opened files."), None, self.saveAll)
-        self._createAction("exit",
+
+        # app exit
+        self._actions["exit"] = af.create(
             "application-exit", _("&Exit"), _("Exit Subconvert."), None, qApp.quit)
-        self._createAction("nextTab", None, None, None, "ctrl+tab", self.nextTab)
-        self._createAction("previousTab", None, None, None, "ctrl+shift+tab", self.previousTab)
-        self._createAction("closeTab", None, None, None, "ctrl+w", self.closeTab)
 
-        self._createAction("undo", None, _("Undo"), None, "ctrl+z", self.undo)
-        self._createAction("redo", None, _("Redo"), None, "ctrl+shift+z", self.redo)
+        # tab management
+        self._actions["nextTab"] = af.create(
+            None, None, None, "ctrl+tab", self.nextTab)
+        self._actions["previousTab"] = af.create(
+            None, None, None, "ctrl+shift+tab", self.previousTab)
+        self._actions["closeTab"] = af.create(
+            None, None, None, "ctrl+w", self.closeTab)
 
-        self._createAction("pfileEditor", None, _("Subtitle &Properties Editor"), None, None,
-                self.openPropertyEditor)
+        # Undo / redo
+        self._actions["undo"] = af.create(
+            None, _("Undo"), None, "ctrl+z", self.undo)
+        self._actions["redo"] = af.create(
+            None, _("Redo"), None, "ctrl+shift+z", self.redo)
+
+        # SPF editor
+        self._actions["spfEditor"] = af.create(
+            None, _("Subtitle &Properties Editor"), None, None, self.openPropertyEditor)
 
     def __initMenuBar(self):
         menubar = self.menuBar()
@@ -131,7 +126,12 @@ class MainWindow(QMainWindow):
         editMenu.addAction(self._actions["redo"])
 
         toolsMenu = menubar.addMenu(_("&Tools"))
-        toolsMenu.addAction(self._actions["pfileEditor"])
+        toolsMenu.addAction(self._actions["spfEditor"])
+
+    def __initShortcuts(self):
+        self.addAction(self._actions["nextTab"])
+        self.addAction(self._actions["previousTab"])
+        self.addAction(self._actions["closeTab"])
 
     def __getAllSubExtensions(self):
         formats = SubFormat.__subclasses__()

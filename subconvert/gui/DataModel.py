@@ -78,14 +78,14 @@ class DataController(QObject):
             # TODO: proper check
             if not isinstance(inputEncoding, str):
                 raise TypeError(_("Incorrect inputEncoding type!"))
-            self._storage[filePath].inputEncoding = copy.deepcopy(inputEncoding)
+            self._storage[filePath].inputEncoding = inputEncoding.lower()
 
     def _addOutputEncoding(self, filePath, outputEncoding):
         if outputEncoding is not None:
             # TODO: proper check
             if not isinstance(outputEncoding, str):
                 raise TypeError(_("Incorrect outputEncoding type!"))
-            self._storage[filePath].outputEncoding = copy.deepcopy(outputEncoding)
+            self._storage[filePath].outputEncoding = outputEncoding.lower()
 
     def _addData(self, filePath, data):
         """An actual function that checks and adds data given for add/update operation"""
@@ -115,7 +115,7 @@ class DataController(QObject):
             self._addData(filePath, data)
             self._fileAdded.emit(filePath)
 
-    def createDataFromFile(self, filePath, inputEncoding = None, fps = 25):
+    def createDataFromFile(self, filePath, inputEncoding = None, fps = 25.0):
         """Fetch a given filePath and parse its contents.
 
         May raise the following exceptions:
@@ -128,6 +128,7 @@ class DataController(QObject):
         file_ = File(filePath)
         if inputEncoding is None:
             inputEncoding = file_.detectEncoding()
+        inputEncoding = inputEncoding.lower()
 
         subtitles = self._parseFile(file_, inputEncoding)
         if self._parser.isParsed:
@@ -173,6 +174,7 @@ class DataController(QObject):
 
     def changeDataEncoding(self, data, encoding):
         dataCopy = copy.deepcopy(data)
+        encoding = encoding.lower()
         for i, subtitle in enumerate(dataCopy.subtitles):
             encodedBits = subtitle.text.encode(dataCopy.inputEncoding)
             dataCopy.subtitles.changeSubText(i, encodedBits.decode(encoding))

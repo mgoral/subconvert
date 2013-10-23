@@ -21,7 +21,7 @@ import gettext
 
 from subconvert.utils import SubPath
 
-from PyQt4.QtGui import QListWidget, QComboBox
+from PyQt4.QtGui import QListWidget, QComboBox, QAction, QIcon
 from PyQt4.QtCore import Qt, pyqtSignal
 
 t = gettext.translation(
@@ -33,6 +33,29 @@ _ = t.gettext
 
 # define globally to avoid mistakes
 AUTO_ENCODING_STR = _("[Auto]")
+
+class ActionFactory:
+    def __init__(self, parent):
+        self._parent = parent
+
+    def create(self, icon=None, title=None, tip=None, shortcut=None, connection=None):
+        action = QAction(self._parent)
+
+        if icon is not None:
+            try:
+                action.setIcon(QIcon.fromTheme(icon))
+            except TypeError:
+                action.setIcon(icon)
+        if title is not None:
+            action.setText(title)
+        if tip is not None:
+            action.setToolTip(tip)
+        if shortcut is not None:
+            action.setShortcut(shortcut)
+        if connection is not None:
+            action.triggered.connect(connection)
+
+        return action
 
 class SubtitleList(QListWidget):
     """QListWidget wrapper that sends additional signals with clicked mouse button identifier"""

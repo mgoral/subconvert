@@ -79,40 +79,17 @@ class ChangeSubtitle(SubtitleChangeCommand):
         self.editor.subtitles.changeSubEnd(self._subNo, self._oldSubtitle.end)
         self.editor.refreshSubtitle(self._subNo)
 
-class ChangeEncoding(SubtitleChangeCommand):
-    def __init__(self, editor, newInputEnc, newOutputEnc, oldInputEnc, oldOutputEnc, newSubtitles, parent = None):
+class ChangeData(SubtitleChangeCommand):
+    def __init__(self, editor, newData, oldData, parent = None):
         super().__init__(editor, _("Encoding change"), parent)
-
-        self._newInputEnc = newInputEnc
-        self._newOutputEnc = newOutputEnc
-        self._newSubtitles = newSubtitles
-
-        self._oldInputEnc = oldInputEnc
-        self._oldOutputEnc = oldOutputEnc
-        self._oldSubtitles = editor.subtitles
-
-    def _updateComboBox(self, text):
-        # TODO: outputEncoding when it's available
-        self.editor._inputEncodings.blockSignals(True)
-        index = self.editor._inputEncodings.findText(text)
-        # FIXME: quick and dirty fix for lack of [AUTO] on "FileList autodetection"
-        # FIXME: See SubtitleTabs (FileList::_updateDataWithProperties) description.
-        if index < 0:
-            index = 0
-        self.editor._inputEncodings.setCurrentIndex(index)
-        self.editor._inputEncodings.blockSignals(False)
+        self._newData = newData
+        self._oldData = oldData
 
     def redo(self):
-        self.editor._data.inputEncoding = self._newInputEnc
-        self.editor._data.outputEncoding = self._newOutputEnc
-        self.editor._data.subtitles = self._newSubtitles
-        self._updateComboBox(self._newInputEnc)
+        self.editor._data = self._newData
         self.editor.refreshSubtitles()
 
     def undo(self):
-        self.editor._data.inputEncoding = self._oldInputEnc
-        self.editor._data.outputEncoding = self._oldOutputEnc
-        self.editor._data.subtitles = self._oldSubtitles
-        self._updateComboBox(self._oldInputEnc)
+        self.editor._data = self._oldData
         self.editor.refreshSubtitles()
 
