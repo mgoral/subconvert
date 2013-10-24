@@ -1,5 +1,7 @@
+#-*- coding: utf-8 -*-
+
 """
-Copyright (C) 2013 Michal Goral.
+Copyright (C) 2011, 2012, 2013 Michal Goral.
 
 This file is part of Subconvert
 
