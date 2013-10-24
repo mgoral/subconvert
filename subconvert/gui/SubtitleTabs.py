@@ -50,7 +50,7 @@ class SubTab(QWidget):
         self._displayName = displayName
         self._isStaticTab = isStaticTab
 
-    @property 
+    @property
     def creator(self):
         return self._creator
 
@@ -98,7 +98,7 @@ class FileList(SubTab):
         for pfile in self._settings.getLatestPropertyFiles():
             # A hacky way to store pfile in lambda
             action = af.create(
-                title = pfile, 
+                title = pfile,
                 connection = lambda _, pfile=pfile: self._useSubProperties(pfile)
             )
             pfileMenu.addAction(action)
@@ -299,9 +299,9 @@ class SubtitleEditor(SubTab):
         except Exception as msg:
             # TODO: highlight incorrect column or field with a color on any error
             log.error(msg)
-
-        command = ChangeSubtitle(self, subtitle, subNo)
-        self._undoStack.push(command)
+        else:
+            command = ChangeSubtitle(self, subtitle, subNo)
+            self._undoStack.push(command)
         self.refreshSubtitle(subNo)
 
     def showContextMenu(self):
