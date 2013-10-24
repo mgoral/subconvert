@@ -201,6 +201,13 @@ class SubTabWidget(QWidget):
     def tab(self, index):
         return self.pages.widget(index)
 
+    def tabByPath(self, path):
+        for i in range(self.pages.count()):
+            page = self.tab(i)
+            if not page.isStatic and page.filePath == path:
+                return page
+        return None
+
     @property
     def fileList(self):
         return self._mainTab

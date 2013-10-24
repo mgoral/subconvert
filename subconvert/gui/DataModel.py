@@ -173,6 +173,7 @@ class DataController(QObject):
         return copy.deepcopy(data.subtitles)
 
     def changeDataEncoding(self, data, encoding):
+        """Copies a given SubtitleData and changes its input encoding."""
         dataCopy = copy.deepcopy(data)
         encoding = encoding.lower()
         for i, subtitle in enumerate(dataCopy.subtitles):

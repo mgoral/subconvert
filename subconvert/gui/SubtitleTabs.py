@@ -46,8 +46,13 @@ log = logging.getLogger('subconvert.%s' % __name__)
 class SubTab(QWidget):
     def __init__(self, displayName, isStaticTab, parent = None):
         super(SubTab, self).__init__(parent)
+        self._creator = parent
         self._displayName = displayName
         self._isStaticTab = isStaticTab
+
+    @property 
+    def creator(self):
+        return self._creator
 
     @property
     def isStatic(self):
@@ -154,9 +159,14 @@ class FileList(SubTab):
         items = self.__fileList.selectedItems()
         for item in items:
             filePath = item.text()
-            data = self._subtitleData.data(filePath)
-            data = self._updateDataWithProperties(filePath, data, subProperties)
-            self._subtitleData.update(filePath, data)
+            editor = self.creator.tabByPath(filePath)
+            if editor is not None:
+                data = self._updateDataWithProperties(filePath, editor.currentData, subProperties)
+                editor.changeData(data)
+            else:
+                data = self._subtitleData.data(filePath)
+                data = self._updateDataWithProperties(filePath, data, subProperties)
+                self._subtitleData.update(filePath, data)
 
     def _chooseSubProperties(self):
         fileDialog = FileDialog(
@@ -205,14 +215,13 @@ class FileList(SubTab):
             data.outputEncoding = subProperties.inputEncoding
         return data
 
+
 class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):
         name = os.path.split(filePath)[1]
         super(SubtitleEditor, self).__init__(name, False, parent)
         self.__initWidgets()
         self.__initContextMenu()
-
-        self._creator = parent
 
         self._filePath = filePath
         self._subtitleData = subtitleData
@@ -318,14 +327,17 @@ class SubtitleEditor(SubTab):
                 message.exec()
             else:
                 # TODO: outputEncoding
-                command = ChangeData(self, encodedData, self._data)
-                self._undoStack.push(command)
+                self.changeData(encodedData)
+
+    def changeData(self, newData):
+        command = ChangeData(self, newData, self._data)
+        self._undoStack.push(command)
 
     def fileChanged(self, filePath):
         if filePath == self._filePath:
             # Postpone updating subtitles until this tab is visible.
             self._subtitleDataChanged = True
-            if self._creator.currentPage() is self:
+            if self.creator.currentPage() is self:
                 self.updateTab()
 
     def refreshSubtitle(self, subNo):
@@ -341,7 +353,6 @@ class SubtitleEditor(SubTab):
     def updateTab(self):
         if self._subtitleDataChanged:
             self._subtitleDataChanged = False
-            #if not self._undoStack.isClean():
             message = QMessageBox(QMessageBox.Warning,
                 _("Subtitles changed"), _("Subtitles data has been changed. Reload?"),
                 QMessageBox.Yes | QMessageBox.No, self
@@ -351,13 +362,9 @@ class SubtitleEditor(SubTab):
                 return
 
             newData = self._subtitleData.data(self._filePath)
-            comboCommand = ComboCommand(self, _("Subtitles update"))
-            changeDataCommand = ChangeData(self, newData, self._data)
+            self.changeData(newData)
 
-            comboCommand.addCommand(changeDataCommand)
-            self._undoStack.push(comboCommand)
-
-    def saveContent(self):
+    def applyData(self):
         # TODO: check if subtitleData.fileExists(filePath) ???
         self._subtitleData.fileChanged.disconnect(self.fileChanged)
         self._subtitleData.update(self._filePath, self._data)
@@ -366,6 +373,10 @@ class SubtitleEditor(SubTab):
     @property
     def filePath(self):
         return self._filePath
+
+    @property
+    def currentData(self):
+        return deepcopy(self._data)
 
     @property
     def subtitles(self):

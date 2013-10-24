@@ -30,7 +30,7 @@ from subconvert.gui import SubtitleWindow
 from subconvert.gui.DataModel import DataController, SubtitleData
 from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
-from subconvert.gui.Detail import ActionFactory
+from subconvert.gui.Detail import ActionFactory, AUTO_ENCODING_STR
 from subconvert.utils.Locale import _
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File
@@ -154,7 +154,6 @@ class MainWindow(QMainWindow):
         else:
             File.write(newFilePath, content, data.outputEncoding)
 
-
     @pyqtSlot(int)
     def __connectUndoRedo(self):
         tab = self._tabs.currentPage()
@@ -224,7 +223,7 @@ class MainWindow(QMainWindow):
 
     def saveFile(self):
         currentTab = self._tabs.currentPage()
-        currentTab.saveContent()
+        currentTab.applyData()
         self._writeFile(currentTab.filePath)
 
     def saveFileAs(self):
@@ -239,11 +238,19 @@ class MainWindow(QMainWindow):
         fileDialog.setFileMode(QFileDialog.AnyFile)
 
         if fileDialog.exec():
-            newFileName = fileDialog.selectedFiles()[0]
             currentTab = self._tabs.currentPage()
-            currentTab.saveContent()
-            self._settings.setLatestDirectory(os.path.dirname(newFileName))
+            data = currentTab.currentData
+            if fileDialog.getEncoding() == AUTO_ENCODING_STR: # TODO: bool flag
+                data.outputEncoding = data.inputEncoding
+            else:
+                data.outputEncoding = fileDialog.getEncoding()
+            data.outputFormat = fileDialog.getSubFormat()
+            currentTab.changeData(data)
+            currentTab.applyData()
+
+            newFileName = fileDialog.selectedFiles()[0]
             self._writeFile(currentTab.filePath, newFileName)
+            self._settings.setLatestDirectory(os.path.dirname(newFileName))
 
     def saveAll(self):
         # BUG!!!!!!!!!!!!
@@ -257,7 +264,7 @@ class MainWindow(QMainWindow):
         for i in range(self._tabs.count()):
             tab = self._tabs.tab(i)
             if tab is not None and not tab.isStatic:
-                tab.saveContent()
+                tab.applyData()
                 self._writeFile(tab.filePath)
         # END OF BUG!!!!!!!!!!!!!
 
