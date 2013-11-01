@@ -124,9 +124,9 @@ class MainWindow(QMainWindow):
         fileMenu.addSeparator()
         fileMenu.addAction(self._actions["exit"])
 
-        editMenu = menubar.addMenu(_("&Edit"))
-        editMenu.addAction(self._actions["undo"])
-        editMenu.addAction(self._actions["redo"])
+        subtitlesMenu = menubar.addMenu(_("&Subtitles"))
+        subtitlesMenu.addAction(self._actions["undo"])
+        subtitlesMenu.addAction(self._actions["redo"])
 
         toolsMenu = menubar.addMenu(_("&Tools"))
         toolsMenu.addAction(self._actions["spfEditor"])
