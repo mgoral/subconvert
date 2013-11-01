@@ -76,7 +76,6 @@ class FileList(SubTab):
         self._settings = SubSettings()
 
         self.__initGui()
-        self.__initContextMenu()
         self.__connectSignals()
 
     def __initGui(self):
@@ -155,6 +154,7 @@ class FileList(SubTab):
                 self.requestOpen.emit(item.text(), False)
 
     def showContextMenu(self):
+        self.__initContextMenu() # redraw menu
         self._contextMenu.exec(QCursor.pos())
 
     def changeSelectedSubtitleProperties(self, subProperties):
@@ -192,7 +192,6 @@ class FileList(SubTab):
             # if something goes wrong.
             self.changeSelectedSubtitleProperties(subProperties)
             self._settings.addPropertyFile(propertyPath)
-            self.__initContextMenu() # redraw menu
 
     def _updateDataWithProperties(self, filePath, data, subProperties):
         subtitleFile = File(filePath)

@@ -193,6 +193,8 @@ class PropertyFileEditor(QDialog):
             self._settings.setPropertyFilesPath(os.path.dirname(filename))
             subProperties = self._createSubtitleProperties()
             savePropertyFile(filename, subProperties)
+            self._settings.addPropertyFile(filename)
+            self.close()
 
     def openProperties(self):
         fileDialog = FileDialog(
