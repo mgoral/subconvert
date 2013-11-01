@@ -21,6 +21,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import logging
+from copy import deepcopy
 
 from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QGridLayout, QAction, QIcon, qApp
 from PyQt4.QtCore import pyqtSlot, QDir
@@ -32,6 +33,7 @@ from subconvert.gui.DataModel import DataController, SubtitleData
 from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import ActionFactory, AUTO_ENCODING_STR
+from subconvert.gui.SubtitleEditorCommands import *
 from subconvert.utils.Locale import _
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File
@@ -224,7 +226,6 @@ class MainWindow(QMainWindow):
 
     def saveFile(self):
         currentTab = self._tabs.currentPage()
-        currentTab.applyData()
         self._writeFile(currentTab.filePath)
 
     def saveFileAs(self):
@@ -240,14 +241,18 @@ class MainWindow(QMainWindow):
 
         if fileDialog.exec():
             currentTab = self._tabs.currentPage()
-            data = currentTab.currentData
+            currentData = currentTab.data
+            data = deepcopy(currentData)
+
+            data.outputFormat = fileDialog.getSubFormat()
             if fileDialog.getEncoding() == AUTO_ENCODING_STR: # TODO: bool flag
                 data.outputEncoding = data.inputEncoding
             else:
                 data.outputEncoding = fileDialog.getEncoding()
-            data.outputFormat = fileDialog.getSubFormat()
-            currentTab.changeData(data)
-            currentTab.applyData()
+
+            if data.outputFormat != currentData.outputFormat or data.outputEncoding != currentData.outputEncoding:
+                command = ChangeData(currentTab.filePath, data, _("Output data change"))
+                self._subtitleData.execute(command)
 
             newFileName = fileDialog.selectedFiles()[0]
             self._writeFile(currentTab.filePath, newFileName)
@@ -258,14 +263,13 @@ class MainWindow(QMainWindow):
         # FIXME: fetch self._tabs.fileList list of opened files instead of opened tabs. We want to
         # save all files, not only those shown in tabs.
         # When asked to save file, FileList should check whether it's parsed and parse it if it's
-        # not (in future the parsing moment might be moved to invrease responsibility when opening
+        # not (in future the parsing moment might be moved to increase responsibility when opening
         # a lot of files - i.e. only a file list will be printed and files will be actually parsed
         # on their first use (e.g. on tab open, fps change etc.). I'll have to think about it).
         # END OF FIXME
         for i in range(self._tabs.count()):
             tab = self._tabs.tab(i)
             if tab is not None and not tab.isStatic:
-                tab.applyData()
                 self._writeFile(tab.filePath)
         # END OF BUG!!!!!!!!!!!!!
 

@@ -146,7 +146,7 @@ class File:
         if movieFile is None:
             movieFile = ""
 
-        fps = 25
+        fps = 25.0
         command = ['mplayer',
             '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify', movieFile]
         try:

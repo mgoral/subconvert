@@ -19,12 +19,15 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import copy
+from copy import deepcopy
 from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt4.QtGui import QUndoStack
 
 from subconvert.parsing.Core import SubManager, SubParser, SubConverter, SubManager
 from subconvert.parsing.Formats import *
+from subconvert.gui.SubtitleEditorCommands import *
 from subconvert.utils.SubFile import File
+from subconvert.utils.Encodings import ALL_ENCODINGS
 
 class SubtitleData:
     subtitles = None
@@ -42,6 +45,54 @@ class SubtitleData:
             self.outputEncoding is None
         )
 
+    def verifySubtitles(self):
+        if self.subtitles is None:
+            raise TypeError("Subtitles cannot be of type 'NoneType'!")
+        if type(self.subtitles) is not SubManager:
+            raise TypeError(_("Subtitles are not of type 'SubManager'!"))
+
+    def verifyFps(self):
+        if not isinstance(self.fps, float):
+            raise TypeError("FPS value is not a float!")
+
+    def verifyOutputFormat(self):
+        if self.outputFormat is None:
+            raise TypeError("Output format cannot be of type 'NoneType'!")
+        if not issubclass(self.outputFormat, SubFormat):
+            raise TypeError("Output format is not of type 'SubFormat'!")
+
+    def verifyInputEncoding(self):
+        if self.inputEncoding is None:
+            raise TypeError("Input encoding cannot be of type 'NoneType'!")
+        if not isinstance(self.inputEncoding, str):
+            raise TypeError("Input encoding is not a string!")
+        if self.inputEncoding not in ALL_ENCODINGS:
+            raise ValueError("Input encoding is not a supported encoding!")
+
+    def verifyOutputEncoding(self):
+        if self.outputEncoding is None:
+            raise TypeError("Output encoding cannot be of type 'NoneType'!")
+        if not isinstance(self.outputEncoding, str):
+            raise TypeError("Output encoding is not a string!")
+        if self.outputEncoding not in ALL_ENCODINGS:
+            raise ValueError("Output encoding is not a supported encoding!")
+
+    def verifyAll(self):
+        self.verifySubtitles()
+        self.verifyFps()
+        self.verifyOutputFormat()
+        self.verifyInputEncoding()
+        self.verifyOutputEncoding()
+
+class SubtitleUndoStack(QUndoStack):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+
+    def push(self, cmd):
+        cmd.controller = self.parent()
+        cmd.setup()
+        super().push(cmd)
+
 class DataController(QObject):
     _fileAdded = pyqtSignal(str, name = "fileAdded")
     _fileRemoved = pyqtSignal(str, name = "fileRemoved")
@@ -50,72 +101,19 @@ class DataController(QObject):
     def __init__(self, parent = None):
         super(DataController, self).__init__(parent)
         self._storage = {
-            # filePath: Data
+            # filePath: SubtitleData
         }
+        self._history = {
+            # filePath: SubtitleUndoStack
+        }
+
         self._parser = SubParser()
         for Format in SubFormat.__subclasses__():
             self._parser.registerFormat(Format)
 
-    def _checkFilePath(self, filePath):
-        if not isinstance(filePath, str):
-            raise TypeError(_("filePath is not a string!"))
-
-    def _addSubtitles(self, filePath, subtitles):
-        if subtitles is not None:
-            if type(subtitles) is not SubManager:
-                raise TypeError(_("Incorrect subtitles type!"))
-            self._storage[filePath].subtitles = copy.deepcopy(subtitles)
-
-    def _addFps(self, filePath, fps):
-        self._storage[filePath].fps = float(fps)
-
-    def _addOutputFormat(self, filePath, outputFormat):
-        if outputFormat is not None:
-            if not issubclass(outputFormat, SubFormat):
-                raise TypeError(_("Incorrect outputFormat type!"))
-            self._storage[filePath].outputFormat = copy.deepcopy(outputFormat)
-
-    def _addInputEncoding(self, filePath, inputEncoding):
-        if inputEncoding is not None:
-            # TODO: proper check
-            if not isinstance(inputEncoding, str):
-                raise TypeError(_("Incorrect inputEncoding type!"))
-            self._storage[filePath].inputEncoding = inputEncoding.lower()
-
-    def _addOutputEncoding(self, filePath, outputEncoding):
-        if outputEncoding is not None:
-            # TODO: proper check
-            if not isinstance(outputEncoding, str):
-                raise TypeError(_("Incorrect outputEncoding type!"))
-            self._storage[filePath].outputEncoding = outputEncoding.lower()
-
-    def _addData(self, filePath, data):
-        """An actual function that checks and adds data given for add/update operation"""
-        if type(data) is not SubtitleData:
-            raise TypeError(_("Incorrect data type!"))
-
-        self._checkFilePath(filePath)
-
-        if self._storage.get(filePath) is None:
-            self._storage[filePath] = SubtitleData()
-
-        self._addSubtitles(filePath, data.subtitles)
-        self._addFps(filePath, data.fps)
-        self._addOutputFormat(filePath, data.outputFormat)
-        self._addInputEncoding(filePath, data.inputEncoding)
-        self._addOutputEncoding(filePath, data.outputEncoding)
-
     def _parseFile(self, file_, inputEncoding):
         fileContent = file_.read(inputEncoding)
         return self._parser.parse(fileContent)
-
-    def add(self, filePath, data):
-        """Add a file with a given filePath, subtitles and an output format and output encoding."""
-        if filePath in self._storage:
-            raise KeyError(_("Entry for '%s' cannot be added twice") % filePath)
-        if not data.empty():
-            self._addData(filePath, data)
-            self._fileAdded.emit(filePath)
 
     def createDataFromFile(self, filePath, inputEncoding = None, fps = 25.0):
         """Fetch a given filePath and parse its contents.
@@ -144,17 +142,20 @@ class DataController(QObject):
         else:
             raise RuntimeError(_("Unable to parse file '%s'.") % filePath)
 
-    def update(self, filePath, data):
-        """Update an already existing entry."""
-        if filePath not in self._storage:
-            raise KeyError(_("No entry to update for %s") % filePath)
-        if not data.empty():
-            self._addData(filePath, data)
-            self._fileChanged.emit(filePath)
+    def execute(self, cmd):
+        """Execute a command to modify storage[cmd.filePath]"""
+        if not cmd.filePath in self._history.keys():
+            self._history[cmd.filePath] = SubtitleUndoStack(self)
+            self._history[cmd.filePath].push(cmd)
+            self._history[cmd.filePath].clear()
+        else:
+            self._history[cmd.filePath].push(cmd)
+
 
     def remove(self, filePath):
         """Remove a file with a given filePath"""
         del self._storage[filePath]
+        del self._history[filePath]
         self._fileRemoved.emit(item.text())
 
     def count(self):
@@ -168,15 +169,16 @@ class DataController(QObject):
 
     def data(self, filePath):
         data = self._storage[filePath]
-        return copy.deepcopy(data)
+        return deepcopy(data)
 
     def subtitles(self, filePath):
         data = self._storage[filePath]
-        return copy.deepcopy(data.subtitles)
+        return deepcopy(data.subtitles)
 
-    def changeDataEncoding(self, data, encoding):
-        """Copies a given SubtitleData and changes its input encoding."""
-        dataCopy = copy.deepcopy(data)
+    def encodedData(self, filePath, encoding):
+        """Returns a data from filePath with changed inputEncoding. This method does not change
+        internal DataController data storage."""
+        dataCopy = self.data(filePath)
         encoding = encoding.lower()
         for i, subtitle in enumerate(dataCopy.subtitles):
             encodedBits = subtitle.text.encode(dataCopy.inputEncoding)
@@ -184,4 +186,7 @@ class DataController(QObject):
         dataCopy.inputEncoding = encoding
         return dataCopy
 
+    def history(self, filePath):
+        #Don't worry about pushing commands by history.push(cmd). It should work.
+        return self._history[filePath]
 

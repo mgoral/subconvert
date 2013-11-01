@@ -19,6 +19,10 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
+from copy import deepcopy
+
+from subconvert.parsing.Core import Subtitle
 from subconvert.utils.Locale import _
 
 from PyQt4.QtGui import QUndoCommand
@@ -27,7 +31,7 @@ from PyQt4.QtGui import QUndoCommand
 # empirical tests no errors are detected, we won't do it to save some time and memory.
 #
 # Example of incorrect behavior:
-# 1. Save reverence to editor.subtitles inside ChangeEncoding
+# 1. Save reference to controller.subtitles inside ChangeEncoding
 # 2. Modify a subtitle by Change Subtitle
 # This way a reference stored in step 1 is also modified. BUT: as long as we provide only one step
 # undo/redo and as long as all modifications are done only by QUndoCommands, changes will be
@@ -36,62 +40,113 @@ from PyQt4.QtGui import QUndoCommand
 
 class SubtitleChangeCommand(QUndoCommand):
     """Base class for all Subconvert undo/redo actions."""
-    def __init__(self, editor, text, parent = None):
+    def __init__(self, filePath, parent = None):
         super(SubtitleChangeCommand, self).__init__(parent)
-        self.setText(text)
-        self._editor = editor
+        self._controller = None
+        self._filePath = filePath
+
+    def setup(self):
+        """When subclassing remember to call SubtitleChangeCommand::setup() to perform generic
+        checks."""
+        if not isinstance(self.filePath, str):
+            raise TypeError("File path is not a string!")
+        if self.controller is None:
+            raise ValueError("Command controller hasn't been specified!")
 
     @property
-    def editor(self):
-        return self._editor
+    def filePath(self):
+        return self._filePath
 
-class ComboCommand(SubtitleChangeCommand):
-    def __init__(self, editor, text, parent = None):
-        super().__init__(editor, text, parent)
-        self._commandList = []
+    @property
+    def controller(self):
+        return self._controller
 
-    def addCommand(self, command):
-        self._commandList.append(command)
-
-    def redo(self):
-        for command in self._commandList:
-            command.redo()
-
-    def undo(self):
-        for command in reversed(self._commandList):
-            command.undo()
+    @controller.setter
+    def controller(self, controller):
+        self._controller = controller
 
 class ChangeSubtitle(SubtitleChangeCommand):
-    def __init__(self, editor, subtitle, index, parent = None):
-        super(ChangeSubtitle, self).__init__(editor, _("Subtitle change"), parent)
+    def __init__(self, filePath, oldSubtitle, newSubtitle, index, parent = None):
+        super(ChangeSubtitle, self).__init__(filePath, parent)
+        self.setText(_("Subtitle change"))
 
-        self._newSubtitle = subtitle
+        self._oldSubtitle = oldSubtitle
+        self._newSubtitle = newSubtitle
         self._subNo = index
-        self._oldSubtitle = editor.subtitles[index]
+
+    def setup(self):
+        super().setup()
+        if not self.controller.fileExists(self.filePath):
+            raise KeyError(_("No entry to update for %s") % self.filePath)
+        if not isinstance(self._subNo, int):
+            raise TypeError("Subtitle number is not an int!")
+        if type(self._oldSubtitle) is not Subtitle:
+            raise TypeError(_("Old subtitle are not of type 'Subtitle'!"))
+        if type(self._newSubtitle) is not Subtitle:
+            raise TypeError(_("New subtitle are not of type 'Subtitle'!"))
 
     def redo(self):
-        self.editor.subtitles.changeSubText(self._subNo, self._newSubtitle.text)
-        self.editor.subtitles.changeSubStart(self._subNo, self._newSubtitle.start)
-        self.editor.subtitles.changeSubEnd(self._subNo, self._newSubtitle.end)
-        self.editor.refreshSubtitle(self._subNo)
+        storage = self.controller._storage[self.filePath]
+        storage.subtitles.changeSubText(self._subNo, self._newSubtitle.text)
+        storage.subtitles.changeSubStart(self._subNo, self._newSubtitle.start)
+        storage.subtitles.changeSubEnd(self._subNo, self._newSubtitle.end)
+        self.controller.fileChanged.emit(self.filePath)
 
     def undo(self):
-        self.editor.subtitles.changeSubText(self._subNo, self._oldSubtitle.text)
-        self.editor.subtitles.changeSubStart(self._subNo, self._oldSubtitle.start)
-        self.editor.subtitles.changeSubEnd(self._subNo, self._oldSubtitle.end)
-        self.editor.refreshSubtitle(self._subNo)
+        storage = self.controller._storage[self.filePath]
+        storage.subtitles.changeSubText(self._subNo, self._oldSubtitle.text)
+        storage.subtitles.changeSubStart(self._subNo, self._oldSubtitle.start)
+        storage.subtitles.changeSubEnd(self._subNo, self._oldSubtitle.end)
+        self.controller.fileChanged.emit(self.filePath)
 
 class ChangeData(SubtitleChangeCommand):
-    def __init__(self, editor, newData, oldData, parent = None):
-        super().__init__(editor, _("Encoding change"), parent)
-        self._newData = newData
-        self._oldData = oldData
+    def __init__(self, filePath, newData, desc = None, parent = None):
+        super().__init__(filePath, parent)
+        if desc is None:
+            self.setText(_("Subtitle data change"))
+        else:
+            self.setText(desc)
+
+        self._newData = deepcopy(newData)
+        self._oldData = None
+
+    def setup(self):
+        super().setup()
+        if not self.controller.fileExists(self.filePath):
+            raise KeyError(_("No entry to update for %s") % self.filePath)
+
+        #  A little hackish way to avoid passing oldData to ChangeData command (which would require
+        #  unnecessary deepcopies).
+        if self._oldData is None:
+            self._oldData = self.controller.data(self.filePath)
+
+        self._newData.verifyAll()
 
     def redo(self):
-        self.editor._data = self._newData
-        self.editor.refreshSubtitles()
+        self.controller._storage[self.filePath] = self._newData
+        self.controller.fileChanged.emit(self.filePath)
 
     def undo(self):
-        self.editor._data = self._oldData
-        self.editor.refreshSubtitles()
+        self.controller._storage[self.filePath] = self._oldData
+        self.controller.fileChanged.emit(self.filePath)
+
+class NewData(SubtitleChangeCommand):
+    def __init__(self, filePath, data, parent = None):
+        super().__init__(filePath, parent)
+        self.setText(_("New subtitle data: %s") % os.path.basename(filePath))
+
+        self._newData = deepcopy(data)
+
+    def setup(self):
+        super().setup()
+        if self.controller.fileExists(self.filePath):
+            raise KeyError(_("Entry for '%s' cannot be added twice") % self.filePath)
+        self._newData.verifyAll()
+
+    def redo(self):
+        self.controller._storage[self.filePath] = self._newData
+        self.controller.fileAdded.emit(self.filePath)
+
+    def undo(self):
+        pass # TODO: raise "AtTheBeginning" exception?
 

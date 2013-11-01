@@ -27,7 +27,7 @@ from copy import deepcopy
 
 from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QIcon, QListWidgetItem
 from PyQt4.QtGui import QTableView, QHeaderView,QStandardItemModel, QStandardItem, QSizePolicy
-from PyQt4.QtGui import QMessageBox, QUndoStack, QAbstractItemView, QAction, QMenu, QCursor
+from PyQt4.QtGui import QMessageBox, QAbstractItemView, QAction, QMenu, QCursor
 from PyQt4.QtGui import QFileDialog
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
 
@@ -127,7 +127,8 @@ class FileList(SubTab):
             item = QListWidgetItem(icon, filePath)
             item.setToolTip(filePath)
 
-            self._subtitleData.add(filePath, data)
+            command = NewData(filePath, data)
+            self._subtitleData.execute(command)
             self.__fileList.addItem(item)
 
     def removeFile(self):
@@ -161,14 +162,10 @@ class FileList(SubTab):
         items = self.__fileList.selectedItems()
         for item in items:
             filePath = item.text()
-            editor = self.creator.tabByPath(filePath)
-            if editor is not None:
-                data = self._updateDataWithProperties(filePath, editor.currentData, subProperties)
-                editor.changeData(data)
-            else:
-                data = self._subtitleData.data(filePath)
-                data = self._updateDataWithProperties(filePath, data, subProperties)
-                self._subtitleData.update(filePath, data)
+            data = self._subtitleData.data(filePath)
+            data = self._updateDataWithProperties(filePath, data, subProperties)
+            command = ChangeData(filePath, data)
+            self._subtitleData.execute(command)
 
     def _chooseSubProperties(self):
         fileDialog = FileDialog(
@@ -202,7 +199,7 @@ class FileList(SubTab):
 
         if subProperties.inputEncoding == AUTO_ENCODING_STR:
             subProperties.inputEncoding = subtitleFile.detectEncoding()
-        data = self._subtitleData.changeDataEncoding(data, subProperties.inputEncoding)
+        data = self._subtitleData.encodedData(filePath, subProperties.inputEncoding)
 
         data.outputFormat = subProperties.outputFormat
 
@@ -228,9 +225,7 @@ class SubtitleEditor(SubTab):
         self._filePath = filePath
         self._subtitleData = subtitleData
         self._subtitleDataChanged = False
-        self._undoStack = QUndoStack(self)
 
-        self._data = self._subtitleData.data(self._filePath)
         self.refreshSubtitles()
 
         # Some signals
@@ -289,21 +284,22 @@ class SubtitleEditor(SubTab):
         # Check it and create FrameTime properly in that case.
         # TODO: Maybe add column numbers to some kind of enum to avoid magic numbers?
         try:
-            subtitle = self._data.subtitles[subNo]
+            oldSubtitle = self.subtitles[subNo]
+            newSubtitle = deepcopy(oldSubtitle)
             if 0 == column:
-                timeStart = FrameTime(time=item.text(), fps = self._data.subtitles.fps)
-                subtitle.change(start = timeStart)
+                timeStart = FrameTime(time=item.text(), fps = self.data.subtitles.fps)
+                newSubtitle.change(start = timeStart)
             elif 1 == column:
-                timeEnd = FrameTime(time=item.text(), fps = self._data.subtitles.fps)
-                subtitle.change(end = timeEnd)
+                timeEnd = FrameTime(time=item.text(), fps = self.data.subtitles.fps)
+                newSubtitle.change(end = timeEnd)
             elif 2 == column:
-                subtitle.change(text = item.text())
+                newSubtitle.change(text = item.text())
         except Exception as msg:
             # TODO: highlight incorrect column or field with a color on any error
             log.error(msg)
         else:
-            command = ChangeSubtitle(self, subtitle, subNo)
-            self._undoStack.push(command)
+            command = ChangeSubtitle(self.filePath, oldSubtitle, newSubtitle, subNo)
+            self.execute(command)
         self.refreshSubtitle(subNo)
 
     def showContextMenu(self):
@@ -312,7 +308,7 @@ class SubtitleEditor(SubTab):
     def changeEncoding(self, encoding):
         if encoding != self.inputEncoding:
             try:
-                encodedData = self._subtitleData.changeDataEncoding(self._data, encoding)
+                encodedData = self._subtitleData.encodedData(self.filePath, encoding)
             except UnicodeDecodeError:
                 message = QMessageBox(
                     QMessageBox.Warning,
@@ -329,47 +325,35 @@ class SubtitleEditor(SubTab):
                 message.exec()
             else:
                 # TODO: outputEncoding
-                self.changeData(encodedData)
-
-    def changeData(self, newData):
-        command = ChangeData(self, newData, self._data)
-        self._undoStack.push(command)
+                command = ChangeData(self.filePath, encodedData)
+                self.execute(command)
+                self.refreshSubtitles()
 
     def fileChanged(self, filePath):
         if filePath == self._filePath:
             # Postpone updating subtitles until this tab is visible.
             self._subtitleDataChanged = True
             if self.creator.currentPage() is self:
-                self.updateTab()
+                self.refreshSubtitles()
+                #self.updateTab()
 
     def refreshSubtitle(self, subNo):
-        sub = self._data.subtitles[subNo]
+        sub = self.subtitles[subNo]
         self._model.removeRow(subNo)
         self._model.insertRow(subNo, self._createRow(sub))
 
     def refreshSubtitles(self):
         self._model.removeRows(0, self._model.rowCount())
-        for sub in self._data.subtitles:
+        for sub in self.subtitles:
             self._model.appendRow(self._createRow(sub))
 
     def updateTab(self):
-        if self._subtitleDataChanged:
-            self._subtitleDataChanged = False
-            message = QMessageBox(QMessageBox.Warning,
-                _("Subtitles changed"), _("Subtitles data has been changed. Reload?"),
-                QMessageBox.Yes | QMessageBox.No, self
-            )
-            closeDecision = message.exec()
-            if closeDecision == QMessageBox.No:
-                return
+        self.refreshSubtitles()
 
-            newData = self._subtitleData.data(self._filePath)
-            self.changeData(newData)
-
-    def applyData(self):
+    def execute(self, cmd):
         # TODO: check if subtitleData.fileExists(filePath) ???
         self._subtitleData.fileChanged.disconnect(self.fileChanged)
-        self._subtitleData.update(self._filePath, self._data)
+        self._subtitleData.execute(cmd)
         self._subtitleData.fileChanged.connect(self.fileChanged)
 
     @property
@@ -377,21 +361,21 @@ class SubtitleEditor(SubTab):
         return self._filePath
 
     @property
-    def currentData(self):
-        return deepcopy(self._data)
+    def data(self):
+        return self._subtitleData.data(self.filePath)
 
     @property
     def subtitles(self):
-        return self._data.subtitles
+        return self.data.subtitles
 
     @property
     def history(self):
-        return self._undoStack
+        return self._subtitleData.history(self.filePath)
 
     @property
     def inputEncoding(self):
-        return self._data.inputEncoding
+        return self.data.inputEncoding
 
     @property
     def outputEncoding(self):
-        return self._data.outputEncoding
+        return self.data.outputEncoding
