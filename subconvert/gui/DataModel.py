@@ -25,7 +25,7 @@ from PyQt4.QtGui import QUndoStack
 
 from subconvert.parsing.Core import SubManager, SubParser, SubConverter, SubManager
 from subconvert.parsing.Formats import *
-from subconvert.gui.SubtitleEditorCommands import *
+from subconvert.gui.SubtitleCommands import *
 from subconvert.utils.SubFile import File
 from subconvert.utils.Encodings import ALL_ENCODINGS
 

@@ -33,7 +33,7 @@ from subconvert.gui.DataModel import DataController, SubtitleData
 from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import ActionFactory, AUTO_ENCODING_STR
-from subconvert.gui.SubtitleEditorCommands import *
+from subconvert.gui.SubtitleCommands import *
 from subconvert.utils.Locale import _
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File

@@ -41,7 +41,7 @@ from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import AUTO_ENCODING_STR
 from subconvert.gui.Detail import ActionFactory, SubtitleList, ComboBoxWithHistory
 from subconvert.gui.DataModel import SubtitleData
-from subconvert.gui.SubtitleEditorCommands import *
+from subconvert.gui.SubtitleCommands import *
 
 log = logging.getLogger('subconvert.%s' % __name__)
 
