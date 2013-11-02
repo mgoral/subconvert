@@ -189,11 +189,12 @@ class SubTabWidget(QWidget):
 
     @pyqtSlot(int)
     def showTab(self, index):
-        # FIXME: too many tab-change signals
         showWidget = self.pages.widget(index)
         if showWidget:
             self.pages.setCurrentWidget(showWidget)
+            self.tabBar.blockSignals(True)
             self.tabBar.setCurrentIndex(index)
+            self.tabBar.blockSignals(False)
 
             # Try to update current tab.
             showWidget.updateTab()
