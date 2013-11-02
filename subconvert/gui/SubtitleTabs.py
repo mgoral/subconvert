@@ -48,13 +48,8 @@ log = logging.getLogger('subconvert.%s' % __name__)
 class SubTab(QWidget):
     def __init__(self, displayName, isStaticTab, parent = None):
         super(SubTab, self).__init__(parent)
-        self._creator = parent
         self._displayName = displayName
         self._isStaticTab = isStaticTab
-
-    @property
-    def creator(self):
-        return self._creator
 
     @property
     def isStatic(self):
@@ -223,7 +218,6 @@ class SubtitleEditor(SubTab):
 
         self._filePath = filePath
         self._subtitleData = subtitleData
-        self._subtitleDataChanged = False
 
         self.refreshSubtitles()
 
@@ -330,11 +324,7 @@ class SubtitleEditor(SubTab):
 
     def fileChanged(self, filePath):
         if filePath == self._filePath:
-            # Postpone updating subtitles until this tab is visible.
-            self._subtitleDataChanged = True
-            if self.creator.currentPage() is self:
-                self.refreshSubtitles()
-                #self.updateTab()
+            self.refreshSubtitles()
 
     def refreshSubtitle(self, subNo):
         sub = self.subtitles[subNo]

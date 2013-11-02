@@ -143,7 +143,7 @@ class SubTabWidget(QWidget):
             widgetToRemove = self.pages.widget(index)
             self.tabBar.removeTab(index)
             self.pages.removeWidget(widgetToRemove)
-            widgetToRemove.close()
+            widgetToRemove.deleteLater()
             # FIXME: too many tab-change signals
             # Hack
             # when last tab is closed, tabBar should emit tabCloseRequested and then currentChanged.

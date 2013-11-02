@@ -154,8 +154,10 @@ class DataController(QObject):
 
     def remove(self, filePath):
         """Remove a file with a given filePath"""
-        del self._storage[filePath]
+        history = self._history[filePath]
+        history.deleteLater()
         del self._history[filePath]
+        del self._storage[filePath]
         self._fileRemoved.emit(item.text())
 
     def count(self):
