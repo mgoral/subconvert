@@ -110,7 +110,6 @@ class SubTabWidget(QWidget):
             if not widget.isStatic and filePath == widget.filePath:
                 return i
         tab = SubtitleEditor(filePath, self._subtitleData, self)
-        # FIXME: too many tab-change signals
         newIndex = self.tabBar.addTab(tab.name)
         self.pages.addWidget(tab)
         return newIndex
@@ -144,14 +143,6 @@ class SubTabWidget(QWidget):
             self.tabBar.removeTab(index)
             self.pages.removeWidget(widgetToRemove)
             widgetToRemove.deleteLater()
-            # FIXME: too many tab-change signals
-            # Hack
-            # when last tab is closed, tabBar should emit tabCloseRequested and then currentChanged.
-            # Unfortunately it emits these signals the other way round and when clients receive
-            # self.tabChanged, they have no possibility to know if there's no tab opened. This hack
-            # will inform them additionaly when last tab is closed.
-            if self.currentIndex() == -1:
-                self._tabChanged.emit(self.currentIndex())
 
     def count(self):
         return self.tabBar.count()

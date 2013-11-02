@@ -250,7 +250,7 @@ class SubtitleEditor(SubTab):
         self.setLayout(grid)
 
     def __initContextMenu(self):
-        self._contextMenu = QMenu()
+        self._contextMenu = QMenu(self)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         af = ActionFactory(self)
 
