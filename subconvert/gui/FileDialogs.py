@@ -70,7 +70,10 @@ class SubFileDialog(QFileDialog):
         mainLayout.addWidget(self._formatBox, row, 1)
 
     def getEncoding(self):
-        return self._encodingBox.currentText()
+        encoding = self._encodingBox.currentText()
+        if encoding == AUTO_ENCODING_STR:
+            encoding = None
+        return encoding
 
     def getSubFormat(self):
         return self._formats.get(self._formatBox.currentText())

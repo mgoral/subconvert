@@ -222,7 +222,12 @@ class MainWindow(QMainWindow):
             encoding = fileDialog.getEncoding()
             self._settings.setLatestDirectory(os.path.dirname(filenames[0]))
             for filePath in filenames:
-                self._tabs.fileList.addFile(filePath, encoding)
+                # TODO: separate reading file and adding to the list.
+                # TODO: there should be readDataFromFile(filePath, properties=None), 
+                # TODO: which should set default properties from Subtitle Properties File
+                data = self._subtitleData.createDataFromFile(filePath, encoding)
+                command = NewSubtitles(filePath)
+                self._subtitleData.execute(command)
 
     def saveFile(self):
         currentTab = self._tabs.currentPage()

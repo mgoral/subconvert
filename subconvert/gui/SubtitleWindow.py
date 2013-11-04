@@ -30,6 +30,7 @@ from subconvert.utils.Locale import _
 from subconvert.utils.SubFile import File
 from subconvert.gui.DataModel import SubtitleData
 from subconvert.gui.SubtitleTabs import FileList, SubtitleEditor
+from subconvert.gui.SubtitleCommands import *
 
 import subconvert.resources
 
@@ -98,6 +99,7 @@ class SubTabWidget(QWidget):
         self.tabBar.tabCloseRequested.connect(self.closeTab)
         self.tabBar.tabMoved.connect(self.moveTab)
         self._mainTab.requestOpen.connect(self.openTab)
+        self._mainTab.requestRemove.connect(self.removeFile)
 
         self.setLayout(mainLayout)
 
@@ -136,13 +138,29 @@ class SubTabWidget(QWidget):
         else:
             log.error(_("SubtitleEditor not created for %s!" % filePath))
 
+    @pyqtSlot(str)
+    def removeFile(self, filePath):
+        tab = self.tabByPath(filePath)
+        command = RemoveFile(filePath)
+        if tab is not None:
+            index = self.pages.indexOf(tab)
+            if self.closeTab(index):
+                self._subtitleData.execute(command)
+        else:
+            self._subtitleData.execute(command)
+
+
     @pyqtSlot(int)
     def closeTab(self, index):
-        if not self.tab(index).isStatic:
+        tab = self.tab(index)
+        if not tab.isStatic and tab.canClose():
             widgetToRemove = self.pages.widget(index)
             self.tabBar.removeTab(index)
             self.pages.removeWidget(widgetToRemove)
             widgetToRemove.deleteLater()
+            return True
+        return False
+
 
     def count(self):
         return self.tabBar.count()

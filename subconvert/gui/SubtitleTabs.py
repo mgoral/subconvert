@@ -51,6 +51,10 @@ class SubTab(QWidget):
         self._displayName = displayName
         self._isStaticTab = isStaticTab
 
+    def canClose(self):
+        # Redefine in child classes
+        return True
+
     @property
     def isStatic(self):
         return self._isStaticTab
@@ -60,10 +64,12 @@ class SubTab(QWidget):
         return self._displayName
 
     def updateTab(self):
+        # Redefine in child classes
         pass
 
 class FileList(SubTab):
     requestOpen = pyqtSignal(str, bool)
+    requestRemove = pyqtSignal(str)
 
     def __init__(self, name, subtitleData, parent = None):
         super(FileList, self).__init__(name, True, parent)
@@ -103,52 +109,50 @@ class FileList(SubTab):
             title = _("Open file"), connection = self._chooseSubProperties))
 
     def __connectSignals(self):
-        self.__fileList.mouseButtonDoubleClicked.connect(self.handleDoubleClick)
-        self.__fileList.mouseButtonClicked.connect(self.handleClick)
-        self.__fileList.keyPressed.connect(self.handleKeyPress)
-        self.customContextMenuRequested.connect(self.showContextMenu)
+        self.__fileList.mouseButtonDoubleClicked.connect(self._handleDoubleClick)
+        self.__fileList.mouseButtonClicked.connect(self._handleClick)
+        self.__fileList.keyPressed.connect(self._handleKeyPress)
+        self.customContextMenuRequested.connect(self._showContextMenu)
 
-    def addFile(self, filePath, encoding):
-        # TODO: separate reading file and adding to the list.
-        # TODO: there should be readDataFromFile(filePath, properties=None), which should set
-        # TODO: default properties from Subtitle Properties File
-        if not self._subtitleData.fileExists(filePath):
-            if encoding == AUTO_ENCODING_STR:
-                data = self._subtitleData.createDataFromFile(filePath)
-            else:
-                data = self._subtitleData.createDataFromFile(filePath, encoding)
-            icon = QIcon(":/img/initial_list.png")
-            item = QListWidgetItem(icon, filePath)
-            item.setToolTip(filePath)
+        self._subtitleData.fileAdded.connect(self._addFile)
+        self._subtitleData.fileRemoved.connect(self._removeFile)
 
-            command = NewData(filePath, data)
-            self._subtitleData.execute(command)
-            self.__fileList.addItem(item)
+    def _addFile(self, filePath):
+        icon = QIcon(":/img/initial_list.png")
+        item = QListWidgetItem(icon, filePath)
+        item.setToolTip(filePath)
+        self.__fileList.addItem(item)
 
-    def removeFile(self):
-        item = self.__fileList.takeItem(self.__fileList.currentRow())
-        item = None
+    def _removeFile(self, filePath):
+        items = self.__fileList.findItems(filePath, Qt.MatchExactly)
+        for item in items:
+            row = self.__fileList.row(item)
+            toDelete = self.__fileList.takeItem(row)
+            toDelete = None
 
     def getCurrentFile(self):
         return self.__fileList.currentItem()
 
-    def handleClick(self, button):
+    def _handleClick(self, button):
         item = self.__fileList.currentItem()
         if item is not None and button == Qt.MiddleButton:
             self.requestOpen.emit(item.text(), True)
 
-    def handleDoubleClick(self, button):
+    def _handleDoubleClick(self, button):
         item = self.__fileList.currentItem()
         if item is not None and button == Qt.LeftButton:
             self.requestOpen.emit(item.text(), False)
 
-    def handleKeyPress(self, key):
+    def _handleKeyPress(self, key):
         items = self.__fileList.selectedItems()
         if key in (Qt.Key_Enter, Qt.Key_Return):
             for item in items:
                 self.requestOpen.emit(item.text(), False)
+        elif key == Qt.Key_Delete:
+            for item in items:
+                self.requestRemove.emit(item.text())
 
-    def showContextMenu(self):
+    def _showContextMenu(self):
         self.__initContextMenu() # redraw menu
         self._contextMenu.exec(QCursor.pos())
 

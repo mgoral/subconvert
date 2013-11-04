@@ -23,6 +23,7 @@ import os
 from copy import deepcopy
 
 from subconvert.parsing.Core import Subtitle
+from subconvert.gui.Detail import AUTO_ENCODING_STR
 from subconvert.utils.Locale import _
 
 from PyQt4.QtGui import QUndoCommand
@@ -130,18 +131,18 @@ class ChangeData(SubtitleChangeCommand):
         self.controller._storage[self.filePath] = self._oldData
         self.controller.fileChanged.emit(self.filePath)
 
-class NewData(SubtitleChangeCommand):
-    def __init__(self, filePath, data, parent = None):
+class NewSubtitles(SubtitleChangeCommand):
+    def __init__(self, filePath, encoding = None, parent = None):
         super().__init__(filePath, parent)
-        self.setText(_("New subtitle data: %s") % os.path.basename(filePath))
-
-        self._newData = deepcopy(data)
+        self.setText(_("New subtitles: %s") % os.path.basename(filePath))
+        self._filePath = filePath
+        self._encoding = encoding
 
     def setup(self):
         super().setup()
         if self.controller.fileExists(self.filePath):
-            raise KeyError(_("Entry for '%s' cannot be added twice") % self.filePath)
-        self._newData.verifyAll()
+            raise KeyError(_("Entry for '%s' cannot be added twice") % self._filePath)
+        self._newData = self.controller.createDataFromFile(self._filePath, self._encoding)
 
     def redo(self):
         self.controller._storage[self.filePath] = self._newData
@@ -150,3 +151,24 @@ class NewData(SubtitleChangeCommand):
     def undo(self):
         pass # TODO: raise "AtTheBeginning" exception?
 
+class RemoveFile(SubtitleChangeCommand):
+    def __init__(self, filePath, parent = None):
+        super().__init__(filePath, parent)
+        # Dunno why we set this text...
+        self.setText(_("Remove subtitle file: %s") % os.path.basename(filePath))
+        self._filePath = filePath
+
+    def setup(self):
+        super().setup()
+        if not self.controller.fileExists(self.filePath):
+            raise KeyError(_("Cannot remove '%s'. It doesn't exist!") % self._filePath)
+
+    def redo(self):
+        history = self.controller._history[self._filePath]
+        history.deleteLater() # C++ delete on next Qt event loop enter
+        del self.controller._history[self._filePath] # Python delete from dict
+        del self.controller._storage[self._filePath]
+        self.controller.fileRemoved.emit(self._filePath)
+
+    def undo(self):
+        pass

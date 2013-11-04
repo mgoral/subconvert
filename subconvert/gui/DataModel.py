@@ -25,7 +25,6 @@ from PyQt4.QtGui import QUndoStack
 
 from subconvert.parsing.Core import SubManager, SubParser, SubConverter, SubManager
 from subconvert.parsing.Formats import *
-from subconvert.gui.SubtitleCommands import *
 from subconvert.utils.SubFile import File
 from subconvert.utils.Encodings import ALL_ENCODINGS
 
@@ -150,15 +149,6 @@ class DataController(QObject):
             self._history[cmd.filePath].clear()
         else:
             self._history[cmd.filePath].push(cmd)
-
-
-    def remove(self, filePath):
-        """Remove a file with a given filePath"""
-        history = self._history[filePath]
-        history.deleteLater()
-        del self._history[filePath]
-        del self._storage[filePath]
-        self._fileRemoved.emit(item.text())
 
     def count(self):
         return len(self._storage)
