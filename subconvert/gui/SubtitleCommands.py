@@ -39,6 +39,12 @@ from PyQt4.QtGui import QUndoCommand
 # reverted to the proper state before ChangeEncoding command will be on top of UndoStack again 
 # (in our case: after one 'undo').
 
+class IncorrectFilePath(Exception):
+    pass
+
+class DoubleFileEntry(Exception):
+    pass
+
 class SubtitleChangeCommand(QUndoCommand):
     """Base class for all Subconvert undo/redo actions."""
     def __init__(self, filePath, parent = None):
@@ -78,7 +84,7 @@ class ChangeSubtitle(SubtitleChangeCommand):
     def setup(self):
         super().setup()
         if not self.controller.fileExists(self.filePath):
-            raise KeyError(_("No entry to update for %s") % self.filePath)
+            raise IncorrectFilePath(_("No entry to update for %s") % self.filePath)
         if not isinstance(self._subNo, int):
             raise TypeError("Subtitle number is not an int!")
         if type(self._oldSubtitle) is not Subtitle:
@@ -114,7 +120,7 @@ class ChangeData(SubtitleChangeCommand):
     def setup(self):
         super().setup()
         if not self.controller.fileExists(self.filePath):
-            raise KeyError(_("No entry to update for %s") % self.filePath)
+            raise IncorrectFilePath(_("No entry to update for %s") % self.filePath)
 
         #  A little hackish way to avoid passing oldData to ChangeData command (which would require
         #  unnecessary deepcopies).
@@ -141,7 +147,7 @@ class NewSubtitles(SubtitleChangeCommand):
     def setup(self):
         super().setup()
         if self.controller.fileExists(self.filePath):
-            raise KeyError(_("Entry for '%s' cannot be added twice") % self._filePath)
+            raise DoubleFileEntry(_("'%s' cannot be added twice") % self._filePath)
         self._newData = self.controller.createDataFromFile(self._filePath, self._encoding)
 
     def redo(self):
@@ -161,7 +167,7 @@ class RemoveFile(SubtitleChangeCommand):
     def setup(self):
         super().setup()
         if not self.controller.fileExists(self.filePath):
-            raise KeyError(_("Cannot remove '%s'. It doesn't exist!") % self._filePath)
+            raise IncorrectFilePath(_("Cannot remove '%s'. It doesn't exist!") % self._filePath)
 
     def redo(self):
         history = self.controller._history[self._filePath]

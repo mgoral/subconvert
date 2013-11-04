@@ -21,7 +21,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 from subconvert.utils import SubPath
 
-from PyQt4.QtGui import QListWidget, QComboBox, QAction, QIcon
+from PyQt4.QtGui import QListWidget, QComboBox, QAction, QIcon, QMessageBox
 from PyQt4.QtCore import Qt, pyqtSignal
 
 # define globally to avoid mistakes
@@ -100,3 +100,27 @@ class ComboBoxWithHistory(QComboBox):
             self._previousText = self.currentText()
         super(ComboBoxWithHistory, self).keyPressEvent(keyEvent)
 
+class CannotOpenFilesMsg(QMessageBox):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+        self.setIcon(self.Warning)
+
+        self._fileListWidget = QListWidget(self)
+        self.layout().addWidget(self._fileListWidget, 3, 1)
+        self._fileListWidget.hide()
+
+    def setFileList(self, fileList):
+        self._fileListWidget.clear()
+        self._fileListWidget.addItems(fileList)
+        if self._fileListWidget.count() > 0:
+            self._fileListWidget.show()
+        else:
+            self._fileListWidget.hide()
+
+    def exec(self):
+        fileListSize = self._fileListWidget.count()
+        if fileListSize > 1:
+            self.setText(_("Errors occured when trying to open following files:"))
+        else:
+            self.setText(_("An error occured when trying to open a file:"))
+        super().exec()

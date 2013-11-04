@@ -32,7 +32,7 @@ from subconvert.gui import SubtitleWindow
 from subconvert.gui.DataModel import DataController, SubtitleData
 from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
-from subconvert.gui.Detail import ActionFactory, AUTO_ENCODING_STR
+from subconvert.gui.Detail import ActionFactory, AUTO_ENCODING_STR, CannotOpenFilesMsg
 from subconvert.gui.SubtitleCommands import *
 from subconvert.utils.Locale import _
 from subconvert.utils.SubSettings import SubSettings
@@ -221,13 +221,23 @@ class MainWindow(QMainWindow):
             filenames = fileDialog.selectedFiles()
             encoding = fileDialog.getEncoding()
             self._settings.setLatestDirectory(os.path.dirname(filenames[0]))
+            unsuccessfullFiles = []
             for filePath in filenames:
                 # TODO: separate reading file and adding to the list.
                 # TODO: there should be readDataFromFile(filePath, properties=None), 
                 # TODO: which should set default properties from Subtitle Properties File
-                data = self._subtitleData.createDataFromFile(filePath, encoding)
                 command = NewSubtitles(filePath)
-                self._subtitleData.execute(command)
+                try:
+                    self._subtitleData.execute(command)
+                except DoubleFileEntry:
+                    pass # file already opened
+                except Exception as e:
+                    log.error(str(e))
+                    unsuccessfullFiles.append(filePath)
+            if len(unsuccessfullFiles) > 0:
+                dialog = CannotOpenFilesMsg(self)
+                dialog.setFileList(unsuccessfullFiles)
+                dialog.exec()
 
     def saveFile(self):
         currentTab = self._tabs.currentPage()

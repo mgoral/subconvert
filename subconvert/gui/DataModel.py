@@ -145,8 +145,14 @@ class DataController(QObject):
         """Execute a command to modify storage[cmd.filePath]"""
         if not cmd.filePath in self._history.keys():
             self._history[cmd.filePath] = SubtitleUndoStack(self)
-            self._history[cmd.filePath].push(cmd)
-            self._history[cmd.filePath].clear()
+            try:
+                self._history[cmd.filePath].push(cmd)
+            except:
+                self._history[cmd.filePath].deleteLater()
+                del self._history[cmd.filePath]
+                raise
+            else:
+                self._history[cmd.filePath].clear()
         else:
             self._history[cmd.filePath].push(cmd)
 
