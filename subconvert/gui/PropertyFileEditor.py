@@ -33,7 +33,7 @@ from subconvert.gui.Detail import AUTO_ENCODING_STR
 from subconvert.parsing.Formats import *
 from subconvert.utils.Locale import _
 from subconvert.utils.Encodings import ALL_ENCODINGS
-from subconvert.utils.PropertyFile import SubtitleProperties, savePropertyFile, loadPropertyFile
+from subconvert.utils.PropertyFile import SubtitleProperties
 from subconvert.utils.SubSettings import SubSettings
 
 class PropertyFileEditor(QDialog):
@@ -175,7 +175,8 @@ class PropertyFileEditor(QDialog):
                 self._outputFormat.findText(subProperties.outputFormat.NAME))
         else:
             self.close()
-            raise RuntimeError(_("Subtitle format doesn't match any of known formats!"))
+            raise RuntimeError(_("Subtitle format (%s) doesn't match any of known formats!") %
+                subProperties.outputFormat.NAME)
 
     def saveProperties(self):
         fileDialog = FileDialog(
@@ -192,7 +193,7 @@ class PropertyFileEditor(QDialog):
                 filename = "%s%s" % (filename, ".spf")
             self._settings.setPropertyFilesPath(os.path.dirname(filename))
             subProperties = self._createSubtitleProperties()
-            savePropertyFile(filename, subProperties)
+            subProperties.save(filename)
             self._settings.addPropertyFile(filename)
             self.close()
 
@@ -208,6 +209,6 @@ class PropertyFileEditor(QDialog):
         if fileDialog.exec():
             filename = fileDialog.selectedFiles()[0]
             self._settings.setPropertyFilesPath(os.path.dirname(filename))
-            subProperties = loadPropertyFile(filename)
+            subProperties = SubtitleProperties(filename)
             self.changeProperties(subProperties)
 

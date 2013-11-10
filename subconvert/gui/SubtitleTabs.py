@@ -36,7 +36,7 @@ from subconvert.utils.Locale import _
 from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.SubFile import File
 from subconvert.utils.SubSettings import SubSettings
-from subconvert.utils.PropertyFile import loadPropertyFile
+from subconvert.utils.PropertyFile import SubtitleProperties
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import AUTO_ENCODING_STR
 from subconvert.gui.Detail import ActionFactory, SubtitleList, ComboBoxWithHistory
@@ -182,7 +182,7 @@ class FileList(SubTab):
     def _useSubProperties(self, propertyPath):
         if propertyPath:
             try:
-                subProperties = loadPropertyFile(propertyPath)
+                subProperties = SubtitleProperties(propertyPath)
             except:
                 log.error(_("Cannot read %s as Subtitle Property file.") % propertyPath)
                 return

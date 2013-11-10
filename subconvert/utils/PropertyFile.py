@@ -22,23 +22,17 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 import pickle
 from subconvert.parsing.Formats import *
 
-def loadPropertyFile(filePath):
-    with open(filePath, 'rb') as f:
-        obj = pickle.load(f)
-    return obj
-
-def savePropertyFile(filePath, obj):
-    with open(filePath, 'wb') as f:
-        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
-
 class SubtitleProperties:
-    def __init__(self):
+    def __init__(self, filePath = None):
         self._autoFps = False
         self._fps = 25.0
         self._inputEncoding = None
         self._outputEncoding = None
         self._changeEncoding = False
         self._outputFormat = SubFormat
+
+        if filePath is not None:
+            self.load(filePath)
 
     @property
     def autoFps(self):
@@ -100,3 +94,16 @@ class SubtitleProperties:
             raise TypeError("Incorrect outputFormat type!")
         self._outputFormat = val
 
+    def load(self, filePath):
+        with open(filePath, 'rb') as f:
+            obj = pickle.load(f)
+            self._autoFps = obj.autoFps
+            self._fps = obj.fps
+            self._inputEncoding = obj.inputEncoding
+            self._outputEncoding = obj.outputEncoding
+            self._changeEncoding = obj.changeEncoding
+            self._outputFormat = obj.outputFormat
+
+    def save(self, filePath):
+        with open(filePath, 'wb') as f:
+            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
