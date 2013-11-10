@@ -197,7 +197,8 @@ class FileList(SubTab):
 
         if subProperties.inputEncoding == AUTO_ENCODING_STR:
             subProperties.inputEncoding = subtitleFile.detectEncoding()
-        data = self._subtitleData.encodedData(filePath, subProperties.inputEncoding)
+        if data.inputEncoding != subProperties.inputEncoding:
+            data.encode(subProperties.inputEncoding)
 
         data.outputFormat = subProperties.outputFormat
 
@@ -304,8 +305,9 @@ class SubtitleEditor(SubTab):
 
     def changeEncoding(self, encoding):
         if encoding != self.inputEncoding:
+            data = self._subtitleData.data(self.filePath)
             try:
-                encodedData = self._subtitleData.encodedData(self.filePath, encoding)
+                data.encode(encoding)
             except UnicodeDecodeError:
                 message = QMessageBox(
                     QMessageBox.Warning,
@@ -322,7 +324,7 @@ class SubtitleEditor(SubTab):
                 message.exec()
             else:
                 # TODO: outputEncoding
-                command = ChangeData(self.filePath, encodedData)
+                command = ChangeData(self.filePath, data)
                 self.execute(command)
                 self.refreshSubtitles()
 

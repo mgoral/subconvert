@@ -44,6 +44,15 @@ class SubtitleData:
             self.outputEncoding is None
         )
 
+    def encode(self, encoding):
+        subtitles = deepcopy(self.subtitles)
+        encoding = encoding.lower()
+        for i, subtitle in enumerate(subtitles):
+            encodedBits = subtitle.text.encode(self.inputEncoding)
+            subtitles.changeSubText(i, encodedBits.decode(encoding))
+        self.inputEncoding = encoding
+        self.subtitles = subtitles
+
     def verifySubtitles(self):
         if self.subtitles is None:
             raise TypeError("Subtitles cannot be of type 'NoneType'!")
@@ -172,17 +181,6 @@ class DataController(QObject):
     def subtitles(self, filePath):
         data = self._storage[filePath]
         return deepcopy(data.subtitles)
-
-    def encodedData(self, filePath, encoding):
-        """Returns a data from filePath with changed inputEncoding. This method does not change
-        internal DataController data storage."""
-        dataCopy = self.data(filePath)
-        encoding = encoding.lower()
-        for i, subtitle in enumerate(dataCopy.subtitles):
-            encodedBits = subtitle.text.encode(dataCopy.inputEncoding)
-            dataCopy.subtitles.changeSubText(i, encodedBits.decode(encoding))
-        dataCopy.inputEncoding = encoding
-        return dataCopy
 
     def history(self, filePath):
         #Don't worry about pushing commands by history.push(cmd). It should work.
