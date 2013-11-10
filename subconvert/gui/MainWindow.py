@@ -32,7 +32,7 @@ from subconvert.gui import SubtitleWindow
 from subconvert.gui.DataModel import DataController, SubtitleData
 from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
-from subconvert.gui.Detail import ActionFactory, AUTO_ENCODING_STR, CannotOpenFilesMsg
+from subconvert.gui.Detail import ActionFactory, CannotOpenFilesMsg
 from subconvert.gui.SubtitleCommands import *
 from subconvert.utils.Locale import _
 from subconvert.utils.SubSettings import SubSettings
@@ -226,7 +226,7 @@ class MainWindow(QMainWindow):
                 # TODO: separate reading file and adding to the list.
                 # TODO: there should be readDataFromFile(filePath, properties=None), 
                 # TODO: which should set default properties from Subtitle Properties File
-                command = NewSubtitles(filePath)
+                command = NewSubtitles(filePath, encoding)
                 try:
                     self._subtitleData.execute(command)
                 except DoubleFileEntry:
@@ -249,21 +249,21 @@ class MainWindow(QMainWindow):
             caption = _('Save as...'),
             directory = self._settings.getLatestDirectory()
         )
+
+        currentTab = self._tabs.currentPage()
+
         fileDialog.addFormats()
-        fileDialog.addEncodings(True)
+        fileDialog.addEncodings(False)
+        fileDialog.setEncoding(currentTab.outputEncoding)
         fileDialog.setAcceptMode(QFileDialog.AcceptSave)
         fileDialog.setFileMode(QFileDialog.AnyFile)
 
         if fileDialog.exec():
-            currentTab = self._tabs.currentPage()
             currentData = currentTab.data
             data = deepcopy(currentData)
 
             data.outputFormat = fileDialog.getSubFormat()
-            if fileDialog.getEncoding() == AUTO_ENCODING_STR: # TODO: bool flag
-                data.outputEncoding = data.inputEncoding
-            else:
-                data.outputEncoding = fileDialog.getEncoding()
+            data.outputEncoding = fileDialog.getEncoding() # user can overwrite previous output encoding
 
             if data.outputFormat != currentData.outputFormat or data.outputEncoding != currentData.outputEncoding:
                 command = ChangeData(currentTab.filePath, data, _("Output data change"))

@@ -23,7 +23,6 @@ import os
 from copy import deepcopy
 
 from subconvert.parsing.Core import Subtitle
-from subconvert.gui.Detail import AUTO_ENCODING_STR
 from subconvert.utils.Locale import _
 
 from PyQt4.QtGui import QUndoCommand

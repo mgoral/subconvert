@@ -22,10 +22,10 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 import pickle
 from subconvert.parsing.Formats import *
 from subconvert.utils.SubFile import File
-from subconvert.gui.Detail import AUTO_ENCODING_STR
 
 class SubtitleProperties:
     def __init__(self, filePath = None):
+        self._autoInputEncoding = True
         self._autoFps = False
         self._fps = 25.0
         self._inputEncoding = None
@@ -36,15 +36,26 @@ class SubtitleProperties:
         if filePath is not None:
             self.load(filePath)
 
+    def _setBoolean(self, val):
+        if val not in (True, False):
+            raise TypeError("Expected boolean!")
+        return bool(val)
+
+    @property
+    def autoInputEncoding(self):
+        return self._autoInputEncoding
+
+    @autoInputEncoding.setter
+    def autoInputEncoding(self, val):
+        self._autoInputEncoding = self._setBoolean(val)
+
     @property
     def autoFps(self):
         return self._autoFps
 
     @autoFps.setter
     def autoFps(self, val):
-        if val not in (True, False):
-            raise TypeError("Expected boolean!")
-        self._autoFps = bool(val)
+        self._autoFps = self._setBoolean(val)
 
     @property
     def fps(self):
@@ -82,9 +93,7 @@ class SubtitleProperties:
 
     @changeEncoding.setter
     def changeEncoding(self, val):
-        if val not in (True, False):
-            raise TypeError("Expected boolean!")
-        self._changeEncoding = bool(val)
+        self._changeEncoding = self._setBoolean(val)
 
     @property
     def outputFormat(self):
@@ -117,22 +126,26 @@ class PropertiesFileApplier:
     def applyFor(self, filePath, data):
         subtitleFile = File(filePath)
 
-        inputEncoding = self._subProperties.inputEncoding
-        #TODO: boolean instead of this string!
-        if inputEncoding == AUTO_ENCODING_STR:
-            inputEncoding = subtitleFile.detectEncoding()
-        if data.inputEncoding != inputEncoding.lower():
-            data.encode(inputEncoding.lower())
-
-        data.outputFormat = self._subProperties.outputFormat
-
+        # fps
         if self._subProperties.autoFps:
             data.fps = subtitleFile.detectFps()
         else:
             data.fps = self._subProperties.fps
 
+        # input encoding
+        inputEncoding = self._subProperties.inputEncoding
+        if self._subProperties.autoInputEncoding:
+            inputEncoding = subtitleFile.detectEncoding().lower()
+        if data.inputEncoding != inputEncoding:
+            data.encode(inputEncoding)
+
+        # output encoding
         if self._subProperties.changeEncoding:
             data.outputEncoding = self._subProperties.outputEncoding
         else:
             data.outputEncoding = self._subProperties.inputEncoding
+
+        # subtitle format
+        data.outputFormat = self._subProperties.outputFormat
+
         return data

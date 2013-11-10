@@ -29,7 +29,6 @@ from PyQt4.QtGui import QCheckBox, QLabel, QGroupBox, QHBoxLayout, QVBoxLayout, 
 from PyQt4.QtGui import QPushButton
 
 from subconvert.gui.FileDialogs import FileDialog
-from subconvert.gui.Detail import AUTO_ENCODING_STR
 from subconvert.parsing.Formats import *
 from subconvert.utils.Locale import _
 from subconvert.utils.Encodings import ALL_ENCODINGS
@@ -78,6 +77,9 @@ class PropertyFileEditor(QDialog):
         self._openButton.clicked.connect(self.openProperties)
         self._saveButton.clicked.connect(self.saveProperties)
 
+        self._autoEncoding.toggled.connect(self._inputEncoding.setDisabled)
+        self._changeEncoding.toggled.connect(self._outputEncoding.setEnabled)
+
     def _createFpsBox(self):
         groupbox = QGroupBox(_("FPS"))
         layout = QHBoxLayout()
@@ -97,23 +99,25 @@ class PropertyFileEditor(QDialog):
         groupbox = QGroupBox(_("File Encoding"))
         layout = QGridLayout()
 
-        self._changeEncoding = QCheckBox(_("Change encoding on save"), self)
 
+        self._autoEncoding = QCheckBox(_("Auto input encoding"), self)
         self._inputEncoding = QComboBox(self)
-        self._inputEncoding.addItem(AUTO_ENCODING_STR)
         self._inputEncoding.addItems(ALL_ENCODINGS)
+        self._inputEncoding.setDisabled(self._autoEncoding.isChecked())
         inputLabel = QLabel(_("Input encoding"))
 
+        self._changeEncoding = QCheckBox(_("Change encoding on save"), self)
         self._outputEncoding = QComboBox(self)
-        self._outputEncoding.addItem(AUTO_ENCODING_STR) # FIXME: bool flag instead
         self._outputEncoding.addItems(ALL_ENCODINGS)
+        self._outputEncoding.setEnabled(self._changeEncoding.isChecked())
         outputLabel = QLabel(_("Output encoding"))
 
-        layout.addWidget(self._changeEncoding, 0, 0)
+        layout.addWidget(self._autoEncoding, 0, 0)
         layout.addWidget(self._inputEncoding, 1, 0)
         layout.addWidget(inputLabel, 1, 1)
-        layout.addWidget(self._outputEncoding, 2, 0)
-        layout.addWidget(outputLabel, 2, 1)
+        layout.addWidget(self._changeEncoding, 2, 0)
+        layout.addWidget(self._outputEncoding, 3, 0)
+        layout.addWidget(outputLabel, 3, 1)
         groupbox.setLayout(layout)
         return groupbox
 
@@ -153,6 +157,7 @@ class PropertyFileEditor(QDialog):
         subProperties.autoFps = self._autoFps.isChecked()
         subProperties.fps = self._fps.currentText()
 
+        subProperties.autoInputEncoding = self._autoEncoding.isChecked()
         subProperties.changeEncoding = self._changeEncoding.isChecked()
         subProperties.inputEncoding = self._inputEncoding.currentText()
         subProperties.outputEncoding = self._outputEncoding.currentText()
@@ -164,6 +169,7 @@ class PropertyFileEditor(QDialog):
         self._autoFps.setChecked(subProperties.autoFps)
         self._fps.setEditText(str(subProperties.fps))
 
+        self._autoEncoding.setChecked(subProperties.autoInputEncoding)
         self._changeEncoding.setChecked(subProperties.changeEncoding)
         self._inputEncoding.setCurrentIndex(
             self._inputEncoding.findText(subProperties.inputEncoding))
