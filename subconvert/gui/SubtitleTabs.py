@@ -351,3 +351,7 @@ class SubtitleEditor(SubTab):
     @property
     def outputEncoding(self):
         return self.data.outputEncoding
+
+    @property
+    def outputFormat(self):
+        return self.data.outputFormat

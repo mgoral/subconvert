@@ -253,19 +253,22 @@ class MainWindow(QMainWindow):
         currentTab = self._tabs.currentPage()
 
         fileDialog.addFormats()
+        fileDialog.setSubFormat(currentTab.outputFormat)
         fileDialog.addEncodings(False)
         fileDialog.setEncoding(currentTab.outputEncoding)
         fileDialog.setAcceptMode(QFileDialog.AcceptSave)
         fileDialog.setFileMode(QFileDialog.AnyFile)
 
         if fileDialog.exec():
-            currentData = currentTab.data
-            data = deepcopy(currentData)
+            data = currentTab.data
 
-            data.outputFormat = fileDialog.getSubFormat()
-            data.outputEncoding = fileDialog.getEncoding() # user can overwrite previous output encoding
+            outputFormat = fileDialog.getSubFormat()
+            outputEncoding = fileDialog.getEncoding() # user can overwrite previous output encoding
 
-            if data.outputFormat != currentData.outputFormat or data.outputEncoding != currentData.outputEncoding:
+            if data.outputFormat != outputFormat or data.outputEncoding != outputEncoding:
+                # save user changes
+                data.outputFormat = outputFormat
+                data.outputEncoding = outputEncoding
                 command = ChangeData(currentTab.filePath, data, _("Output data change"))
                 self._subtitleData.execute(command)
 
