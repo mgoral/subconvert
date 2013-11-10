@@ -75,8 +75,18 @@ class SubFileDialog(QFileDialog):
             encoding = None
         return encoding
 
+    def setEncoding(self, encoding):
+        index = self._encodingBox.findText(encoding)
+        self._encodingBox.setCurrentIndex(index)
+
     def getSubFormat(self):
         return self._formats.get(self._formatBox.currentText())
+
+    def setSubFormat(self, subFormat):
+        for key, val in self._formats:
+            if val == subFormat:
+                index = self._formatBox.findText(key)
+                self._formatBox.setCurrentIndex(index)
 
 class FileDialog(SubFileDialog):
     def __init__(self, parent = None, caption = "", directory = "", filter = ""):
