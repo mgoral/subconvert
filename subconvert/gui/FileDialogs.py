@@ -83,10 +83,11 @@ class SubFileDialog(QFileDialog):
         return self._formats.get(self._formatBox.currentText())
 
     def setSubFormat(self, subFormat):
-        for key, val in self._formats:
+        for key, val in self._formats.items():
             if val == subFormat:
                 index = self._formatBox.findText(key)
                 self._formatBox.setCurrentIndex(index)
+                return
 
 class FileDialog(SubFileDialog):
     def __init__(self, parent = None, caption = "", directory = "", filter = ""):
