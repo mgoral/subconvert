@@ -21,6 +21,8 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import pickle
 from subconvert.parsing.Formats import *
+from subconvert.utils.SubFile import File
+from subconvert.gui.Detail import AUTO_ENCODING_STR
 
 class SubtitleProperties:
     def __init__(self, filePath = None):
@@ -107,3 +109,30 @@ class SubtitleProperties:
     def save(self, filePath):
         with open(filePath, 'wb') as f:
             pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+
+class PropertiesFileApplier:
+    def __init__(self, subProperties):
+        self._subProperties = subProperties
+
+    def applyFor(self, filePath, data):
+        subtitleFile = File(filePath)
+
+        inputEncoding = self._subProperties.inputEncoding
+        #TODO: boolean instead of this string!
+        if inputEncoding == AUTO_ENCODING_STR:
+            inputEncoding = subtitleFile.detectEncoding()
+        if data.inputEncoding != inputEncoding.lower():
+            data.encode(inputEncoding.lower())
+
+        data.outputFormat = self._subProperties.outputFormat
+
+        if self._subProperties.autoFps:
+            data.fps = subtitleFile.detectFps()
+        else:
+            data.fps = self._subProperties.fps
+
+        if self._subProperties.changeEncoding:
+            data.outputEncoding = self._subProperties.outputEncoding
+        else:
+            data.outputEncoding = self._subProperties.inputEncoding
+        return data

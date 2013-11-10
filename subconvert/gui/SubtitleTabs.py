@@ -34,11 +34,9 @@ from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils.Locale import _
 from subconvert.utils.Encodings import ALL_ENCODINGS
-from subconvert.utils.SubFile import File
 from subconvert.utils.SubSettings import SubSettings
-from subconvert.utils.PropertyFile import SubtitleProperties
+from subconvert.utils.PropertyFile import SubtitleProperties, PropertiesFileApplier
 from subconvert.gui.FileDialogs import FileDialog
-from subconvert.gui.Detail import AUTO_ENCODING_STR
 from subconvert.gui.Detail import ActionFactory, SubtitleList, ComboBoxWithHistory
 from subconvert.gui.DataModel import SubtitleData
 from subconvert.gui.SubtitleCommands import *
@@ -159,10 +157,11 @@ class FileList(SubTab):
     def changeSelectedSubtitleProperties(self, subProperties):
         # TODO: indicate the change somehow
         items = self.__fileList.selectedItems()
+        applier = PropertiesFileApplier(subProperties)
         for item in items:
             filePath = item.text()
             data = self._subtitleData.data(filePath)
-            data = self._updateDataWithProperties(filePath, data, subProperties)
+            applier.applyFor(filePath, data)
             command = ChangeData(filePath, data)
             self._subtitleData.execute(command)
 
@@ -191,28 +190,6 @@ class FileList(SubTab):
             # if something goes wrong.
             self.changeSelectedSubtitleProperties(subProperties)
             self._settings.addPropertyFile(propertyPath)
-
-    def _updateDataWithProperties(self, filePath, data, subProperties):
-        subtitleFile = File(filePath)
-
-        if subProperties.inputEncoding == AUTO_ENCODING_STR:
-            subProperties.inputEncoding = subtitleFile.detectEncoding()
-        if data.inputEncoding != subProperties.inputEncoding:
-            data.encode(subProperties.inputEncoding)
-
-        data.outputFormat = subProperties.outputFormat
-
-        if subProperties.autoFps:
-            data.fps = subtitleFile.detectFps()
-        else:
-            data.fps = subProperties.fps
-
-        if subProperties.changeEncoding:
-            data.outputEncoding = subProperties.outputEncoding
-        else:
-            data.outputEncoding = subProperties.inputEncoding
-        return data
-
 
 class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):
