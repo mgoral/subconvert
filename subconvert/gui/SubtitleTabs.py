@@ -78,6 +78,8 @@ class FileList(SubTab):
         self.__connectSignals()
 
     def __initGui(self):
+        self._contextMenu = None
+
         mainLayout = QVBoxLayout(self)
         mainLayout.setContentsMargins(0, 3, 0, 0)
         mainLayout.setSpacing(0)
@@ -104,10 +106,34 @@ class FileList(SubTab):
         header.resizeSection(0, 500)
 
     def __initContextMenu(self):
+        if self._contextMenu is not None:
+            self._contextMenu.deleteLater()
+            self._contextMenu = None
+
         self._contextMenu = QMenu()
         af = ActionFactory(self)
 
+        # Key shortcuts are actually only a hack to provide some kind of info to user that he can
+        # use "enter/return" and "delete" to open/close subtitles. Keyboard is handled via
+        # keyPressed -> _handleKeyPress. This is because __fileList has focus most of time anyway 
+        # (I think...)
+        selectedItems = self.__fileList.selectedItems()
+        anyItemSelected = len(selectedItems) > 0
+
+        actionOpen = af.create(
+            None, _("Show subtitles"), None, "Enter", lambda: self._handleKeyPress(Qt.Key_Enter))
+        actionOpen.setEnabled(anyItemSelected)
+        self._contextMenu.addAction(actionOpen)
+
+        actionClose = af.create(
+            None, _("Close subtitles"), None, "Delete", lambda: self._handleKeyPress(Qt.Key_Delete))
+        actionClose.setEnabled(anyItemSelected)
+        self._contextMenu.addAction(actionClose)
+
+        self._contextMenu.addSeparator()
+
         pfileMenu = self._contextMenu.addMenu(_("Use Subtitle Properties"))
+        pfileMenu.setEnabled(anyItemSelected)
         for pfile in self._settings.getLatestPropertyFiles():
             # A hacky way to store pfile in lambda
             action = af.create(
