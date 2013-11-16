@@ -132,12 +132,15 @@ class FileList(SubTab):
     def _addFile(self, filePath):
         data = self._subtitleData.data(filePath)
 
-        icon = QIcon(":/img/initial_list.png")
+        icon = QIcon(":/img/ok.png")
         item = QTreeWidgetItem(
             [filePath, data.inputEncoding, data.outputEncoding, data.outputFormat.NAME])
         item.setIcon(0, icon)
         item.setToolTip(0, filePath)
         self.__fileList.addTopLevelItem(item)
+
+        self._subtitleData.history(filePath).cleanChanged.connect(
+            lambda clean: self._cleanStateChanged(filePath, clean))
 
     def _removeFile(self, filePath):
         items = self.__fileList.findItems(filePath, Qt.MatchExactly)
@@ -155,6 +158,14 @@ class FileList(SubTab):
                 item.setText(2, data.outputEncoding)
                 item.setText(3, data.outputFormat.NAME)
 
+    def _cleanStateChanged(self, filePath, clean):
+        items = self.__fileList.findItems(filePath, Qt.MatchExactly)
+        for item in items:
+            if clean:
+                icon = QIcon(":/img/ok.png")
+            else:
+                icon = QIcon(":/img/not_clean.png")
+            item.setIcon(0, icon)
 
     def getCurrentFile(self):
         return self.__fileList.currentItem()

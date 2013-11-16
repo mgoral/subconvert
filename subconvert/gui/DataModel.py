@@ -178,6 +178,12 @@ class DataController(QObject):
         data = self._storage[filePath]
         return deepcopy(data)
 
+    def setCleanState(self, filePath):
+        self._history[filePath].setClean()
+
+    def isCleanState(self, filePath):
+        return self._history[filePath].isClean()
+
     def subtitles(self, filePath):
         data = self._storage[filePath]
         return deepcopy(data.subtitles)

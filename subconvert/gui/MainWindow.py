@@ -24,7 +24,7 @@ import logging
 from copy import deepcopy
 
 from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QGridLayout, QAction, QIcon, qApp
-from PyQt4.QtCore import pyqtSlot, QDir
+from PyQt4.QtCore import pyqtSlot, QDir, Qt
 
 from subconvert.parsing.Core import SubConverter
 from subconvert.parsing.Formats import *
@@ -71,10 +71,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Subconvert') # TODO: current file path
 
     def __connectSignals(self):
-        self._subtitleData.fileAdded.connect(self.__updateMenuItemsState)
-        self._subtitleData.fileRemoved.connect(self.__updateMenuItemsState)
+        self._subtitleData.fileAdded.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
+        self._subtitleData.fileChanged.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
+        self._subtitleData.fileRemoved.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
         self._tabs.tabChanged.connect(self.__updateMenuItemsState)
-        self._tabs.tabChanged.connect(self.__connectUndoRedo)
 
     def __initActions(self):
         self._actions = {}
@@ -163,18 +163,8 @@ class MainWindow(QMainWindow):
             file_.overwrite(content, data.outputEncoding)
         else:
             File.write(newFilePath, content, data.outputEncoding)
-
-    @pyqtSlot(int)
-    def __connectUndoRedo(self):
-        tab = self._tabs.currentPage()
-        anyTabOpen = tab is not None
-        tabIsStatic = tab.isStatic if anyTabOpen else False
-
-        if anyTabOpen and not tabIsStatic:
-            # yeah, __updateMenuItemsState is called too frequently but that's a low price for
-            # increased code readability
-            tab.history.canRedoChanged.connect(self.__updateMenuItemsState)
-            tab.history.canUndoChanged.connect(self.__updateMenuItemsState)
+        self._subtitleData.setCleanState(filePath)
+        self.__updateMenuItemsState()
 
     @pyqtSlot(bool)
     @pyqtSlot(int)
@@ -184,10 +174,14 @@ class MainWindow(QMainWindow):
         dataAvailable = self._subtitleData.count() != 0
         anyTabOpen = tab is not None
         tabIsStatic = tab.isStatic if anyTabOpen else False
+        if tabIsStatic:
+            cleanState = False
+        else:
+            cleanState = tab.history.isClean()
 
         self._actions["saveAllFiles"].setEnabled(dataAvailable)
-        self._actions["saveFile"].setEnabled(anyTabOpen and not tabIsStatic)
-        self._actions["saveFileAs"].setEnabled(anyTabOpen and not tabIsStatic)
+        self._actions["saveFile"].setEnabled(anyTabOpen and not tabIsStatic and not cleanState)
+        self._actions["saveFileAs"].setEnabled(anyTabOpen and not tabIsStatic and not cleanState)
 
         self._actions["undo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canUndo())
         self._actions["redo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canRedo())
