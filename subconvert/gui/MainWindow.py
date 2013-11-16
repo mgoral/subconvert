@@ -113,6 +113,10 @@ class MainWindow(QMainWindow):
         self._actions["spfEditor"] = af.create(
             None, _("Subtitle &Properties Editor"), None, None, self.openPropertyEditor)
 
+        # Others
+        self._actions["togglePanel"] = af.create(
+            None, _("Side panel"), _("Show or hide left panel"), "F4", self._tabs.togglePanel)
+
     def __initMenuBar(self):
         menubar = self.menuBar()
         fileMenu = menubar.addMenu(_('&File'))
@@ -127,6 +131,9 @@ class MainWindow(QMainWindow):
         subtitlesMenu = menubar.addMenu(_("&Subtitles"))
         subtitlesMenu.addAction(self._actions["undo"])
         subtitlesMenu.addAction(self._actions["redo"])
+
+        viewMenu = menubar.addMenu(_("&View"))
+        viewMenu.addAction(self._actions["togglePanel"])
 
         toolsMenu = menubar.addMenu(_("&Tools"))
         toolsMenu.addAction(self._actions["spfEditor"])

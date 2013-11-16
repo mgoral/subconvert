@@ -61,6 +61,8 @@ class SubTabWidget(QWidget):
         leftLayout = QVBoxLayout()
         leftLayout.setMargin(0)
         self.leftPanel.setLayout(leftLayout)
+        self.leftPanel.setMinimumWidth(100)
+        self.leftPanel.hide()
 
         self.rightPanel = QWidget()
         rightLayout = QGridLayout()
@@ -93,6 +95,8 @@ class SubTabWidget(QWidget):
         rightPanelIndex = self.splitter.indexOf(self.rightPanel)
         self.splitter.setStretchFactor(leftPanelIndex, 0)
         self.splitter.setStretchFactor(rightPanelIndex, 1)
+        self.splitter.setCollapsible(leftPanelIndex, False)
+        self.splitter.setSizes([250]) # TODO: save/read panel state
 
         # Some signals
         self.tabBar.currentChanged.connect(self.showTab)
@@ -209,6 +213,18 @@ class SubTabWidget(QWidget):
             showWidget.updateTab()
 
             self._tabChanged.emit(index)
+
+    def showPanel(self, val):
+        if val is True:
+            self.leftPanel.show()
+        else:
+            self.leftPanel.hide()
+
+    def togglePanel(self):
+        if self.leftPanel.isHidden():
+            self.leftPanel.show()
+        else:
+            self.leftPanel.hide()
 
     def tab(self, index):
         return self.pages.widget(index)
