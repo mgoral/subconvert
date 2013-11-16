@@ -79,7 +79,7 @@ class FileList(SubTab):
 
     def __initGui(self):
         mainLayout = QVBoxLayout(self)
-        mainLayout.setContentsMargins(0, 0, 0, 0)
+        mainLayout.setContentsMargins(0, 3, 0, 0)
         mainLayout.setSpacing(0)
 
         self.__fileList = SubtitleList()
@@ -255,6 +255,7 @@ class SubtitleEditor(SubTab):
         # Main layout
         grid = QGridLayout()
         grid.setSpacing(10)
+        grid.setContentsMargins(0, 3, 0, 0)
         grid.addLayout(toolbar, 0, 0, 1, 1) # stretch to the right
         grid.addWidget(self._subList, 1, 0)
         self.setLayout(grid)
