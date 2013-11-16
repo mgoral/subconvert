@@ -21,7 +21,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 from subconvert.utils import SubPath
 
-from PyQt4.QtGui import QListWidget, QComboBox, QAction, QIcon, QMessageBox
+from PyQt4.QtGui import QTreeWidget, QComboBox, QAction, QIcon, QMessageBox
 from PyQt4.QtCore import Qt, pyqtSignal
 
 # define globally to avoid mistakes
@@ -50,7 +50,7 @@ class ActionFactory:
 
         return action
 
-class SubtitleList(QListWidget):
+class SubtitleList(QTreeWidget):
     """QListWidget wrapper that sends additional signals with clicked mouse button identifier"""
 
     mouseButtonDoubleClicked = pyqtSignal(int)

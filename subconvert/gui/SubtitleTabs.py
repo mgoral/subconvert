@@ -25,8 +25,8 @@ import pkgutil
 import encodings
 from copy import deepcopy
 
-from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QIcon, QListWidgetItem
-from PyQt4.QtGui import QTableView, QHeaderView,QStandardItemModel, QStandardItem, QSizePolicy
+from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QIcon, QTreeWidgetItem
+from PyQt4.QtGui import QTableView, QHeaderView, QStandardItemModel, QStandardItem, QSizePolicy
 from PyQt4.QtGui import QMessageBox, QAbstractItemView, QAction, QMenu, QCursor
 from PyQt4.QtGui import QFileDialog
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
@@ -83,12 +83,25 @@ class FileList(SubTab):
         mainLayout.setSpacing(0)
 
         self.__fileList = SubtitleList()
+        fileListHeader = self.__fileList.header()
+        self.__resizeHeader(fileListHeader)
+
         self.__fileList.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.__fileList.setColumnCount(4)
+        self.__fileList.setHeaderLabels(
+            [_("File name"), _("Input encoding"), _("Output Encoding"), _("Format")])
         mainLayout.addWidget(self.__fileList)
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
 
         self.setLayout(mainLayout)
+
+    def __resizeHeader(self, header):
+        # TODO: add an option (in subconvert settings) to set the following:
+        # header.setResizeMode(0, QHeaderView.ResizeToContents);
+        header.setStretchLastSection(False)
+        header.setDefaultSectionSize(130)
+        header.resizeSection(0, 500)
 
     def __initContextMenu(self):
         self._contextMenu = QMenu()
@@ -114,19 +127,34 @@ class FileList(SubTab):
 
         self._subtitleData.fileAdded.connect(self._addFile)
         self._subtitleData.fileRemoved.connect(self._removeFile)
+        self._subtitleData.fileChanged.connect(self._updateFile)
 
     def _addFile(self, filePath):
+        data = self._subtitleData.data(filePath)
+
         icon = QIcon(":/img/initial_list.png")
-        item = QListWidgetItem(icon, filePath)
-        item.setToolTip(filePath)
-        self.__fileList.addItem(item)
+        item = QTreeWidgetItem(
+            [filePath, data.inputEncoding, data.outputEncoding, data.outputFormat.NAME])
+        item.setIcon(0, icon)
+        item.setToolTip(0, filePath)
+        self.__fileList.addTopLevelItem(item)
 
     def _removeFile(self, filePath):
         items = self.__fileList.findItems(filePath, Qt.MatchExactly)
         for item in items:
-            row = self.__fileList.row(item)
-            toDelete = self.__fileList.takeItem(row)
+            index = self.__fileList.indexOfTopLevelItem(item)
+            toDelete = self.__fileList.takeTopLevelItem(index)
             toDelete = None
+
+    def _updateFile(self, filePath):
+        items = self.__fileList.findItems(filePath, Qt.MatchExactly)
+        if len(items) > 0:
+            data = self._subtitleData.data(filePath)
+            for item in items:
+                item.setText(1, data.inputEncoding)
+                item.setText(2, data.outputEncoding)
+                item.setText(3, data.outputFormat.NAME)
+
 
     def getCurrentFile(self):
         return self.__fileList.currentItem()
@@ -134,21 +162,21 @@ class FileList(SubTab):
     def _handleClick(self, button):
         item = self.__fileList.currentItem()
         if item is not None and button == Qt.MiddleButton:
-            self.requestOpen.emit(item.text(), True)
+            self.requestOpen.emit(item.text(0), True)
 
     def _handleDoubleClick(self, button):
         item = self.__fileList.currentItem()
         if item is not None and button == Qt.LeftButton:
-            self.requestOpen.emit(item.text(), False)
+            self.requestOpen.emit(item.text(0), False)
 
     def _handleKeyPress(self, key):
         items = self.__fileList.selectedItems()
         if key in (Qt.Key_Enter, Qt.Key_Return):
             for item in items:
-                self.requestOpen.emit(item.text(), False)
+                self.requestOpen.emit(item.text(0), False)
         elif key == Qt.Key_Delete:
             for item in items:
-                self.requestRemove.emit(item.text())
+                self.requestRemove.emit(item.text(0))
 
     def _showContextMenu(self):
         self.__initContextMenu() # redraw menu
@@ -159,7 +187,7 @@ class FileList(SubTab):
         items = self.__fileList.selectedItems()
         applier = PropertiesFileApplier(subProperties)
         for item in items:
-            filePath = item.text()
+            filePath = item.text(0)
             data = self._subtitleData.data(filePath)
             applier.applyFor(filePath, data)
             command = ChangeData(filePath, data)
