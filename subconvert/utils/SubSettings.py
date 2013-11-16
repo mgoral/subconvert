@@ -92,3 +92,12 @@ class SubSettings:
             propertyFiles = propertyFiles[:maxPropertyFiles]
         propertyFiles.insert(0, val)
         self._programState.setValue("pfiles/latest", propertyFiles)
+
+    def removePropertyFile(self, val):
+        propertyFiles = self.getLatestPropertyFiles()
+        try:
+            index = propertyFiles.index(val)
+            del propertyFiles[index]
+            self._programState.setValue("pfiles/latest", propertyFiles)
+        except ValueError:
+            pass

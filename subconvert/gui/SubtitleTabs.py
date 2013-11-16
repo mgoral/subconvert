@@ -223,6 +223,7 @@ class FileList(SubTab):
                 subProperties = SubtitleProperties(propertyPath)
             except:
                 log.error(_("Cannot read %s as Subtitle Property file.") % propertyPath)
+                self._settings.removePropertyFile(propertyPath)
                 return
 
             # Don't change the call order. We don't want to change settings or redraw context menu
