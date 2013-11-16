@@ -68,13 +68,14 @@ class MainWindow(QMainWindow):
         self.statusBar()
 
         self.mainWidget.setLayout(mainLayout)
-        self.setWindowTitle('Subconvert') # TODO: current file path
+        self.setWindowTitle('Subconvert')
 
     def __connectSignals(self):
         self._subtitleData.fileAdded.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
         self._subtitleData.fileChanged.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
         self._subtitleData.fileRemoved.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
         self._tabs.tabChanged.connect(self.__updateMenuItemsState)
+        self._tabs.tabChanged.connect(self.__updateWindowTitle)
 
     def __initActions(self):
         self._actions = {}
@@ -165,6 +166,13 @@ class MainWindow(QMainWindow):
             File.write(newFilePath, content, data.outputEncoding)
         self._subtitleData.setCleanState(filePath)
         self.__updateMenuItemsState()
+
+    def __updateWindowTitle(self):
+        tab = self._tabs.currentPage()
+        if tab.isStatic:
+            self.setWindowTitle("Subconvert")
+        else:
+            self.setWindowTitle("Subconvert - %s" % tab.name)
 
     @pyqtSlot(bool)
     @pyqtSlot(int)
