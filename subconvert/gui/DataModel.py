@@ -19,7 +19,6 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from copy import deepcopy
 from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt4.QtGui import QUndoStack
 
@@ -35,6 +34,18 @@ class SubtitleData:
     inputEncoding = None
     outputEncoding = None
 
+    def clone(self):
+        other = SubtitleData()
+        if self.subtitles is not None:
+            other.subtitles = self.subtitles.clone()
+        else:
+            other.subtitles = self.subtitles
+        other.fps = self.fps
+        other.outputFormat = self.outputFormat
+        other.inputEncoding = self.inputEncoding
+        other.outputEncoding = self.outputEncoding
+        return other
+
     def empty(self):
         return (
             self.subtitles is None and
@@ -45,7 +56,7 @@ class SubtitleData:
         )
 
     def encode(self, encoding):
-        subtitles = deepcopy(self.subtitles)
+        subtitles = self.subtitles.clone()
         encoding = encoding.lower()
         for i, subtitle in enumerate(subtitles):
             encodedBits = subtitle.text.encode(self.inputEncoding)
@@ -176,7 +187,7 @@ class DataController(QObject):
 
     def data(self, filePath):
         data = self._storage[filePath]
-        return deepcopy(data)
+        return data.clone()
 
     def setCleanState(self, filePath):
         self._history[filePath].setClean()
@@ -186,7 +197,7 @@ class DataController(QObject):
 
     def subtitles(self, filePath):
         data = self._storage[filePath]
-        return deepcopy(data.subtitles)
+        return data.subtitles.clone()
 
     def history(self, filePath):
         #Don't worry about pushing commands by history.push(cmd). It should work.

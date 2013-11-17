@@ -24,7 +24,7 @@ import re
 from subconvert.utils.Locale import _
 
 # TODO: change asserts to exceptions!
-class FrameTime(object):
+class FrameTime():
     """Class defining a FrameTime object which consists of frame and time metrics (and fps as well)."""
 
     def __init__(self, fps, seconds=None, frames=None, time=None):
@@ -34,24 +34,42 @@ class FrameTime(object):
 
         Examples:
         FrameTime(time="1:01:01.100", fps=25)
-        FrameTime(frame=100, fps=25)
-        FrameTime(full_seconds="3600.01", fps=25)
+        FrameTime(frames=100, fps=25)
+        FrameTime(seconds="3600.01", fps=25)
         """
-        exclusiveArgs = [frames, time, seconds]
-        if exclusiveArgs.count(None) != 2:
-            raise AttributeError(_("FrameTime can obly be initialized by one type."))
 
         if fps <= 0:
             raise ValueError(_("Incorrect FPS value: %s.") % fps)
 
         self._fps = float(fps)
-
-        if frames is not None:
-            self.__setFrame__(int(frames))
-        elif time is not None:
-            self.__setTime__(str(time))
+        if frames is None and time is None and seconds is None:
+            self._frame = 0
+            self._full_seconds = 0.0
+            self._miliseconds = 0
+            self._seconds = 0
+            self._minutes = 0
+            self._hours = 0
         else:
-            self.__setSeconds__(float(seconds))
+            exclusiveArgs = [frames, time, seconds]
+            if exclusiveArgs.count(None) != 2:
+                raise AttributeError(_("FrameTime can obly be initialized by one type."))
+
+            if frames is not None:
+                self.__setFrame__(int(frames))
+            elif time is not None:
+                self.__setTime__(str(time))
+            if seconds is not None:
+                self.__setSeconds__(float(seconds))
+
+    def clone(self):
+        other = FrameTime(fps = self.fps)
+        other._frame = self._frame
+        other._full_seconds = self._full_seconds
+        other._miliseconds = self._miliseconds
+        other._seconds = self._seconds
+        other._minutes = self._minutes
+        other._hours = self._hours
+        return other
 
     @property
     def fps(self):

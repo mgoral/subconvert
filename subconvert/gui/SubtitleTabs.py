@@ -23,7 +23,6 @@ import os
 import logging
 import pkgutil
 import encodings
-from copy import deepcopy
 
 from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QIcon, QTreeWidgetItem
 from PyQt4.QtGui import QTableView, QHeaderView, QStandardItemModel, QStandardItem, QSizePolicy
@@ -327,7 +326,7 @@ class SubtitleEditor(SubTab):
         # TODO: Maybe add column numbers to some kind of enum to avoid magic numbers?
         try:
             oldSubtitle = self.subtitles[subNo]
-            newSubtitle = deepcopy(oldSubtitle)
+            newSubtitle = oldSubtitle.clone()
             if 0 == column:
                 timeStart = FrameTime(time=item.text(), fps = self.data.subtitles.fps)
                 newSubtitle.change(start = timeStart)

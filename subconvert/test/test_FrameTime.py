@@ -51,9 +51,9 @@ class TestFrameTime(unittest.TestCase):
         with self.assertRaises(ValueError):
             FrameTime(-5, frames=5)
 
-    def test_initWithoutFrameTimeOrSecondsSpecified(self):
-        with self.assertRaises(AttributeError):
-            FrameTime(5)
+    def test_initDefaultFrameTime(self):
+        fto = FrameTime(5)
+        self.compare(fto, 5, 0, 0, 0, 0, 0, 0)
 
     def test_initWithOneSurplusParameter(self):
         with self.assertRaises(AttributeError):

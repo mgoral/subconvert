@@ -20,7 +20,6 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
-from copy import deepcopy
 
 from subconvert.parsing.Core import Subtitle
 from subconvert.utils.Locale import _
@@ -113,7 +112,7 @@ class ChangeData(SubtitleChangeCommand):
         else:
             self.setText(desc)
 
-        self._newData = deepcopy(newData)
+        self._newData = newData.clone()
         self._oldData = None
 
     def setup(self):

@@ -22,7 +22,6 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 import os
 import re
 import codecs
-from copy import copy, deepcopy
 
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils.Locale import _
@@ -31,9 +30,9 @@ from subconvert.utils.Alias import *
 #TODO: add comparing Subtitles (i.e. __eq__, __ne__ etc.)
 class Subtitle():
     def __init__(self, start = None, end = None, text = None):
-        self.__start = None
-        self.__end = None
-        self.__text = None
+        self._start = None
+        self._end = None
+        self._text = None
         self.change(start, end, text)
 
     def _validateFps(self, start, end):
@@ -42,76 +41,89 @@ class Subtitle():
         if start and end:
             startFps = start.fps
             endFps = end.fps
-        elif end and self.__start:
-            startFps = self.__start.fps
+        elif end and self._start:
+            startFps = self._start.fps
             endFps = end.fps
-        elif start and self.__end:
+        elif start and self._end:
             startFps = start.fps
-            endFps = self.__end.fps
+            endFps = self._end.fps
 
         if startFps != endFps:
             raise ValueError("Subtitle FPS values differ: %s != %s" % (startFps, endFps))
 
+    def clone(self):
+        other = Subtitle()
+        other._start = self._start.clone()
+        other._end = self._end.clone()
+        other._text = self._text
+        return other
+
     @property
     def start(self):
-        return self.__start
+        return self._start
 
     @property
     def end(self):
-        return self.__end
+        return self._end
 
     @property
     def text(self):
-        return self.__text
+        return self._text
 
     @property
     def fps(self):
-        if self.__start:
-            return self.__start.fps
+        if self._start:
+            return self._start.fps
         return None
 
     @fps.setter
     def fps(self, value):
-        if self.__start:
-            self.__start.fps = value
-        if self.__end:
-            self.__end.fps = value
+        if self._start:
+            self._start.fps = value
+        if self._end:
+            self._end.fps = value
 
     def change(self, start = None, end = None, text = None):
         self._validateFps(start, end)
         if start is not None:
-            self.__start = start
+            self._start = start
         if end is not None:
-            self.__end = end
+            self._end = end
         if text is not None:
-            self.__text = text
+            self._text = text
 
     def empty(self):
-        return not (bool(self.__start) or bool(self.__end) or bool(self.__text))
+        return not (bool(self._start) or bool(self._end) or bool(self._text))
 
 class Header(AliasBase):
     def __init__(self):
         super(Header, self).__init__()
-        self.__entries = {}
+        self._entries = {}
+
+    def clone(self):
+        other = Header()
+        other._aliases = self._aliases.copy()
+        other._entries = self._entries.copy()
+        return other
 
     @acceptAlias
     def add(self, entry, value):
-        self.__entries[entry] = value
+        self._entries[entry] = value
 
     @acceptAlias
     def erase(self, entry):
-        if entry in self.__entries.keys():
-            del self.__entries[entry]
+        if entry in self._entries.keys():
+            del self._entries[entry]
 
     @acceptAlias
     def get(self, entry, default=None):
-        return self.__entries.get(entry, default)
+        return self._entries.get(entry, default)
 
     def empty(self):
-        return len(self.__entries) == 0
+        return len(self._entries) == 0
 
     def clear(self):
-        self.__entries.clear()
+        self._entries.clear()
 
 class SubParsingError(Exception):
     '''Custom parsing error class.'''
@@ -135,6 +147,15 @@ class SubManager:
         else:
             endTime = sub.start + (nextSub.start - sub.start) * 0.85
         sub.change(end = endTime)
+
+    def clone(self):
+        other = SubManager()
+        other._header = self._header.clone()
+        other._invalidTime = self._invalidTime
+        other._subs = []
+        for sub in self._subs:
+            other._subs.append(sub.clone())
+        return other
 
     def insert(self, subNo, sub):
         if subNo >= 0:
@@ -220,11 +241,11 @@ class SubManager:
 
     # Do not implement __setitem__ as we want to keep explicit control over things that are added
     def __getitem__(self, key):
-        return copy(self._subs[key])
+        return self._subs[key].clone()
 
     def __iter__(self):
         for sub in self._subs:
-            yield copy(sub)
+            yield sub.clone()
 
 class SubParser:
     def __init__(self):

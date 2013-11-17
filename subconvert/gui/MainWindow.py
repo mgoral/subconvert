@@ -21,7 +21,6 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import logging
-from copy import deepcopy
 
 from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QGridLayout, QAction, QIcon, qApp
 from PyQt4.QtCore import pyqtSlot, QDir, Qt
