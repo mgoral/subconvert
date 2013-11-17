@@ -118,7 +118,9 @@ class SubTabWidget(QWidget):
             if not widget.isStatic and filePath == widget.filePath:
                 return i
         tab = SubtitleEditor(filePath, self._subtitleData, self)
-        newIndex = self.tabBar.addTab(tab.name)
+        newIndex = self.tabBar.addTab(self._createTabName(tab.name, tab.history.isClean()))
+        tab.history.cleanChanged.connect(
+            lambda clean: self._cleanStateForFileChanged(filePath, clean))
         self.pages.addWidget(tab)
         return newIndex
 
@@ -134,6 +136,20 @@ class SubTabWidget(QWidget):
         line.setFrameShadow(QFrame.Sunken)
         splitterLayout.addWidget(line)
         splitterHandle.setLayout(splitterLayout)
+
+    def _createTabName(self, name, cleanState):
+        if cleanState is True:
+            return name
+        else:
+            return "%s +" % name
+
+    def _cleanStateForFileChanged(self, filePath, cleanState):
+        page = self.tabByPath(filePath)
+        if page is not None:
+            for i in range(self.tabBar.count()):
+                if self.tabBar.tabText(i)[:len(page.name)] == page.name:
+                    self.tabBar.setTabText(i, self._createTabName(page.name, cleanState))
+                    return
 
     @pyqtSlot(str, bool)
     def openTab(self, filePath, background=False):
