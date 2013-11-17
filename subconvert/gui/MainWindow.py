@@ -62,7 +62,7 @@ License: $license
 
 <h3>Authors</h3>
 <p>
-Main programmer: $author<br/>
+Development: $author<br/>
 Logo: $author<br/>
 Icons: <a href="$icon_website">$icon_author</a><br/>
 Translations: $translators
