@@ -21,9 +21,11 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import logging
+from string import Template
 
 from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QGridLayout, QAction, QIcon, qApp
-from PyQt4.QtCore import pyqtSlot, QDir, Qt
+from PyQt4.QtGui import QMessageBox, QPixmap, QSpacerItem, QDesktopServices
+from PyQt4.QtCore import pyqtSlot, QDir, Qt, QUrl
 
 from subconvert.parsing.Core import SubConverter
 from subconvert.parsing.Formats import *
@@ -36,8 +38,40 @@ from subconvert.gui.SubtitleCommands import *
 from subconvert.utils.Locale import _
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File
+from subconvert.utils.version import __version__, __author__, __license__, __website__, __transs__
 
 log = logging.getLogger('Subconvert.%s' % __name__)
+
+substituteDict = {
+    "author": __author__,
+    "license": __license__,
+    "version": __version__,
+    "website": __website__,
+    "icon_author": "gasyoun",
+    "icon_website": "http://led24.de/iconset/",
+    "translators": ", ".join(__transs__)
+}
+
+aboutText = Template(_("""
+<h2>Subconvert</h2>
+<p>
+Version: $version<br/>
+Website: <a href="$website">$website</a><br/>
+License: $license
+</p>
+
+<h3>Authors</h3>
+<p>
+Main programmer: $author<br/>
+Logo: $author<br/>
+Icons: <a href="$icon_website">$icon_author</a><br/>
+Translations: $translators
+</p>
+
+<h3>About</h3>
+<p> This is Subconvert - movie subtitles editor and converter.</p>
+<p>If you'd like to help at developing Subconvert, see program <a href="$website">website</a> or contact author.</p>
+""")).substitute(substituteDict)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -62,7 +96,7 @@ class MainWindow(QMainWindow):
         self._subtitleData = DataController(self)
         self._tabs = SubtitleWindow.SubTabWidget(self._subtitleData)
 
-        mainLayout.addWidget(self._tabs)
+        mainLayout.addWidget(self._tabs, 0, 0)
 
         self.statusBar()
 
@@ -113,9 +147,15 @@ class MainWindow(QMainWindow):
         self._actions["spfEditor"] = af.create(
             None, _("Subtitle &Properties Editor"), None, None, self.openPropertyEditor)
 
-        # Others
+        # View
         self._actions["togglePanel"] = af.create(
             None, _("Side panel"), _("Show or hide left panel"), "F4", self._tabs.togglePanel)
+
+        # Help
+        self._actions["helpPage"] = af.create(
+            None, _("&Help"), _("Open help page"), "F1", self.openHelp)
+        self._actions["aboutSubconvert"] = af.create(
+            None, _("About Subconvert"), None, None, self.openAboutDialog)
 
     def __initMenuBar(self):
         menubar = self.menuBar()
@@ -137,6 +177,10 @@ class MainWindow(QMainWindow):
 
         toolsMenu = menubar.addMenu(_("&Tools"))
         toolsMenu.addAction(self._actions["spfEditor"])
+
+        helpMenu = menubar.addMenu(_("&Help"))
+        helpMenu.addAction(self._actions["helpPage"])
+        helpMenu.addAction(self._actions["aboutSubconvert"])
 
     def __initShortcuts(self):
         self.addAction(self._actions["nextTab"])
@@ -232,7 +276,7 @@ class MainWindow(QMainWindow):
             unsuccessfullFiles = []
             for filePath in filenames:
                 # TODO: separate reading file and adding to the list.
-                # TODO: there should be readDataFromFile(filePath, properties=None), 
+                # TODO: there should be readDataFromFile(filePath, properties=None),
                 # TODO: which should set default properties from Subtitle Properties File
                 command = NewSubtitles(filePath, encoding)
                 try:
@@ -311,3 +355,23 @@ class MainWindow(QMainWindow):
         editor = PropertyFileEditor(self)
         editor.exec()
 
+    def openAboutDialog(self):
+        spacer = QSpacerItem(650, 0)
+        dialog = QMessageBox(self)
+        dialog.setIconPixmap(QPixmap(":/img/icons/256x256/subconvert.png"))
+        dialog.setWindowTitle(_("About Subconvert"))
+        dialog.setText(aboutText)
+
+        dialogLayout = dialog.layout()
+        dialogLayout.addItem(spacer, dialogLayout.rowCount(), 0, 1, dialogLayout.columnCount())
+        dialog.exec()
+
+    def openHelp(self):
+        url = "https://github.com/mgoral/subconvert/wiki"
+        if QDesktopServices.openUrl(QUrl(url)) is False:
+            dialog = QMessageBox(self)
+            dialog.setIcon(QMessageBox.Critical)
+            dialog.setWindowTitle(_("Couldn't open URL"))
+            dialog.setText(
+                _("""Failed to open URL: <a href="%s">%s</a>.""") % (url, url))
+            dialog.exec()

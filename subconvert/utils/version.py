@@ -21,4 +21,9 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 __author__ = "Michał Góral"
 __version__ = "1.0"
-
+__license__ = "GNU GPL 3"
+__website__ = "https://github.com/mgoral/subconvert"
+__transs__ = [
+    "Michał Góral (English)",
+    "Michał Góral (Polish)",
+]
