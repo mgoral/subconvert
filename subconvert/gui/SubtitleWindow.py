@@ -30,6 +30,7 @@ from subconvert.utils.Locale import _
 from subconvert.utils.SubFile import File
 from subconvert.gui.DataModel import SubtitleData
 from subconvert.gui.SubtitleTabs import FileList, SubtitleEditor
+from subconvert.gui.Panel import SidePanel
 from subconvert.gui.SubtitleCommands import *
 
 import subconvert.resources
@@ -55,21 +56,22 @@ class SubTabWidget(QWidget):
         # Splitter (bookmarks + pages)
         self.splitter = QSplitter(self)
 
-        # TODO: leftPanel is left so there might be displayed e.g. some information about currently
-        # focused file
-        self.leftPanel = QWidget()
+        self.leftWidget = QWidget()
         leftLayout = QVBoxLayout()
         leftLayout.setMargin(0)
-        self.leftPanel.setLayout(leftLayout)
-        self.leftPanel.setMinimumWidth(100)
-        self.leftPanel.hide()
+        self.leftWidget.setLayout(leftLayout)
+        self.leftWidget.setMinimumWidth(100)
+        self.leftWidget.hide()
 
-        self.rightPanel = QWidget()
+        self.rightWidget = QWidget()
         rightLayout = QGridLayout()
         rightLayout.setMargin(0)
-        self.rightPanel.setLayout(rightLayout)
+        self.rightWidget.setLayout(rightLayout)
 
         self._mainTab = FileList(_("Subtitles"), self._subtitleData, self)
+
+        self._sidepanel = SidePanel(self._subtitleData, self)
+        leftLayout.addWidget(self._sidepanel)
 
         self.pages = QStackedWidget(self)
         rightLayout.addWidget(self.pages, 0, 0)
@@ -77,8 +79,8 @@ class SubTabWidget(QWidget):
         self.tabBar.addTab(self._mainTab.name)
         self.pages.addWidget(self._mainTab)
 
-        self.splitter.addWidget(self.leftPanel)
-        self.splitter.addWidget(self.rightPanel)
+        self.splitter.addWidget(self.leftWidget)
+        self.splitter.addWidget(self.rightWidget)
         self.__drawSplitterHandle(1)
 
         # Setting widgets
@@ -91,11 +93,11 @@ class SubTabWidget(QWidget):
         self.tabBar.setExpanding(False)
 
         # Don't resize left panel if it's not needed
-        leftPanelIndex = self.splitter.indexOf(self.leftPanel)
-        rightPanelIndex = self.splitter.indexOf(self.rightPanel)
-        self.splitter.setStretchFactor(leftPanelIndex, 0)
-        self.splitter.setStretchFactor(rightPanelIndex, 1)
-        self.splitter.setCollapsible(leftPanelIndex, False)
+        leftWidgetIndex = self.splitter.indexOf(self.leftWidget)
+        rightWidgetIndex = self.splitter.indexOf(self.rightWidget)
+        self.splitter.setStretchFactor(leftWidgetIndex, 0)
+        self.splitter.setStretchFactor(rightWidgetIndex, 1)
+        self.splitter.setCollapsible(leftWidgetIndex, False)
         self.splitter.setSizes([250]) # TODO: save/read panel state
 
         # Some signals
@@ -212,19 +214,25 @@ class SubTabWidget(QWidget):
             # Try to update current tab.
             showWidget.updateTab()
 
+            # Update side panel
+            if showWidget.isStatic:
+                self._sidepanel.setInfoForFile(None)
+            else:
+                self._sidepanel.setInfoForFile(showWidget.filePath)
+
             self._tabChanged.emit(index)
 
     def showPanel(self, val):
         if val is True:
-            self.leftPanel.show()
+            self.leftWidget.show()
         else:
-            self.leftPanel.hide()
+            self.leftWidget.hide()
 
     def togglePanel(self):
-        if self.leftPanel.isHidden():
-            self.leftPanel.show()
+        if self.leftWidget.isHidden():
+            self.leftWidget.show()
         else:
-            self.leftPanel.hide()
+            self.leftWidget.hide()
 
     def tab(self, index):
         return self.pages.widget(index)
