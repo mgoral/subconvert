@@ -35,8 +35,9 @@ from subconvert.utils.Locale import _
 from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.PropertyFile import SubtitleProperties, PropertiesFileApplier
+from subconvert.utils.SubFile import File
 from subconvert.gui.FileDialogs import FileDialog
-from subconvert.gui.Detail import ActionFactory, SubtitleList, ComboBoxWithHistory
+from subconvert.gui.Detail import ActionFactory, SubtitleList, ComboBoxWithHistory, FPS_VALUES
 from subconvert.gui.DataModel import SubtitleData
 from subconvert.gui.SubtitleCommands import *
 
@@ -263,7 +264,10 @@ class SubtitleEditor(SubTab):
         self.__initWidgets()
         self.__initContextMenu()
 
+        self._settings = SubSettings()
+
         self._filePath = filePath
+        self._movieFilePath = None
         self._subtitleData = subtitleData
 
         self.refreshSubtitles()
@@ -301,6 +305,17 @@ class SubtitleEditor(SubTab):
         self._contextMenu = QMenu(self)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         af = ActionFactory(self)
+
+        selectMovie = af.create(title = _("Select movie"), connection = self.selectMovieFile)
+        self._contextMenu.addAction(selectMovie)
+
+        fpsMenu = self._contextMenu.addMenu(_("Frames per second"))
+        for fps in FPS_VALUES:
+            fpsStr = str(fps)
+            action = af.create(
+                title = fpsStr,
+                connection = lambda _, fps=fps: self.changeFps(fps))
+            fpsMenu.addAction(action)
 
         encodingsMenu = self._contextMenu.addMenu(_("&Encoding"))
         for encoding in ALL_ENCODINGS:
@@ -367,9 +382,34 @@ class SubtitleEditor(SubTab):
                 message.exec()
             else:
                 # TODO: outputEncoding
-                command = ChangeData(self.filePath, data)
+                command = ChangeData(self.filePath, data, _("Encoding changed: %s") % encoding)
                 self.execute(command)
                 self.refreshSubtitles()
+
+    def changeFps(self, val):
+        data = self.data
+        if (data.fps != val):
+            data.subtitles.changeFps(val)
+            data.fps = val
+            command = ChangeData(self.filePath, data, _("FPS change: %s") % val)
+            self.execute(command)
+            self.refreshSubtitles()
+
+    def selectMovieFile(self):
+        # TODO: currently selectMovieFile only fetches FPS from it (but this behaviour also should
+        # be controlled by settings).
+
+        fileDialog = FileDialog(
+            parent = self,
+            caption = _("Select movie"),
+            directory = self._settings.getLatestDirectory(),
+            filter = _("Movie files (%s);;All files (*)") % "*.avi *.mp4 *.mpeg")
+        fileDialog.setFileMode(QFileDialog.ExistingFile)
+        if fileDialog.exec():
+            self._movieFilePath = fileDialog.selectedFiles()[0]
+            subFile = File(self.filePath)
+            fps = subFile.detectFps(self._movieFilePath)
+            self.changeFps(fps)
 
     def fileChanged(self, filePath):
         if filePath == self._filePath:
@@ -397,6 +437,10 @@ class SubtitleEditor(SubTab):
     @property
     def filePath(self):
         return self._filePath
+
+    @property
+    def movieFilePath(self):
+        return self._movieFilePath
 
     @property
     def data(self):

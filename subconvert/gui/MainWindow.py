@@ -33,7 +33,7 @@ from subconvert.gui import SubtitleWindow
 from subconvert.gui.DataModel import DataController, SubtitleData
 from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
-from subconvert.gui.Detail import ActionFactory, CannotOpenFilesMsg
+from subconvert.gui.Detail import ActionFactory, CannotOpenFilesMsg, FPS_VALUES
 from subconvert.gui.SubtitleCommands import *
 from subconvert.utils.Locale import _
 from subconvert.utils.SubSettings import SubSettings
@@ -137,11 +137,21 @@ class MainWindow(QMainWindow):
         self._actions["closeTab"] = af.create(
             None, None, None, "ctrl+w", self.closeTab)
 
-        # Undo / redo
+        # Subtitles
         self._actions["undo"] = af.create(
             None, _("Undo"), None, "ctrl+z", self.undo)
         self._actions["redo"] = af.create(
             None, _("Redo"), None, "ctrl+shift+z", self.redo)
+
+        for fps in FPS_VALUES:
+            fpsStr = str(fps)
+            self._actions[fpsStr] = af.create(
+                None, fpsStr, None, None,
+                lambda _, fps=fps: self._tabs.currentPage().changeFps(fps))
+
+        self._actions["selectMovie"] = af.create(
+            None, _("Select movie"), None, "ctrl+m",
+                lambda: self._tabs.currentPage().selectMovieFile())
 
         # SPF editor
         self._actions["spfEditor"] = af.create(
@@ -171,6 +181,11 @@ class MainWindow(QMainWindow):
         subtitlesMenu = menubar.addMenu(_("&Subtitles"))
         subtitlesMenu.addAction(self._actions["undo"])
         subtitlesMenu.addAction(self._actions["redo"])
+        subtitlesMenu.addSeparator()
+        subtitlesMenu.addAction(self._actions["selectMovie"])
+        self._fpsMenu = subtitlesMenu.addMenu(_("Frames per second"))
+        for fps in FPS_VALUES:
+            self._fpsMenu.addAction(self._actions[str(fps)])
 
         viewMenu = menubar.addMenu(_("&View"))
         viewMenu.addAction(self._actions["togglePanel"])
@@ -232,7 +247,10 @@ class MainWindow(QMainWindow):
 
         self._actions["saveAllFiles"].setEnabled(dataAvailable)
         self._actions["saveFile"].setEnabled(anyTabOpen and not tabIsStatic and not cleanState)
-        self._actions["saveFileAs"].setEnabled(anyTabOpen and not tabIsStatic and not cleanState)
+        self._actions["saveFileAs"].setEnabled(anyTabOpen and not tabIsStatic)
+
+        self._actions["selectMovie"].setEnabled(anyTabOpen and not tabIsStatic)
+        self._fpsMenu.setEnabled(anyTabOpen and not tabIsStatic)
 
         self._actions["undo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canUndo())
         self._actions["redo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canRedo())

@@ -153,7 +153,7 @@ class File:
             mpOut, mpErr = Popen(command, stdout=PIPE, stderr=PIPE).communicate()
             log.debug(mpOut)
             log.debug(mpErr)
-            fps = re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', str(mpOut)).group(1)
+            fps = float(re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', str(mpOut)).group(1))
         except OSError:
             log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH \
                 to detect FPS."))

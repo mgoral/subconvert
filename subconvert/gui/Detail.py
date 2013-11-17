@@ -26,6 +26,7 @@ from PyQt4.QtCore import Qt, pyqtSignal
 
 # define globally to avoid mistakes
 AUTO_ENCODING_STR = _("[Auto]")
+FPS_VALUES = [23.976, 24.0, 25.0, 29.97, 30.0]
 
 class ActionFactory:
     def __init__(self, parent):
