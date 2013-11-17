@@ -171,7 +171,7 @@ class MainWindow(QMainWindow):
         if tab.isStatic:
             self.setWindowTitle("Subconvert")
         else:
-            self.setWindowTitle("Subconvert - %s" % tab.name)
+            self.setWindowTitle("%s - Subconvert" % tab.name)
 
     @pyqtSlot(bool)
     @pyqtSlot(int)
