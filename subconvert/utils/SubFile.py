@@ -100,6 +100,12 @@ class File:
         return fileInput
 
     def _writeFile(self, filePath, content, encoding = None):
+        """Safe file writing. Most common mistakes are checked against and reported before write 
+        operation. After that, if anything unexpected happens, user won't be left without data or 
+        with corrupted one as this method writes to a temporary file and then simply renames it
+        (which should be atomic operation according to POSIX but who knows how Ext4 really works.
+        @see: http://lwn.net/Articles/322823/)."""
+
         if encoding is None:
             encoding = self.DEFAULT_ENCODING
 
@@ -112,8 +118,14 @@ class File:
                 _("There are some characters in '%s' that cannot be encoded to '%s'.")
                 % (filePath, encoding))
 
-        with open(filePath, 'wb') as file_:
+        tmpFilePath = "%s.tmp" % filePath
+        bakFilePath = "%s.bak" % filePath
+        with open(tmpFilePath, 'wb') as file_:
             file_.write(encodedContent)
+
+        os.rename(filePath, bakFilePath)
+        os.rename(tmpFilePath, filePath)
+        os.unlink(bakFilePath)
 
     def overwrite(self, content, encoding = None):
         assert(len(content) > 0)
