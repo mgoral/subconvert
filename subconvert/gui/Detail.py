@@ -21,7 +21,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 from subconvert.utils import SubPath
 
-from PyQt4.QtGui import QTreeWidget, QComboBox, QAction, QIcon, QMessageBox
+from PyQt4.QtGui import QListWidget, QTreeWidget, QComboBox, QAction, QIcon, QMessageBox
 from PyQt4.QtCore import Qt, pyqtSignal
 
 # define globally to avoid mistakes
