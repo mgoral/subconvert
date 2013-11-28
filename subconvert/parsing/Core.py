@@ -365,21 +365,10 @@ class SubConverter:
                     subText = sub.text.format(**fmt.formatting)
                 except KeyError:
                     subText = sub.text
-                try:
-                    convertedSub = fmt.subFormat.format(gsp_no = subNo, \
-                        gsp_from = fmt.convertTime(sub.start, 'time_from'), \
-                        gsp_to = fmt.convertTime(sub.end, 'time_to'), \
-                        gsp_text = subText)
-                except AssertionError:
-                    # TODO: handle it somehow. Maybe inform SubConverter client about situation. Maybe
-                    # create a list of tuples where second element would be a sub and first element
-                    # would be flag indicating whether it's correct (it it's not, then the second
-                    # element would contain unconverted sub)
-                    pass
-                    # TODO: logs are left as info source about this assertion. Remove when it'll be
-                    # handled properly.
-                    #log.warning(_("Correct time not asserted for subtitle %d. Skipping it...") % (subPair[0]['sub_no']))
-                    #log.debug(_(".. incorrect subtitle pair times: (%s, %s)") % (subPair[0]['sub']['time_from'], subPair[1]['sub']['time_from']))
+                convertedSub = fmt.subFormat.format(gsp_no = subNo, \
+                    gsp_from = fmt.convertTime(sub.start, 'time_from'), \
+                    gsp_to = fmt.convertTime(sub.end, 'time_to'), \
+                    gsp_text = subText)
                 convertedLines.append(convertedSub)
         return convertedLines
 
