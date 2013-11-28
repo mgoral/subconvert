@@ -40,7 +40,7 @@ class File:
     """Physical file handler. Reads/writes files, detects their encoding,
     backups etc."""
 
-    DEFAULT_ENCODING = "utf8"
+    DEFAULT_ENCODING = "utf-8"
 
     def __init__(self, filePath):
         # Will raise IOError if file doesn't exist
