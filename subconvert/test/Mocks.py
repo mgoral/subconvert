@@ -43,6 +43,9 @@ class FrameTimeMock:
     def __mul__(self, val):
         return FrameTimeMock(self.fps)
 
+    def clone(self):
+        return self
+
 class SubtitleMock:
     def __init__(self, start = None, end = None, text = None):
         self.start = start
@@ -63,3 +66,6 @@ class SubtitleMock:
             self.end = end
         if text is not None:
             self.text = text
+
+    def clone(self):
+        return self
