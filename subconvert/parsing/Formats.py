@@ -190,7 +190,7 @@ class SubFormat:
         return self._formatting
 
     @property
-    def subFormat(self):
+    def subFormatTemplate(self):
         """Return a subtitle template which might contain the following tags: {gsp_no}, {gsp_from},
         {gsp_to} and {gsp_text}. Don't forget to escape curly braces ('{' and '}') when needed."""
         return self._subFormat
