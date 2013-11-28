@@ -128,7 +128,6 @@ class File:
         os.unlink(bakFilePath)
 
     def overwrite(self, content, encoding = None):
-        assert(len(content) > 0)
         self._writeFile(self._filePath, content, encoding)
 
     @classmethod
