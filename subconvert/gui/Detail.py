@@ -101,25 +101,38 @@ class ComboBoxWithHistory(QComboBox):
             self._previousText = self.currentText()
         super(ComboBoxWithHistory, self).keyPressEvent(keyEvent)
 
-class CannotOpenFilesMsg(QMessageBox):
+class MessageBoxWithList(QMessageBox):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+        self._listWidget = QListWidget(self)
+        self.layout().addWidget(self._listWidget, 3, 1)
+        self._listWidget.hide()
+
+    def addToList(self, val):
+        self._listWidget.addItem(val)
+
+    def listCount(self):
+        return self._listWidget.count()
+
+    def exec(self):
+        if self._listWidget.count() > 0:
+            self._listWidget.show()
+        else:
+            self._listWidget.hide()
+        super().exec()
+
+class CannotOpenFilesMsg(MessageBoxWithList):
     def __init__(self, parent = None):
         super().__init__(parent)
         self.setIcon(self.Warning)
 
-        self._fileListWidget = QListWidget(self)
-        self.layout().addWidget(self._fileListWidget, 3, 1)
-        self._fileListWidget.hide()
-
     def setFileList(self, fileList):
-        self._fileListWidget.clear()
-        self._fileListWidget.addItems(fileList)
-        if self._fileListWidget.count() > 0:
-            self._fileListWidget.show()
-        else:
-            self._fileListWidget.hide()
+        self._listWidget.clear()
+        for val in fileList:
+            self.addToList(val)
 
     def exec(self):
-        fileListSize = self._fileListWidget.count()
+        fileListSize = self._listWidget.count()
         if fileListSize > 1:
             self.setText(_("Errors occured when trying to open following files:"))
         else:

@@ -33,11 +33,11 @@ from subconvert.gui import SubtitleWindow
 from subconvert.gui.DataModel import DataController, SubtitleData
 from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
-from subconvert.gui.Detail import ActionFactory, CannotOpenFilesMsg, FPS_VALUES
+from subconvert.gui.Detail import ActionFactory, CannotOpenFilesMsg, MessageBoxWithList, FPS_VALUES
 from subconvert.gui.SubtitleCommands import *
 from subconvert.utils.Locale import _
 from subconvert.utils.SubSettings import SubSettings
-from subconvert.utils.SubFile import File
+from subconvert.utils.SubFile import File, SubFileError
 from subconvert.utils.version import __version__, __author__, __license__, __website__, __transs__
 
 log = logging.getLogger('Subconvert.%s' % __name__)
@@ -309,10 +309,19 @@ class MainWindow(QMainWindow):
                 dialog.setFileList(unsuccessfullFiles)
                 dialog.exec()
 
-    def saveFile(self):
+    @pyqtSlot()
+    def saveFile(self, newFilePath = None):
         currentTab = self._tabs.currentPage()
-        self._writeFile(currentTab.filePath)
+        try:
+            self._writeFile(currentTab.filePath, newFilePath)
+        except SubFileError as msg:
+            dialog = QMessageBox(self)
+            dialog.setIcon(QMessageBox.Critical)
+            dialog.setWindowTitle(_("Couldn't save file"))
+            dialog.setText(str(msg))
+            dialog.exec()
 
+    @pyqtSlot()
     def saveFileAs(self):
         fileDialog = FileDialog(
             parent = self,
@@ -343,10 +352,14 @@ class MainWindow(QMainWindow):
                 self._subtitleData.execute(command)
 
             newFileName = fileDialog.selectedFiles()[0]
-            self._writeFile(currentTab.filePath, newFileName)
+            self.saveFile(newFileName)
             self._settings.setLatestDirectory(os.path.dirname(newFileName))
 
     def saveAll(self):
+        dialog = MessageBoxWithList(self)
+        dialog.setIcon(QMessageBox.Critical)
+        dialog.setWindowTitle(_("Error on saving file(s)"))
+
         # BUG!!!!!!!!!!!!
         # FIXME: fetch self._tabs.fileList list of opened files instead of opened tabs. We want to
         # save all files, not only those shown in tabs.
@@ -358,8 +371,15 @@ class MainWindow(QMainWindow):
         for i in range(self._tabs.count()):
             tab = self._tabs.tab(i)
             if tab is not None and not tab.isStatic:
-                self._writeFile(tab.filePath)
+                try:
+                    self._writeFile(tab.filePath)
+                except SubFileError as msg:
+                    dialog.addToList(str(msg))
         # END OF BUG!!!!!!!!!!!!!
+
+        if dialog.listCount() > 0:
+            dialog.setText(_("Following errors occured when trying to save files:"))
+            dialog.exec()
 
     def undo(self):
         currentTab = self._tabs.currentPage()

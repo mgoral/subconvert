@@ -36,6 +36,9 @@ except ImportError:
 
 log = logging.getLogger('subconvert.%s' % __name__)
 
+class SubFileError(Exception):
+    pass
+
 class File:
     """Physical file handler. Reads/writes files, detects their encoding,
     backups etc."""
@@ -90,39 +93,40 @@ class File:
             with open(self._filePath, mode='r', encoding=encoding) as file_:
                 fileInput = file_.readlines()
         except LookupError as msg:
-            raise LookupError(_("Unknown encoding name: '%s'.") % encoding)
+            raise SubFileError(_("Unknown encoding name: '%s'.") % encoding)
         except UnicodeDecodeError:
             log.error(_("Couldn't handle '%s' with '%s' encoding.") % (self._filePath, encoding))
             return
         return fileInput
 
-    def overwrite(self, content, encoding = None):
-        assert(len(content) > 0)
+    def _writeFile(self, filePath, content, encoding = None):
         if encoding is None:
             encoding = self.DEFAULT_ENCODING
 
         try:
-            with open(self._filePath, 'w', encoding=encoding) as file_:
-                file_.writelines(content)
+            encodedContent = ''.join(content).encode(encoding)
         except LookupError as msg:
-            raise LookupError(_("Unknown encoding name: '%s'.") % encoding)
+            raise SubFileError(_("Unknown encoding name: '%s'.") % encoding)
+        except UnicodeEncodeError:
+            raise SubFileError(
+                _("There are some characters in '%s' that cannot be encoded to '%s'.")
+                % (filePath, encoding))
+
+        with open(filePath, 'wb') as file_:
+            file_.write(encodedContent)
+
+    def overwrite(self, content, encoding = None):
+        assert(len(content) > 0)
+        self._writeFile(self._filePath, content, encoding)
 
     @classmethod
     def write(cls, filePath, content, encoding = None):
-        assert(len(content) > 0)
-        if encoding is None:
-            encoding = self.DEFAULT_ENCODING
-
         try:
             with open(filePath, 'r', encoding=encoding):
                 pass
         except IOError:
             # file doesn't exist - OK
-            try:
-                with open(filePath, 'w', encoding=encoding) as file_:
-                    file_.writelines(content)
-            except LookupError as msg:
-                raise LookupError(_("Unknown encoding name: '%s'.") % encoding)
+            self._writeFile(filePath, content, encoding)
         else:
             raise IOError(_("File already exists: %s") % filePath)
 
