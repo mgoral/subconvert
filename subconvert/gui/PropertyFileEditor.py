@@ -36,12 +36,12 @@ from subconvert.utils.PropertyFile import SubtitleProperties
 from subconvert.utils.SubSettings import SubSettings
 
 class PropertyFileEditor(QDialog):
-    def __init__(self, parent=None):
-        super(PropertyFileEditor, self).__init__(parent)
+    def __init__(self, subFormats, parent = None):
+        super().__init__(parent)
         self._settings = SubSettings()
 
         self.__createPropertyFilesDirectory()
-        self.__initAllSubFormats()
+        self.__initSubFormats(subFormats)
         self.__initGui()
 
     def __createPropertyFilesDirectory(self):
@@ -53,8 +53,7 @@ class PropertyFileEditor(QDialog):
                 pass
             else: raise
 
-    def __initAllSubFormats(self):
-        formats = SubFormat.__subclasses__()
+    def __initSubFormats(self, formats):
         self._formats = {}
         for f in formats:
             self._formats[f.NAME] = f

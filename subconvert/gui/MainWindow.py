@@ -203,7 +203,7 @@ class MainWindow(QMainWindow):
         self.addAction(self._actions["closeTab"])
 
     def __getAllSubExtensions(self):
-        formats = SubFormat.__subclasses__()
+        formats = self._subtitleData.supportedFormats
         exts = [_('Default')]
         exts.extend(set([ f.EXTENSION for f in formats ]))
         exts.sort()
@@ -322,7 +322,7 @@ class MainWindow(QMainWindow):
 
         currentTab = self._tabs.currentPage()
 
-        fileDialog.addFormats()
+        fileDialog.addFormats(self._subtitleData.supportedFormats)
         fileDialog.setSubFormat(currentTab.outputFormat)
         fileDialog.addEncodings(False)
         fileDialog.setEncoding(currentTab.outputEncoding)
@@ -370,7 +370,7 @@ class MainWindow(QMainWindow):
         currentTab.history.redo()
 
     def openPropertyEditor(self):
-        editor = PropertyFileEditor(self)
+        editor = PropertyFileEditor(self._subtitleData.supportedFormats, self)
         editor.exec()
 
     def openAboutDialog(self):

@@ -34,10 +34,9 @@ class SubFileDialog(QFileDialog):
     def __init__(self, parent = None, caption = "", directory = "", filter = ""):
         super().__init__(parent, caption, directory, filter)
 
-    def _initAllSubFormats(self):
-        formats = SubFormat.__subclasses__()
+    def _initAllSubFormats(self, formatList):
         self._formats = {}
-        for f in formats:
+        for f in formatList:
             self._formats[f.NAME] = f
 
     def _addEncodingsBox(self, row, addAuto):
@@ -55,8 +54,8 @@ class SubFileDialog(QFileDialog):
         mainLayout.addWidget(encodingLabel, row, 0)
         mainLayout.addWidget(self._encodingBox, row, 1)
 
-    def _addFormatBox(self, row):
-        self._initAllSubFormats()
+    def _addFormatBox(self, row, formatList):
+        self._initAllSubFormats(formatList)
         displayedFormats = list(self._formats.keys())
         displayedFormats.sort()
 
@@ -96,5 +95,5 @@ class FileDialog(SubFileDialog):
     def addEncodings(self, addAuto):
         self._addEncodingsBox(self.layout().rowCount(), addAuto)
 
-    def addFormats(self):
-        self._addFormatBox(self.layout().rowCount())
+    def addFormats(self, formatList):
+        self._addFormatBox(self.layout().rowCount(), formatList)

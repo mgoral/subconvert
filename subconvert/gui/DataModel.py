@@ -203,3 +203,6 @@ class DataController(QObject):
         #Don't worry about pushing commands by history.push(cmd). It should work.
         return self._history[filePath]
 
+    @property
+    def supportedFormats(self):
+        return self._parser.formats

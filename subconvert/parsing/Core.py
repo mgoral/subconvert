@@ -272,10 +272,10 @@ class SubParser:
     def registerFormat(self, fmt):
         self._supportedFormats.add(fmt)
 
-    # TODO: implementation (return a list of format names)
     # TODO: test
+    @property
     def formats(self):
-        pass
+        return frozenset(self._supportedFormats)
 
     @property
     def isParsed(self):
