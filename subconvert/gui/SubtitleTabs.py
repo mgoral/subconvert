@@ -145,6 +145,14 @@ class FileList(SubTab):
         pfileMenu.addAction(af.create(
             title = _("Open file"), connection = self._chooseSubProperties))
 
+        self._contextMenu.addSeparator()
+        actionUndo = af.create(None, _("Undo"), None, None, self.undoSelectedFiles)
+        actionUndo.setEnabled(anyItemSelected)
+        self._contextMenu.addAction(actionUndo)
+        actionRedo = af.create(None, _("Redo"), None, None, self.redoSelectedFiles)
+        actionRedo.setEnabled(anyItemSelected)
+        self._contextMenu.addAction(actionRedo)
+
     def __connectSignals(self):
         self.__fileList.mouseButtonDoubleClicked.connect(self._handleDoubleClick)
         self.__fileList.mouseButtonClicked.connect(self._handleClick)
@@ -256,6 +264,22 @@ class FileList(SubTab):
             # if something goes wrong.
             self.changeSelectedSubtitleProperties(subProperties)
             self._settings.addPropertyFile(propertyPath)
+
+    def undoSelectedFiles(self):
+        items = self.__fileList.selectedItems()
+        for item in items:
+            filePath = item.text(0)
+            history = self._subtitleData.history(filePath)
+            if history.canUndo():
+                history.undo()
+
+    def redoSelectedFiles(self):
+        items = self.__fileList.selectedItems()
+        for item in items:
+            filePath = item.text(0)
+            history = self._subtitleData.history(filePath)
+            if history.canRedo():
+                history.redo()
 
 class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):
