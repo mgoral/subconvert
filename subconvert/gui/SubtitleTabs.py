@@ -113,24 +113,10 @@ class FileList(SubTab):
         self._contextMenu = QMenu()
         af = ActionFactory(self)
 
-        # Key shortcuts are actually only a hack to provide some kind of info to user that he can
-        # use "enter/return" and "delete" to open/close subtitles. Keyboard is handled via
-        # keyPressed -> _handleKeyPress. This is because __fileList has focus most of time anyway 
-        # (I think...)
         selectedItems = self.__fileList.selectedItems()
         anyItemSelected = len(selectedItems) > 0
 
-        actionOpen = af.create(
-            None, _("Show subtitles"), None, "Enter", lambda: self._handleKeyPress(Qt.Key_Enter))
-        actionOpen.setEnabled(anyItemSelected)
-        self._contextMenu.addAction(actionOpen)
-
-        actionClose = af.create(
-            None, _("Close subtitles"), None, "Delete", lambda: self._handleKeyPress(Qt.Key_Delete))
-        actionClose.setEnabled(anyItemSelected)
-        self._contextMenu.addAction(actionClose)
-
-        self._contextMenu.addSeparator()
+        # Property Files
 
         pfileMenu = self._contextMenu.addMenu(_("Use Subtitle Properties"))
         pfileMenu.setEnabled(anyItemSelected)
@@ -146,9 +132,31 @@ class FileList(SubTab):
             title = _("Open file"), connection = self._chooseSubProperties))
 
         self._contextMenu.addSeparator()
+
+        # Show/Remove files
+
+        # Key shortcuts are actually only a hack to provide some kind of info to user that he can
+        # use "enter/return" and "delete" to open/close subtitles. Keyboard is handled via
+        # keyPressed -> _handleKeyPress. This is because __fileList has focus most of time anyway 
+        # (I think...)
+        actionOpen = af.create(
+            None, _("Show subtitles"), None, "Enter", lambda: self._handleKeyPress(Qt.Key_Enter))
+        actionOpen.setEnabled(anyItemSelected)
+        self._contextMenu.addAction(actionOpen)
+
+        actionClose = af.create(
+            None, _("Close subtitles"), None, "Delete", lambda: self._handleKeyPress(Qt.Key_Delete))
+        actionClose.setEnabled(anyItemSelected)
+        self._contextMenu.addAction(actionClose)
+
+        self._contextMenu.addSeparator()
+
+        # Undo/redo
+
         actionUndo = af.create(None, _("Undo"), None, None, self.undoSelectedFiles)
         actionUndo.setEnabled(anyItemSelected)
         self._contextMenu.addAction(actionUndo)
+
         actionRedo = af.create(None, _("Redo"), None, None, self.redoSelectedFiles)
         actionRedo.setEnabled(anyItemSelected)
         self._contextMenu.addAction(actionRedo)
