@@ -99,7 +99,8 @@ class File:
             return
         return fileInput
 
-    def _writeFile(self, filePath, content, encoding = None):
+    @classmethod
+    def _writeFile(cls, filePath, content, encoding = None):
         """Safe file writing. Most common mistakes are checked against and reported before write 
         operation. After that, if anything unexpected happens, user won't be left without data or 
         with corrupted one as this method writes to a temporary file and then simply renames it
@@ -107,7 +108,7 @@ class File:
         @see: http://lwn.net/Articles/322823/)."""
 
         if encoding is None:
-            encoding = self.DEFAULT_ENCODING
+            encoding = File.DEFAULT_ENCODING
 
         try:
             encodedContent = ''.join(content).encode(encoding)
@@ -123,9 +124,19 @@ class File:
         with open(tmpFilePath, 'wb') as file_:
             file_.write(encodedContent)
 
-        os.rename(filePath, bakFilePath)
+        try:
+            os.rename(filePath, bakFilePath)
+        except FileNotFoundError:
+            # there's nothing to move when filePath doesn't exist
+            # note the Python bug: http://bugs.python.org/issue16074
+            pass
+
         os.rename(tmpFilePath, filePath)
-        os.unlink(bakFilePath)
+
+        try:
+            os.unlink(bakFilePath)
+        except FileNotFoundError:
+            pass
 
     def overwrite(self, content, encoding = None):
         self._writeFile(self._filePath, content, encoding)
@@ -137,9 +148,10 @@ class File:
                 pass
         except IOError:
             # file doesn't exist - OK
-            self._writeFile(filePath, content, encoding)
+            pass
         else:
             raise IOError(_("File already exists: %s") % filePath)
+        File._writeFile(filePath, content, encoding)
 
     def backup(self):
         backupFilePath = ''.join(
@@ -157,9 +169,8 @@ class File:
     def detectFps(self, movieFile = None):
         """Fetch movie FPS from MPlayer output or return given default."""
 
-        # TODO: search for known movie file extensions
         if movieFile is None:
-            movieFile = ""
+            movieFile = self._searchForMovieFile()
 
         fps = 25.0
         command = ['mplayer',
@@ -178,6 +189,19 @@ class File:
             log.info(_("Got %s FPS from '%s'.") % (fps, movieFile))
 
         return fps
+
+    def _searchForMovieFile(self):
+        knownExtensions = ('avi', 'mkv', 'mpg', 'mp4', 'wmv', 'rmvb', 'mov', 'mpeg')
+        filename = os.path.splitext(self._filePath)[0]
+        for ext in knownExtensions:
+            fileWithLowerExt = '.'.join((filename, ext))
+            fileWithUpperExt = '.'.join((filename, ext.upper()))
+
+            if os.path.isfile(fileWithLowerExt):
+                return fileWithLowerExt
+            elif os.path.isfile(fileWithUpperExt):
+                return fileWithUpperExt
+        return ""
 
     def __eq__(self, other):
         return self._filePath == other._filePath
