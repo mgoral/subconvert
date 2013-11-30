@@ -130,9 +130,9 @@ class DataController(QObject):
         for Format in SubFormat.__subclasses__():
             self._parser.registerFormat(Format)
 
-    def _parseFile(self, file_, inputEncoding):
+    def _parseFile(self, file_, inputEncoding, fps):
         fileContent = file_.read(inputEncoding)
-        return self._parser.parse(fileContent)
+        return self._parser.parse(fileContent, fps)
 
     def createDataFromFile(self, filePath, inputEncoding = None, fps = 25.0):
         """Fetch a given filePath and parse its contents.
@@ -149,7 +149,7 @@ class DataController(QObject):
             inputEncoding = file_.detectEncoding()
         inputEncoding = inputEncoding.lower()
 
-        subtitles = self._parseFile(file_, inputEncoding)
+        subtitles = self._parseFile(file_, inputEncoding, fps)
         if self._parser.isParsed:
             data = SubtitleData()
             data.subtitles = subtitles
