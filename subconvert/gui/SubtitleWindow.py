@@ -28,14 +28,13 @@ from PyQt4.QtCore import pyqtSignal, pyqtSlot
 
 from subconvert.utils.Locale import _
 from subconvert.utils.SubFile import File
-from subconvert.gui.DataModel import SubtitleData
 from subconvert.gui.SubtitleTabs import FileList, SubtitleEditor
 from subconvert.gui.Panel import SidePanel
 from subconvert.gui.SubtitleCommands import *
 
 import subconvert.resources
 
-log = logging.getLogger('subconvert.%s' % __name__)
+log = logging.getLogger('Subconvert.%s' % __name__)
 
 class SubTabWidget(QWidget):
     _tabChanged = pyqtSignal(int, name = "tabChanged")

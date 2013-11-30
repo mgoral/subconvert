@@ -34,7 +34,7 @@ class SubFormat:
     NAME = 'Generic'
     EXTENSION = 'sub'
     TIMEFORMAT = TimeFormat.UNKNOWN
-    OPT = None # TODO: should it be removed?
+    OPT = None
     WITH_HEADER = False
 
     def __init__(self, subFormat, subPattern = "", endPattern = "", formatting = None):

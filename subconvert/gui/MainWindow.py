@@ -30,7 +30,7 @@ from PyQt4.QtCore import pyqtSlot, QDir, Qt, QUrl
 from subconvert.parsing.Core import SubConverter
 from subconvert.parsing.Formats import *
 from subconvert.gui import SubtitleWindow
-from subconvert.gui.DataModel import DataController, SubtitleData
+from subconvert.gui.DataModel import DataController
 from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import ActionFactory, CannotOpenFilesMsg, MessageBoxWithList, FPS_VALUES
@@ -74,7 +74,7 @@ Translations: $translators
 """)).substitute(substituteDict)
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, args):
         super(MainWindow, self).__init__()
 
         self.__initGui()
@@ -83,7 +83,6 @@ class MainWindow(QMainWindow):
         self.__initShortcuts()
         self.__updateMenuItemsState()
         self.__connectSignals()
-        self.show()
 
     def __initGui(self):
         self._settings = SubSettings()
@@ -303,7 +302,7 @@ class MainWindow(QMainWindow):
                     pass # file already opened
                 except Exception as e:
                     log.error(str(e))
-                    unsuccessfullFiles.append(filePath)
+                    unsuccessfullFiles.append("%s: %s" % (filePath, str(e)))
             if len(unsuccessfullFiles) > 0:
                 dialog = CannotOpenFilesMsg(self)
                 dialog.setFileList(unsuccessfullFiles)

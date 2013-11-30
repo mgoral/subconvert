@@ -25,6 +25,7 @@ import codecs
 
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils.Locale import _
+from subconvert.utils.SubException import SubException
 from subconvert.utils.Alias import *
 
 #TODO: add comparing Subtitles (i.e. __eq__, __ne__ etc.)
@@ -125,10 +126,10 @@ class Header(AliasBase):
     def clear(self):
         self._entries.clear()
 
-class SubParsingError(Exception):
+class SubParsingError(SubException):
     '''Custom parsing error class.'''
     def __init__(self, message, lineNo):
-        Exception.__init__(self, message)
+        super().__init__(message)
         self.lineNo = lineNo
 
 class SubManager:

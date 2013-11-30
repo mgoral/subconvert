@@ -19,12 +19,6 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-__appname__ = "Subconvert"
-__author__ = "Michał Góral"
-__version__ = "1.0"
-__license__ = "GNU GPL 3"
-__website__ = "https://github.com/mgoral/subconvert"
-__transs__ = [
-    "Michał Góral (English)",
-    "Michał Góral (Polish)",
-]
+class SubException(Exception):
+    """Base class for all Subconvert specific exceptions."""
+    pass

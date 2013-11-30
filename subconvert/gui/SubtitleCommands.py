@@ -23,6 +23,7 @@ import os
 
 from subconvert.parsing.Core import Subtitle
 from subconvert.utils.Locale import _
+from subconvert.utils.SubException import SubException
 
 from PyQt4.QtGui import QUndoCommand
 
@@ -37,10 +38,10 @@ from PyQt4.QtGui import QUndoCommand
 # reverted to the proper state before ChangeEncoding command will be on top of UndoStack again 
 # (in our case: after one 'undo').
 
-class IncorrectFilePath(Exception):
+class IncorrectFilePath(SubException):
     pass
 
-class DoubleFileEntry(Exception):
+class DoubleFileEntry(SubException):
     pass
 
 class SubtitleChangeCommand(QUndoCommand):

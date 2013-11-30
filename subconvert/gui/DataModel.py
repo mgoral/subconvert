@@ -22,86 +22,10 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt4.QtGui import QUndoStack
 
-from subconvert.parsing.Core import SubManager, SubParser, SubConverter, SubManager
+from subconvert.parsing.Core import SubParser, SubConverter
 from subconvert.parsing.Formats import *
 from subconvert.utils.SubFile import File
-from subconvert.utils.Encodings import ALL_ENCODINGS
-
-class SubtitleData:
-    subtitles = None
-    fps = None
-    outputFormat = None
-    inputEncoding = None
-    outputEncoding = None
-
-    def clone(self):
-        other = SubtitleData()
-        if self.subtitles is not None:
-            other.subtitles = self.subtitles.clone()
-        else:
-            other.subtitles = self.subtitles
-        other.fps = self.fps
-        other.outputFormat = self.outputFormat
-        other.inputEncoding = self.inputEncoding
-        other.outputEncoding = self.outputEncoding
-        return other
-
-    def empty(self):
-        return (
-            self.subtitles is None and
-            self.fps is None and
-            self.outputFormat is None and
-            self.inputEncoding is None and
-            self.outputEncoding is None
-        )
-
-    def encode(self, encoding):
-        subtitles = self.subtitles.clone()
-        encoding = encoding.lower()
-        for i, subtitle in enumerate(subtitles):
-            encodedBits = subtitle.text.encode(self.inputEncoding)
-            subtitles.changeSubText(i, encodedBits.decode(encoding))
-        self.inputEncoding = encoding
-        self.subtitles = subtitles
-
-    def verifySubtitles(self):
-        if self.subtitles is None:
-            raise TypeError("Subtitles cannot be of type 'NoneType'!")
-        if type(self.subtitles) is not SubManager:
-            raise TypeError(_("Subtitles are not of type 'SubManager'!"))
-
-    def verifyFps(self):
-        if not isinstance(self.fps, float):
-            raise TypeError("FPS value is not a float!")
-
-    def verifyOutputFormat(self):
-        if self.outputFormat is None:
-            raise TypeError("Output format cannot be of type 'NoneType'!")
-        if not issubclass(self.outputFormat, SubFormat):
-            raise TypeError("Output format is not of type 'SubFormat'!")
-
-    def verifyInputEncoding(self):
-        if self.inputEncoding is None:
-            raise TypeError("Input encoding cannot be of type 'NoneType'!")
-        if not isinstance(self.inputEncoding, str):
-            raise TypeError("Input encoding is not a string!")
-        if self.inputEncoding not in ALL_ENCODINGS:
-            raise ValueError("Input encoding is not a supported encoding!")
-
-    def verifyOutputEncoding(self):
-        if self.outputEncoding is None:
-            raise TypeError("Output encoding cannot be of type 'NoneType'!")
-        if not isinstance(self.outputEncoding, str):
-            raise TypeError("Output encoding is not a string!")
-        if self.outputEncoding not in ALL_ENCODINGS:
-            raise ValueError("Output encoding is not a supported encoding!")
-
-    def verifyAll(self):
-        self.verifySubtitles()
-        self.verifyFps()
-        self.verifyOutputFormat()
-        self.verifyInputEncoding()
-        self.verifyOutputEncoding()
+from subconvert.utils.SubtitleData import SubtitleData
 
 class SubtitleUndoStack(QUndoStack):
     def __init__(self, parent = None):

@@ -38,10 +38,9 @@ from subconvert.utils.PropertyFile import SubtitleProperties, PropertiesFileAppl
 from subconvert.utils.SubFile import File
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import ActionFactory, SubtitleList, ComboBoxWithHistory, FPS_VALUES
-from subconvert.gui.DataModel import SubtitleData
 from subconvert.gui.SubtitleCommands import *
 
-log = logging.getLogger('subconvert.%s' % __name__)
+log = logging.getLogger('Subconvert.%s' % __name__)
 
 class SubTab(QWidget):
     def __init__(self, displayName, isStaticTab, parent = None):

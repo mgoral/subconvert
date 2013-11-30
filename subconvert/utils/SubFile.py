@@ -25,8 +25,10 @@ import shutil
 import codecs
 import re
 import logging
+import datetime
 
 from subconvert.utils.Locale import _
+from subconvert.utils.SubException import SubException
 
 try:
     import chardet
@@ -34,9 +36,9 @@ try:
 except ImportError:
     IS_CHARDET = False
 
-log = logging.getLogger('subconvert.%s' % __name__)
+log = logging.getLogger('Subconvert.%s' % __name__)
 
-class SubFileError(Exception):
+class SubFileError(SubException):
     pass
 
 class File:
@@ -95,8 +97,8 @@ class File:
         except LookupError as msg:
             raise SubFileError(_("Unknown encoding name: '%s'.") % encoding)
         except UnicodeDecodeError:
-            log.error(_("Couldn't handle '%s' with '%s' encoding.") % (self._filePath, encoding))
-            return
+            vals = (self._filePath, encoding)
+            raise SubFileError(_("Cannot handle '%s' with '%s' encoding.") % vals)
         return fileInput
 
     @classmethod
