@@ -31,8 +31,17 @@ from subconvert.utils.Locale import _
 from subconvert.utils.version import __appname__, __version__
 from subconvert.gui import MainWindow
 from subconvert.cli import MainApp
+from subconvert.utils.PropertyFile import SubtitleProperties
 
 log = logging.getLogger('Subconvert')
+
+def loadSpf(filePath):
+    try:
+        spf = SubtitleProperties(filePath)
+    except FileNotFoundError:
+        log.critical(_("No such file: '%s'") % filePath)
+        sys.exit(2)
+    return spf
 
 def prepareOptions():
     parser = argparse.ArgumentParser(
@@ -60,6 +69,9 @@ def prepareOptions():
     subtitleGroup.add_argument("-t", "--format", metavar = _("FMT"), dest = "outputFormat",
         type = str,
         help = _("output subtitle format to FMT"))
+    subtitleGroup.add_argument("-p", "--property-file", metavar = _("FILE"), dest = "pfile",
+        type = loadSpf, default = SubtitleProperties(),
+        help = _("load settings from spf (subtitle property file)"))
 
     movieGroup = parser.add_argument_group(_("movie options"))
     movieGroup.add_argument("--fps", type = float,

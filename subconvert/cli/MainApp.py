@@ -60,9 +60,8 @@ class SubApplication:
     def getFps(self, subFile):
         fps = self._args.fps
         if fps is None:
-            fps = 25.0 # default value
-            autoFps = self._args.autoFps or (self._args.video is not None)
-            if autoFps:
+            fps = self._args.pfile.fps # default value
+            if self._args.autoFps or (self._args.video is not None) or self._args.pfile.autoFps:
                 movieFile = self._parsePathTemplate(self._args.video, subFile.path)
                 fps = subFile.detectFps(movieFile)
         return fps
@@ -84,23 +83,27 @@ class SubApplication:
                 if fmt.OPT == self._args.outputFormat.lower():
                     return fmt
             raise SubException(_("Unknown output format: '%s'") % self._args.outputFormat)
+        elif self._args.pfile.outputFormat.NAME != SubFormat.NAME: # fmt != 'Generic'
+            return self._args.pfile.outputFormat
         return SubRip
 
     def getInputEncoding(self, subFile):
         inputEncoding = self._args.inputEncoding
         if inputEncoding is None:
-            inputEncoding = subFile.detectEncoding()
-        elif inputEncoding not in ALL_ENCODINGS:
-            raise SubException(_("Incorrect input encoding: '%s'") % inputEncoding)
-        return inputEncoding.lower()
+            if self._args.pfile.autoInputEncoding is False:
+                inputEncoding = self._args.pfile.inputEncoding
+            else:
+                inputEncoding = subFile.detectEncoding()
+        return self._checkEncoding(inputEncoding.lower())
 
     def getOutputEncoding(self, default):
         outputEncoding = self._args.outputEncoding
         if outputEncoding is None:
-            outputEncoding = default
-        elif outputEncoding not in ALL_ENCODINGS:
-            raise SubException(_("Incorrect output encoding: '%s'") % outputEncoding)
-        return outputEncoding.lower()
+            if self._args.pfile.changeEncoding is True:
+                outputEncoding = self._args.pfile.outputEncoding
+            else:
+                outputEncoding = default
+        return self._checkEncoding(outputEncoding.lower())
 
     def getOutputFilePath(self, subFile, formatExtension):
         outputPath = self._parsePathTemplate(self._args.outputPath, subFile.path)
@@ -193,6 +196,11 @@ class SubApplication:
         # shouldn't throw as all common checks are performed by getters
         data.verifyAll()
         return data
+
+    def _checkEncoding(self, encoding):
+        if encoding not in ALL_ENCODINGS:
+            raise SubException(_("Incorrect encoding: '%s'") % encoding)
+        return encoding
 
     def _parsePathTemplate(self, template, filePath):
         if template is not None:
