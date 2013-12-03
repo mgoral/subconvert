@@ -19,11 +19,13 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
+from subconvert.utils.SubException import SubAssert
+
 def acceptAlias(decoratedFunction):
     """This function should be used as a decorator. Each class method that is decorated will be able
     to accept alias or original names as a first function positional parameter."""
     def wrapper(self, *args, **kwargs):
-        assert(isinstance(self, AliasBase))
+        SubAssert(isinstance(self, AliasBase))
 
         if len(args) > 0:
             key = args[0]

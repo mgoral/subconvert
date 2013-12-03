@@ -21,6 +21,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
 from subconvert.utils.Alias import *
+from subconvert.utils.SubException import SubException
 
 class DummyClass(AliasBase):
     @acceptAlias
@@ -46,9 +47,9 @@ class TestSubConverter(unittest.TestCase):
     def setUp(self):
         self.d = DummyClass()
 
-    def test_AssertWhenClassDoesntSubclass_AliasBase_(self):
+    def test_RaiseAnExceptionWhenClassDoesntSubclass_AliasBase_(self):
         noAlias = ClassWithoutAlias()
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(SubException):
             noAlias.incorrectlyDecoratedMethod("name")
 
     def test_AliasBaseDoesntCreateAnyAliasesbyDefault(self):

@@ -19,6 +19,11 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
+class SubAssert:
+    def __init__(self, val, msg = ""):
+        if bool(val) is False:
+            raise SubException(msg)
+
 class SubException(Exception):
     """Base class for all Subconvert specific exceptions."""
     pass

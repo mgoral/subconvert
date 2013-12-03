@@ -23,6 +23,7 @@ import unittest
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.parsing.Core import SubConverter, SubManager, Subtitle
 from subconvert.parsing.Formats import SubRip, SubViewer
+from subconvert.utils.SubException import SubException
 
 # FIXME: SubConverter tests should not rely on actual subtitle parsers. A mocked parser should be
 # used instead.
@@ -47,11 +48,6 @@ class TestSubConverter(unittest.TestCase):
         self.subs.header().add("author", "Subtitle author")
 
         self.c = SubConverter()
-
-    def test_convertAssertsThatSubtitleIsParsed(self):
-        self.subs.clear()
-        with self.assertRaises(AssertionError):
-            self.c.convert(SubRip, self.subs)
 
     def test_convertReturnsTheSameSubForSubtitleWithHeader(self):
         result = self.c.convert(SubViewer, self.subs)

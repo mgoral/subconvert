@@ -22,8 +22,8 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 import re
 
 from subconvert.utils.Locale import _
+from subconvert.utils.SubException import SubAssert
 
-# TODO: change asserts to exceptions!
 class FrameTime():
     """Class defining a FrameTime object which consists of frame and time metrics (and fps as well)."""
 
@@ -149,31 +149,31 @@ class FrameTime():
             raise ValueError(_("Incorrect frame value."))
 
     def __eq__(self, other):
-        assert(self._fps == other._fps)
+        SubAssert(self._fps == other._fps)
         return self._full_seconds == other._full_seconds
 
     def __ne__(self, other):
-        assert(self._fps == other._fps)
+        SubAssert(self._fps == other._fps)
         return self._full_seconds != other._full_seconds
 
     def __lt__(self, other):
-        assert(self._fps == other._fps)
+        SubAssert(self._fps == other._fps)
         return self._full_seconds < other._full_seconds
 
     def __gt__(self, other):
-        assert(self._fps == other._fps)
+        SubAssert(self._fps == other._fps)
         return self._full_seconds > other._full_seconds
 
     def __add__(self, other):
         """Defines FrameTime + FrameTime"""
-        assert(self._fps == other._fps)
+        SubAssert(self._fps == other._fps)
         result = self._full_seconds + other._full_seconds
         return FrameTime(fps = self._fps, seconds = result)
 
     def __sub__(self, other):
         """Defines FrameTime - FrameTime"""
-        assert(self._fps == other._fps)
-        assert(self._full_seconds >= other._full_seconds)
+        SubAssert(self._fps == other._fps)
+        SubAssert(self._full_seconds >= other._full_seconds)
         result = self._full_seconds - other._full_seconds
         return FrameTime(fps = self._fps, seconds = result)
 

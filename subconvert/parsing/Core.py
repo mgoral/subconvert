@@ -351,8 +351,6 @@ class SubParser:
 class SubConverter:
     # TODO: test
     def convert(self, Format, subtitles):
-        assert(subtitles.size() != 0)
-
         fmt = Format()
         convertedLines = []
 
