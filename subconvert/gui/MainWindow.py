@@ -85,6 +85,8 @@ class MainWindow(QMainWindow):
         self.__updateMenuItemsState()
         self.__connectSignals()
 
+        self.handleArgs(args)
+
     def __initGui(self):
         self._settings = SubSettings()
         self.mainWidget = QWidget(self)
@@ -255,6 +257,25 @@ class MainWindow(QMainWindow):
         else:
             self.setWindowTitle("%s - Subconvert" % tab.name)
 
+    def _openFiles(self, paths, encoding):
+        unsuccessfullFiles = []
+        for filePath in paths:
+            # TODO: separate reading file and adding to the list.
+            # TODO: there should be readDataFromFile(filePath, properties=None),
+            # TODO: which should set default properties from Subtitle Properties File
+            command = NewSubtitles(filePath, encoding)
+            try:
+                self._subtitleData.execute(command)
+            except DoubleFileEntry:
+                pass # file already opened
+            except Exception as e:
+                log.error(str(e))
+                unsuccessfullFiles.append("%s: %s" % (filePath, str(e)))
+        if len(unsuccessfullFiles) > 0:
+            dialog = CannotOpenFilesMsg(self)
+            dialog.setFileList(unsuccessfullFiles)
+            dialog.exec()
+
     @pyqtSlot(bool)
     @pyqtSlot(int)
     @pyqtSlot(str)
@@ -280,6 +301,9 @@ class MainWindow(QMainWindow):
 
         self._actions["undo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canUndo())
         self._actions["redo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canRedo())
+
+    def handleArgs(self, args):
+        self._openFiles(args.files, args.inputEncoding)
 
     def nextTab(self):
         if self._tabs.count() > 0:
@@ -317,23 +341,8 @@ class MainWindow(QMainWindow):
             filenames = fileDialog.selectedFiles()
             encoding = fileDialog.getEncoding()
             self._settings.setLatestDirectory(os.path.dirname(filenames[0]))
-            unsuccessfullFiles = []
-            for filePath in filenames:
-                # TODO: separate reading file and adding to the list.
-                # TODO: there should be readDataFromFile(filePath, properties=None),
-                # TODO: which should set default properties from Subtitle Properties File
-                command = NewSubtitles(filePath, encoding)
-                try:
-                    self._subtitleData.execute(command)
-                except DoubleFileEntry:
-                    pass # file already opened
-                except Exception as e:
-                    log.error(str(e))
-                    unsuccessfullFiles.append("%s: %s" % (filePath, str(e)))
-            if len(unsuccessfullFiles) > 0:
-                dialog = CannotOpenFilesMsg(self)
-                dialog.setFileList(unsuccessfullFiles)
-                dialog.exec()
+            self._openFiles(filenames, encoding)
+
 
     @pyqtSlot()
     def saveFile(self, newFilePath = None):
