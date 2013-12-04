@@ -43,10 +43,9 @@ from subconvert.gui.SubtitleCommands import *
 log = logging.getLogger('Subconvert.%s' % __name__)
 
 class SubTab(QWidget):
-    def __init__(self, displayName, isStaticTab, parent = None):
+    def __init__(self, displayName, parent = None):
         super(SubTab, self).__init__(parent)
         self._displayName = displayName
-        self._isStaticTab = isStaticTab
 
     def canClose(self):
         # Redefine in child classes
@@ -54,7 +53,8 @@ class SubTab(QWidget):
 
     @property
     def isStatic(self):
-        return self._isStaticTab
+        # Redefine in child classes
+        return False
 
     @property
     def name(self):
@@ -69,7 +69,7 @@ class FileList(SubTab):
     requestRemove = pyqtSignal(str)
 
     def __init__(self, name, subtitleData, parent = None):
-        super(FileList, self).__init__(name, True, parent)
+        super(FileList, self).__init__(name, parent)
         self._subtitleData = subtitleData
         self._settings = SubSettings()
 
@@ -208,6 +208,13 @@ class FileList(SubTab):
                 icon = QIcon(":/img/not_clean.png")
             item.setIcon(0, icon)
 
+    def canClose(self):
+        return False
+
+    @property
+    def isStatic(self):
+        return True
+
     def getCurrentFile(self):
         return self.__fileList.currentItem()
 
@@ -291,7 +298,7 @@ class FileList(SubTab):
 class SubtitleEditor(SubTab):
     def __init__(self, filePath, subtitleData, parent = None):
         name = os.path.split(filePath)[1]
-        super(SubtitleEditor, self).__init__(name, False, parent)
+        super(SubtitleEditor, self).__init__(name, parent)
         self.__initWidgets()
         self.__initContextMenu()
 

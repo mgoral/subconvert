@@ -174,7 +174,7 @@ class SubTabWidget(QWidget):
     @pyqtSlot(int)
     def closeTab(self, index):
         tab = self.tab(index)
-        if not tab.isStatic and tab.canClose():
+        if tab.canClose():
             widgetToRemove = self.pages.widget(index)
             self.tabBar.removeTab(index)
             self.pages.removeWidget(widgetToRemove)
