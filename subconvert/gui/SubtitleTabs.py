@@ -297,6 +297,11 @@ class FileList(SubTab):
             self.changeSelectedSubtitleProperties(subProperties)
             self._settings.addPropertyFile(propertyPath)
 
+    @property
+    def filePaths(self):
+        fileList = self.__fileList # shorten notation
+        return [fileList.topLevelItem(i).text(0) for i in range(fileList.topLevelItemCount())]
+
     def changeSelectedFilesFormat(self, fmt):
         items = self.__fileList.selectedItems()
         for item in items:

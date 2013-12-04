@@ -359,22 +359,18 @@ class MainWindow(QMainWindow):
         dialog.setIcon(QMessageBox.Critical)
         dialog.setWindowTitle(_("Error on saving file(s)"))
 
-        # BUG!!!!!!!!!!!!
-        # FIXME: fetch self._tabs.fileList list of opened files instead of opened tabs. We want to
-        # save all files, not only those shown in tabs.
-        # When asked to save file, FileList should check whether it's parsed and parse it if it's
+        # TODO
+        # When asked to save file, it should be should checked if it's parsed and parse it if it's
         # not (in future the parsing moment might be moved to increase responsibility when opening
         # a lot of files - i.e. only a file list will be printed and files will be actually parsed
         # on their first use (e.g. on tab open, fps change etc.). I'll have to think about it).
-        # END OF FIXME
-        for i in range(self._tabs.count()):
-            tab = self._tabs.tab(i)
-            if tab is not None and not tab.isStatic:
-                try:
-                    self._writeFile(tab.filePath)
-                except SubFileError as msg:
-                    dialog.addToList(str(msg))
-        # END OF BUG!!!!!!!!!!!!!
+        # END OF TODO
+        for filePath in self._tabs.fileList.filePaths:
+            try:
+                if not self._subtitleData.isCleanState(filePath):
+                    self._writeFile(filePath)
+            except SubFileError as msg:
+                dialog.addToList(str(msg))
 
         if dialog.listCount() > 0:
             dialog.setText(_("Following errors occured when trying to save files:"))
