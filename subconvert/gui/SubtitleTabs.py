@@ -130,6 +130,24 @@ class FileList(SubTab):
         pfileMenu.addAction(af.create(
             title = _("Open file"), connection = self._chooseSubProperties))
 
+        encodingsMenu = self._contextMenu.addMenu(_("Set output encoding"))
+        encodingsMenu.setEnabled(anyItemSelected)
+        for encoding in ALL_ENCODINGS:
+            action = af.create(
+                title = encoding,
+                connection = lambda _, enc=encoding: self.changeSelectedFilesOutputEncoding(enc)
+            )
+            encodingsMenu.addAction(action)
+
+        formatsMenu = self._contextMenu.addMenu(_("Set subtitle format"))
+        formatsMenu.setEnabled(anyItemSelected)
+        for fmt in self._subtitleData.supportedFormats:
+            action = af.create(
+                title = fmt.NAME,
+                connection = lambda _, fmt=fmt: self.changeSelectedFilesFormat(fmt)
+            )
+            formatsMenu.addAction(action)
+
         self._contextMenu.addSeparator()
 
         # Show/Remove files
@@ -278,6 +296,26 @@ class FileList(SubTab):
             # if something goes wrong.
             self.changeSelectedSubtitleProperties(subProperties)
             self._settings.addPropertyFile(propertyPath)
+
+    def changeSelectedFilesFormat(self, fmt):
+        items = self.__fileList.selectedItems()
+        for item in items:
+            filePath = item.text(0)
+            data = self._subtitleData.data(filePath)
+            if data.outputFormat != fmt:
+                data.outputFormat = fmt
+                command = ChangeData(filePath, data)
+                self._subtitleData.execute(command)
+
+    def changeSelectedFilesOutputEncoding(self, outputEncoding):
+        items = self.__fileList.selectedItems()
+        for item in items:
+            filePath = item.text(0)
+            data = self._subtitleData.data(filePath)
+            if data.outputEncoding != outputEncoding:
+                data.outputEncoding = outputEncoding
+                command = ChangeData(filePath, data)
+                self._subtitleData.execute(command)
 
     def undoSelectedFiles(self):
         items = self.__fileList.selectedItems()
