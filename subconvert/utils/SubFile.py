@@ -46,6 +46,7 @@ class File:
     backups etc."""
 
     DEFAULT_ENCODING = "utf-8"
+    MOVIE_EXTENSIONS = ('avi', 'mkv', 'mpg', 'mp4', 'wmv', 'rmvb', 'mov', 'mpeg')
 
     def __init__(self, filePath):
         # Will raise IOError if file doesn't exist
@@ -193,9 +194,8 @@ class File:
         return fps
 
     def _searchForMovieFile(self):
-        knownExtensions = ('avi', 'mkv', 'mpg', 'mp4', 'wmv', 'rmvb', 'mov', 'mpeg')
         filename = os.path.splitext(self._filePath)[0]
-        for ext in knownExtensions:
+        for ext in MOVIE_EXTENSIONS:
             fileWithLowerExt = '.'.join((filename, ext))
             fileWithUpperExt = '.'.join((filename, ext.upper()))
 

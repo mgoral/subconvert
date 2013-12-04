@@ -117,7 +117,7 @@ class FileList(SubTab):
 
         # Property Files
 
-        pfileMenu = self._contextMenu.addMenu(_("Use Subtitle Properties"))
+        pfileMenu = self._contextMenu.addMenu(_("Use Subtitle &Properties"))
         pfileMenu.setEnabled(anyItemSelected)
         for pfile in self._settings.getLatestPropertyFiles():
             # A hacky way to store pfile in lambda
@@ -130,16 +130,20 @@ class FileList(SubTab):
         pfileMenu.addAction(af.create(
             title = _("Open file"), connection = self._chooseSubProperties))
 
-        encodingsMenu = self._contextMenu.addMenu(_("Set output encoding"))
-        encodingsMenu.setEnabled(anyItemSelected)
-        for encoding in ALL_ENCODINGS:
-            action = af.create(
-                title = encoding,
-                connection = lambda _, enc=encoding: self.changeSelectedFilesOutputEncoding(enc)
-            )
-            encodingsMenu.addAction(action)
+        self._contextMenu.addSeparator()
 
-        formatsMenu = self._contextMenu.addMenu(_("Set subtitle format"))
+        # Single properties
+
+        fpsMenu = self._contextMenu.addMenu(_("&Frames per second"))
+        fpsMenu.setEnabled(anyItemSelected)
+        for fps in FPS_VALUES:
+            fpsStr = str(fps)
+            action = af.create(
+                title = fpsStr,
+                connection = lambda _, fps=fps: self.changeSelectedFilesFps(fps))
+            fpsMenu.addAction(action)
+
+        formatsMenu = self._contextMenu.addMenu(_("Subtitles forma&t"))
         formatsMenu.setEnabled(anyItemSelected)
         for fmt in self._subtitleData.supportedFormats:
             action = af.create(
@@ -148,21 +152,38 @@ class FileList(SubTab):
             )
             formatsMenu.addAction(action)
 
+        inputEncodingsMenu = self._contextMenu.addMenu(_("Input &encoding"))
+        inputEncodingsMenu.setEnabled(anyItemSelected)
+        outputEncodingsMenu = self._contextMenu.addMenu(_("&Output encoding"))
+        outputEncodingsMenu.setEnabled(anyItemSelected)
+        for encoding in ALL_ENCODINGS:
+            outAction = af.create(
+                title = encoding,
+                connection = lambda _, enc=encoding: self.changeSelectedFilesOutputEncoding(enc)
+            )
+            outputEncodingsMenu.addAction(outAction)
+
+            inAction = af.create(
+                title = encoding,
+                connection = lambda _, enc=encoding: self.changeSelectedFilesInputEncoding(enc)
+            )
+            inputEncodingsMenu.addAction(inAction)
+
         self._contextMenu.addSeparator()
 
         # Show/Remove files
 
         # Key shortcuts are actually only a hack to provide some kind of info to user that he can
         # use "enter/return" and "delete" to open/close subtitles. Keyboard is handled via
-        # keyPressed -> _handleKeyPress. This is because __fileList has focus most of time anyway 
+        # keyPressed -> _handleKeyPress. This is because __fileList has focus most of time anyway
         # (I think...)
         actionOpen = af.create(
-            None, _("Show subtitles"), None, "Enter", lambda: self._handleKeyPress(Qt.Key_Enter))
+            None, _("&Show subtitles"), None, "Enter", lambda: self._handleKeyPress(Qt.Key_Enter))
         actionOpen.setEnabled(anyItemSelected)
         self._contextMenu.addAction(actionOpen)
 
         actionClose = af.create(
-            None, _("Close subtitles"), None, "Delete", lambda: self._handleKeyPress(Qt.Key_Delete))
+            None, _("&Close subtitles"), None, "Delete", lambda: self._handleKeyPress(Qt.Key_Delete))
         actionClose.setEnabled(anyItemSelected)
         self._contextMenu.addAction(actionClose)
 
@@ -170,11 +191,11 @@ class FileList(SubTab):
 
         # Undo/redo
 
-        actionUndo = af.create(None, _("Undo"), None, None, self.undoSelectedFiles)
+        actionUndo = af.create(None, _("&Undo"), None, None, self.undoSelectedFiles)
         actionUndo.setEnabled(anyItemSelected)
         self._contextMenu.addAction(actionUndo)
 
-        actionRedo = af.create(None, _("Redo"), None, None, self.redoSelectedFiles)
+        actionRedo = af.create(None, _("&Redo"), None, None, self.redoSelectedFiles)
         actionRedo.setEnabled(anyItemSelected)
         self._contextMenu.addAction(actionRedo)
 
@@ -302,6 +323,16 @@ class FileList(SubTab):
         fileList = self.__fileList # shorten notation
         return [fileList.topLevelItem(i).text(0) for i in range(fileList.topLevelItemCount())]
 
+    def changeSelectedFilesFps(self, val):
+        items = self.__fileList.selectedItems()
+        for item in items:
+            filePath = item.text(0)
+            data = self._subtitleData.data(filePath)
+            if data.fps != val:
+                data.fps = val
+                command = ChangeData(filePath, data, _("FPS change: %s") % val)
+                self._subtitleData.execute(command)
+
     def changeSelectedFilesFormat(self, fmt):
         items = self.__fileList.selectedItems()
         for item in items:
@@ -311,6 +342,22 @@ class FileList(SubTab):
                 data.outputFormat = fmt
                 command = ChangeData(filePath, data)
                 self._subtitleData.execute(command)
+
+    def changeSelectedFilesInputEncoding(self, inputEncoding):
+        items = self.__fileList.selectedItems()
+        for item in items:
+            filePath = item.text(0)
+            data = self._subtitleData.data(filePath)
+            if data.inputEncoding != inputEncoding:
+                try:
+                    data.encode(inputEncoding)
+                except UnicodeDecodeError:
+                    # TODO: indicate with something more than log entry
+                    log.error(_("Cannot decode subtitles to '%s' encoding.") % inputEncoding)
+                else:
+                    command = ChangeData(filePath, data, _("Encoding changed: %s") % inputEncoding)
+                    self._subtitleData.execute(command)
+
 
     def changeSelectedFilesOutputEncoding(self, outputEncoding):
         items = self.__fileList.selectedItems()
@@ -387,24 +434,14 @@ class SubtitleEditor(SubTab):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         af = ActionFactory(self)
 
-        selectMovie = af.create(title = _("Select movie"), connection = self.selectMovieFile)
-        self._contextMenu.addAction(selectMovie)
+        # TODO: implementation
+        insertSub = af.create(title = _("&Insert subtitle"), connection = None)
+        insertSub.setEnabled(False)
+        self._contextMenu.addAction(insertSub)
 
-        fpsMenu = self._contextMenu.addMenu(_("Frames per second"))
-        for fps in FPS_VALUES:
-            fpsStr = str(fps)
-            action = af.create(
-                title = fpsStr,
-                connection = lambda _, fps=fps: self.changeFps(fps))
-            fpsMenu.addAction(action)
-
-        encodingsMenu = self._contextMenu.addMenu(_("&Encoding"))
-        for encoding in ALL_ENCODINGS:
-            action = af.create(
-                title = encoding,
-                connection = lambda _, encoding=encoding: self.changeEncoding(encoding)
-            )
-            encodingsMenu.addAction(action)
+        removeSub = af.create(title = _("&Remove subtitles"), connection = None)
+        removeSub.setEnabled(False)
+        self._contextMenu.addAction(removeSub)
 
     def _createRow(self, sub):
         timeStart = QStandardItem(sub.start.toStr())
@@ -442,9 +479,9 @@ class SubtitleEditor(SubTab):
     def showContextMenu(self):
         self._contextMenu.exec(QCursor.pos())
 
-    def changeEncoding(self, encoding):
-        if encoding != self.inputEncoding:
-            data = self._subtitleData.data(self.filePath)
+    def changeInputEncoding(self, encoding):
+        data = self._subtitleData.data(self.filePath)
+        if encoding != data.inputEncoding:
             try:
                 data.encode(encoding)
             except UnicodeDecodeError:
@@ -467,6 +504,21 @@ class SubtitleEditor(SubTab):
                 self.execute(command)
                 self.refreshSubtitles()
 
+    def changeOutputEncoding(self, encoding):
+        data = self._subtitleData.data(self.filePath)
+        if encoding != data.outputEncoding:
+            data.outputEncoding = encoding
+            command = ChangeData(self.filePath, data,
+                _("Output encoding changed: %s") % encoding)
+            self._subtitleData.execute(command)
+
+    def changeSubFormat(self, fmt):
+        data = self._subtitleData.data(self.filePath)
+        if data.outputFormat != fmt:
+            data.outputFormat = fmt
+            command = ChangeData(self.filePath, data)
+            self._subtitleData.execute(command)
+
     def changeFps(self, val):
         data = self.data
         if (data.fps != val):
@@ -480,11 +532,12 @@ class SubtitleEditor(SubTab):
         # TODO: currently selectMovieFile only fetches FPS from it (but this behaviour also should
         # be controlled by settings).
 
+        movieExtensions = "%s%s" % ("*.", ' *.'.join(File.MOVIE_EXTENSIONS))
         fileDialog = FileDialog(
             parent = self,
             caption = _("Select movie"),
             directory = self._settings.getLatestDirectory(),
-            filter = _("Movie files (%s);;All files (*)") % "*.avi *.mp4 *.mpeg")
+            filter = _("Movie files (%s);;All files (*)") % movieExtensions)
         fileDialog.setFileMode(QFileDialog.ExistingFile)
         if fileDialog.exec():
             self._movieFilePath = fileDialog.selectedFiles()[0]

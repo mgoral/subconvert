@@ -36,6 +36,7 @@ from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import ActionFactory, CannotOpenFilesMsg, MessageBoxWithList, FPS_VALUES
 from subconvert.gui.SubtitleCommands import *
 from subconvert.utils.Locale import _
+from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File, SubFileError
 from subconvert.utils.version import __version__, __author__, __license__, __website__, __transs__
@@ -138,9 +139,9 @@ class MainWindow(QMainWindow):
 
         # Subtitles
         self._actions["undo"] = af.create(
-            None, _("Undo"), None, "ctrl+z", self.undo)
+            None, _("&Undo"), None, "ctrl+z", self.undo)
         self._actions["redo"] = af.create(
-            None, _("Redo"), None, "ctrl+shift+z", self.redo)
+            None, _("&Redo"), None, "ctrl+shift+z", self.redo)
 
         for fps in FPS_VALUES:
             fpsStr = str(fps)
@@ -148,8 +149,23 @@ class MainWindow(QMainWindow):
                 None, fpsStr, None, None,
                 lambda _, fps=fps: self._tabs.currentPage().changeFps(fps))
 
+        for encoding in ALL_ENCODINGS:
+            self._actions["in_%s" % encoding] = af.create(
+                None, encoding, None, None,
+                lambda _, enc = encoding: self._tabs.currentPage().changeInputEncoding(enc))
+
+            self._actions["out_%s" % encoding] = af.create(
+                None, encoding, None, None,
+                lambda _, enc = encoding: self._tabs.currentPage().changeOutputEncoding(enc))
+
+        for fmt in self._subtitleData.supportedFormats:
+            self._actions[fmt.NAME] = af.create(
+                None, fmt.NAME, None, None,
+                lambda _, fmt = fmt: self._tabs.currentPage().changeSubFormat(fmt))
+
+
         self._actions["selectMovie"] = af.create(
-            None, _("Select movie"), None, "ctrl+m",
+            None, _("Select &movie"), None, "ctrl+m",
                 lambda: self._tabs.currentPage().selectMovieFile())
 
         # SPF editor
@@ -158,13 +174,13 @@ class MainWindow(QMainWindow):
 
         # View
         self._actions["togglePanel"] = af.create(
-            None, _("Side panel"), _("Show or hide left panel"), "F4", self._tabs.togglePanel)
+            None, _("Side &panel"), _("Show or hide left panel"), "F4", self._tabs.togglePanel)
 
         # Help
         self._actions["helpPage"] = af.create(
-            None, _("&Help"), _("Open help page"), "F1", self.openHelp)
+            None, _("&Help"), _("Open &help page"), "F1", self.openHelp)
         self._actions["aboutSubconvert"] = af.create(
-            None, _("About Subconvert"), None, None, self.openAboutDialog)
+            None, _("&About Subconvert"), None, None, self.openAboutDialog)
 
     def __initMenuBar(self):
         menubar = self.menuBar()
@@ -181,10 +197,18 @@ class MainWindow(QMainWindow):
         subtitlesMenu.addAction(self._actions["undo"])
         subtitlesMenu.addAction(self._actions["redo"])
         subtitlesMenu.addSeparator()
-        subtitlesMenu.addAction(self._actions["selectMovie"])
-        self._fpsMenu = subtitlesMenu.addMenu(_("Frames per second"))
+        self._fpsMenu = subtitlesMenu.addMenu(_("&Frames per second"))
         for fps in FPS_VALUES:
             self._fpsMenu.addAction(self._actions[str(fps)])
+        self._subFormatMenu = subtitlesMenu.addMenu(_("Subtitles forma&t"))
+        for fmt in self._subtitleData.supportedFormats:
+            self._subFormatMenu.addAction(self._actions[fmt.NAME])
+        self._inputEncodingMenu = subtitlesMenu.addMenu(_("Input &encoding"))
+        self._outputEncodingMenu = subtitlesMenu.addMenu(_("&Output encoding"))
+        for encoding in ALL_ENCODINGS:
+            self._inputEncodingMenu.addAction(self._actions["in_%s" % encoding])
+            self._outputEncodingMenu.addAction(self._actions["out_%s" % encoding])
+        subtitlesMenu.addAction(self._actions["selectMovie"])
 
         viewMenu = menubar.addMenu(_("&View"))
         viewMenu.addAction(self._actions["togglePanel"])
@@ -250,6 +274,9 @@ class MainWindow(QMainWindow):
 
         self._actions["selectMovie"].setEnabled(anyTabOpen and not tabIsStatic)
         self._fpsMenu.setEnabled(anyTabOpen and not tabIsStatic)
+        self._subFormatMenu.setEnabled(anyTabOpen and not tabIsStatic)
+        self._inputEncodingMenu.setEnabled(anyTabOpen and not tabIsStatic)
+        self._outputEncodingMenu.setEnabled(anyTabOpen and not tabIsStatic)
 
         self._actions["undo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canUndo())
         self._actions["redo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canRedo())
