@@ -121,7 +121,7 @@ class PropertyFileEditor(QDialog):
         return groupbox
 
     def _createFormatBox(self):
-        groupbox = QGroupBox(_("Subtitle Format"))
+        groupbox = QGroupBox(_("Subtitle format"))
         layout = QGridLayout()
 
         displayedFormats = list(self._formats.keys())

@@ -90,7 +90,7 @@ class FileList(SubTab):
         self.__fileList.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.__fileList.setColumnCount(4)
         self.__fileList.setHeaderLabels(
-            [_("File name"), _("Input encoding"), _("Output Encoding"), _("Format")])
+            [_("File name"), _("Input encoding"), _("Output encoding"), _("Subtitle format")])
         mainLayout.addWidget(self.__fileList)
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)

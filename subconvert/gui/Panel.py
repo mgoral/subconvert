@@ -51,7 +51,7 @@ class SidePanel(QWidget):
     def _createFileInfo(self, filePath, data):
         self.clear()
 
-        dataGroup = QGroupBox(_("Subtitle info"), self)
+        dataGroup = QGroupBox(_("Subtitle details"), self)
         dataGroupLayout = QFormLayout()
         dataGroup.setLayout(dataGroupLayout)
 

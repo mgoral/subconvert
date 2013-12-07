@@ -51,9 +51,9 @@ def prepareOptions():
         help=_("files to open"))
 
     parser.add_argument("-c", "--console", action = "store_true",
-        help = _("run Subconvert in console"))
+        help = _("runs Subconvert in console"))
     parser.add_argument("-f", "--force", action = "store_true",
-        help = _("force all operations without asking (assuming yes)"))
+        help = _("forces all operations without asking (assuming yes)"))
 
 
     subtitleGroup = parser.add_argument_group(_("subtitle options"))
@@ -66,31 +66,31 @@ def prepareOptions():
         help = _("input file encoding"))
     subtitleGroup.add_argument("-E", "--reencode", metavar = _("ENC"), dest = "outputEncoding",
         type = str,
-        help = _("change output file encoding to ENC"))
+        help = _("changes output file encoding to ENC"))
     subtitleGroup.add_argument("-t", "--format", metavar = _("FMT"), dest = "outputFormat",
         type = str,
-        help = _("output subtitle format to FMT"))
+        help = _("sets output subtitle format to FMT"))
     subtitleGroup.add_argument("-p", "--property-file", metavar = _("FILE"), dest = "pfile",
         type = loadSpf, default = SubtitleProperties(),
-        help = _("load settings from spf (subtitle property file)"))
+        help = _("loads settings from spf (subtitle property file)"))
 
     movieGroup = parser.add_argument_group(_("movie options"))
     movieGroup.add_argument("--fps", type = float,
-        help = _("specify movie frames per second"))
+        help = _("specifies movie frames per second"))
     movieGroup.add_argument("-A", "--auto-fps", action = "store_true", dest = "autoFps",
-        help = _("use MPlayer to automatically get FPS value from the movie"))
+        help = _("uses MPlayer to automatically get FPS value from the movie"))
     movieGroup.add_argument("-v", "--video", metavar = _("MOVIE"), type = os.path.expanduser,
         # Translators: Do not translate '%%f'
-        help = _("specify a video file to get FPS value from. "
+        help = _("specifies a video file to get FPS value from. "
             "All occurences of '%%f' will be replaced by input file name base"))
 
     miscGroup = parser.add_argument_group( _("miscellaneous options"))
     miscGroup.add_argument("--debug", action = "store_true",
-        help = _("enable debug prints"))
+        help = _("enables debug prints"))
     miscGroup.add_argument("--quiet", action = "store_true",
-        help = _("silence Subconvert output"))
+        help = _("silences Subconvert output"))
     miscGroup.add_argument("--version", action = "store_true",
-        help = _("print program version and exit"))
+        help = _("prints program version and exit"))
 
     return parser
 

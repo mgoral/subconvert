@@ -21,7 +21,6 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import re
 
-from subconvert.utils.Locale import _
 from subconvert.utils.SubException import SubAssert
 
 class FrameTime():
@@ -39,7 +38,7 @@ class FrameTime():
         """
 
         if fps <= 0:
-            raise ValueError(_("Incorrect FPS value: %s.") % fps)
+            raise ValueError("Incorrect FPS value: %s." % fps)
 
         self._fps = float(fps)
         if frames is None and time is None and seconds is None:
@@ -52,7 +51,7 @@ class FrameTime():
         else:
             exclusiveArgs = [frames, time, seconds]
             if exclusiveArgs.count(None) != 2:
-                raise AttributeError(_("FrameTime can obly be initialized by one type."))
+                raise AttributeError("FrameTime can obly be initialized by one type.")
 
             if frames is not None:
                 self.__setFrame__(int(frames))
@@ -80,7 +79,7 @@ class FrameTime():
         if newFps > 0:
             self._fps = float(newFps)
         else:
-            raise ValueError(_("Incorrect FPS value: %s.") % newFps)
+            raise ValueError("Incorrect FPS value: %s." % newFps)
         self.__setFrame__(self._full_seconds * self._fps)
 
     @property
@@ -108,12 +107,12 @@ class FrameTime():
         elif strType == "frame":
             return "%s" % int(round(self._frame))
         else:
-            raise AttributeError(_("Incorrect string type: '%s'") % strType)
+            raise AttributeError("Incorrect string type: '%s'" % strType)
 
     def __setTime__(self, value):
         time = re.match(r"(?P<h>\d+):(?P<m>[0-5][0-9]):(?P<s>[0-5][0-9])(?:$|\.(?P<ms>\d{1,3}))", value)
         if time is None:
-            raise ValueError(_("Incorrect time format."))
+            raise ValueError("Incorrect time format.")
 
         if time.group('ms') is not None:
             # ljust explenation:
@@ -133,7 +132,7 @@ class FrameTime():
             self._full_seconds = seconds
             self._frame = seconds * self._fps
         else:
-            raise ValueError(_("Incorrect seconds value."))
+            raise ValueError("Incorrect seconds value.")
 
         self._hours = int(seconds / 3600)
         seconds = round(seconds - self._hours * 3600, 3)
@@ -146,7 +145,7 @@ class FrameTime():
         if frame >= 0:
             self.__setSeconds__(frame / self._fps)
         else:
-            raise ValueError(_("Incorrect frame value."))
+            raise ValueError("Incorrect frame value.")
 
     def __eq__(self, other):
         SubAssert(self._fps == other._fps)

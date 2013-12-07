@@ -83,13 +83,13 @@ class ChangeSubtitle(SubtitleChangeCommand):
     def setup(self):
         super().setup()
         if not self.controller.fileExists(self.filePath):
-            raise IncorrectFilePath(_("No entry to update for %s") % self.filePath)
+            raise IncorrectFilePath("No entry to update for %s" % self.filePath)
         if not isinstance(self._subNo, int):
             raise TypeError("Subtitle number is not an int!")
         if type(self._oldSubtitle) is not Subtitle:
-            raise TypeError(_("Old subtitle are not of type 'Subtitle'!"))
+            raise TypeError("Old subtitle are not of type 'Subtitle'!")
         if type(self._newSubtitle) is not Subtitle:
-            raise TypeError(_("New subtitle are not of type 'Subtitle'!"))
+            raise TypeError("New subtitle are not of type 'Subtitle'!")
 
     def redo(self):
         storage = self.controller._storage[self.filePath]
@@ -119,7 +119,7 @@ class ChangeData(SubtitleChangeCommand):
     def setup(self):
         super().setup()
         if not self.controller.fileExists(self.filePath):
-            raise IncorrectFilePath(_("No entry to update for %s") % self.filePath)
+            raise IncorrectFilePath("No entry to update for %s" % self.filePath)
 
         #  A little hackish way to avoid passing oldData to ChangeData command (which would require
         #  unnecessary deepcopies).
@@ -146,7 +146,7 @@ class NewSubtitles(SubtitleChangeCommand):
     def setup(self):
         super().setup()
         if self.controller.fileExists(self.filePath):
-            raise DoubleFileEntry(_("'%s' cannot be added twice") % self._filePath)
+            raise DoubleFileEntry("'%s' cannot be added twice" % self._filePath)
         self._newData = self.controller.createDataFromFile(self._filePath, self._encoding)
 
     def redo(self):
@@ -166,7 +166,7 @@ class RemoveFile(SubtitleChangeCommand):
     def setup(self):
         super().setup()
         if not self.controller.fileExists(self.filePath):
-            raise IncorrectFilePath(_("Cannot remove '%s'. It doesn't exist!") % self._filePath)
+            raise IncorrectFilePath("Cannot remove '%s'. It doesn't exist!" % self._filePath)
 
     def redo(self):
         history = self.controller._history[self._filePath]
