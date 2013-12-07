@@ -83,8 +83,8 @@ class File:
                 encoding = enc['encoding']
                 log.debug(_(" ...detected %s encoding.") % enc['encoding'])
             else:
-                log.info(_("I am not too confident about encoding (most probably %s). Returning \
-                    default %s") % (enc['encoding'], encoding))
+                log.info(_("I am not too confident about encoding (most probably %(enc)s). "
+                    "Returning default %(def)s") % {"enc": enc["encoding"], "def": encoding})
         return encoding
 
     def read(self, encoding = None):
@@ -98,8 +98,8 @@ class File:
         except LookupError as msg:
             raise SubFileError(_("Unknown encoding name: '%s'.") % encoding)
         except UnicodeDecodeError:
-            vals = (self._filePath, encoding)
-            raise SubFileError(_("Cannot handle '%s' with '%s' encoding.") % vals)
+            vals = {"file": self._filePath, "enc": encoding}
+            raise SubFileError(_("Cannot handle '%(file)s' with '%(enc)s' encoding.") % vals)
         return fileInput
 
     @classmethod
@@ -119,8 +119,8 @@ class File:
             raise SubFileError(_("Unknown encoding name: '%s'.") % encoding)
         except UnicodeEncodeError:
             raise SubFileError(
-                _("There are some characters in '%s' that cannot be encoded to '%s'.")
-                % (filePath, encoding))
+                _("There are some characters in '%(file)s' that cannot be encoded to '%(enc)s'.")
+                % {"file": filePath, "enc": encoding})
 
         tmpFilePath = "%s.tmp" % filePath
         bakFilePath = "%s.bak" % filePath
@@ -184,12 +184,12 @@ class File:
             log.debug(mpErr)
             fps = float(re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', str(mpOut)).group(1))
         except OSError:
-            log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH \
-                to detect FPS."))
+            log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH "
+                "to detect FPS."))
         except AttributeError:
             log.warning(_("Couldn't get FPS info from mplayer."))
         else:
-            log.info(_("Got %s FPS from '%s'.") % (fps, movieFile))
+            log.info(_("Got %(fps)s FPS from '%(movie)s'.") % {"fps": fps, "movie": movieFile})
 
         return fps
 

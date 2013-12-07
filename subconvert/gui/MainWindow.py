@@ -441,6 +441,6 @@ class MainWindow(QMainWindow):
             dialog = QMessageBox(self)
             dialog.setIcon(QMessageBox.Critical)
             dialog.setWindowTitle(_("Couldn't open URL"))
-            dialog.setText(
-                _("""Failed to open URL: <a href="%s">%s</a>.""") % (url, url))
+            dialog.setText(_("""Failed to open URL: <a href="%(url)s">%(url)s</a>.""") % 
+                {"url": url})
             dialog.exec()

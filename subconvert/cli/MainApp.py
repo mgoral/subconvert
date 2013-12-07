@@ -127,8 +127,14 @@ class SubApplication:
             if self._args.force:
                 choice = choices["yes"]
             while(choice not in choices.values()):
-                choice = input(_("File '%s' exists. Overwrite? [%s/%s/%s/%s] ") %
-                    (filePath, choices['yes'], choices['no'], choices['backup'], choices['quit']))
+                vals = {
+                    "file": filePath, "yes": choices["yes"], "no": choices['no'],
+                    "bck": choices['backup'], "quit": choices["quit"]
+                }
+
+                choice = input(
+                    _("File '%(file)s' exists. Overwrite? [%(yes)s/%(no)s/%(bck)s/%(quit)s]") % 
+                    vals)
 
             if choice == choices['backup']:
                 backupFilePath = file_.backup()

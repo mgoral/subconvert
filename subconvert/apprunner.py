@@ -59,6 +59,7 @@ def prepareOptions():
     subtitleGroup = parser.add_argument_group(_("subtitle options"))
     subtitleGroup.add_argument("-o", "--output-file", metavar = _("FILE"), dest = "outputPath",
         type = os.path.expanduser,
+        # Translators: Do not translate '%%f'
         help = _("output file. All occurences of '%%f', will be replaced by input file name base"))
     subtitleGroup.add_argument("-e", "--encoding", metavar = _("ENC"), dest = "inputEncoding",
         type = str,
@@ -79,8 +80,9 @@ def prepareOptions():
     movieGroup.add_argument("-A", "--auto-fps", action = "store_true", dest = "autoFps",
         help = _("use MPlayer to automatically get FPS value from the movie"))
     movieGroup.add_argument("-v", "--video", metavar = _("MOVIE"), type = os.path.expanduser,
-        help = _("specify a video file to get FPS value from. All occurences of '%%f' will be \
-            replaced by input file name base"))
+        # Translators: Do not translate '%%f'
+        help = _("specify a video file to get FPS value from. "
+            "All occurences of '%%f' will be replaced by input file name base"))
 
     miscGroup = parser.add_argument_group( _("miscellaneous options"))
     miscGroup.add_argument("--debug", action = "store_true",

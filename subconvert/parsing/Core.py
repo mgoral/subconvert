@@ -262,7 +262,7 @@ class SubParser:
 
     def message(self, lineNo, msg = "parsing error."):
         '''Uniform error message.'''
-        return _("%d: %s") % (lineNo + 1, msg)
+        return "%d: %s" % (lineNo + 1, msg)
 
     # TODO: parser should not be aware of the encoding
     def _initialLinePrepare(self, line, lineNo):
