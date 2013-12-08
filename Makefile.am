@@ -40,4 +40,8 @@ install-data-hook:
 	cd $(DESTDIR)$(bindir) && \
 		$(LN_S) $(DESTDIR)$(datadir)/subconvert/subconvert.py subconvert
 
-.PHONY: gen test coverage
+reinstall:
+	make uninstall
+	make install
+
+.PHONY: gen test coverage reinstall
