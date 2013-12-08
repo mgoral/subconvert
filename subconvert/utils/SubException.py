@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 """
@@ -20,10 +19,11 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-import subconvert.apprunner as apprunner
+class SubAssert:
+    def __init__(self, val, msg = ""):
+        if bool(val) is False:
+            raise SubException(msg)
 
-try:
-    apprunner.main()
-except KeyboardInterrupt:
-    raise SystemExit(0)
+class SubException(Exception):
+    """Base class for all Subconvert specific exceptions."""
+    pass

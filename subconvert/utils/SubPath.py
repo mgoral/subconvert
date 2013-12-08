@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 """
@@ -20,10 +19,23 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-import subconvert.apprunner as apprunner
+import os
 
-try:
-    apprunner.main()
-except KeyboardInterrupt:
-    raise SystemExit(0)
+def get_install_path(given_path, split_string='subconvert'):
+    try:
+        ret_list = os.path.dirname(given_path).split(split_string)
+    except AttributeError:
+        return ''
+    if len(ret_list) < 2:
+        return os.path.dirname(given_path)
+    return ret_list[0]
+
+def getLocalePath(givenPath, localeName='subconvert'):
+    installPath = get_install_path(givenPath, localeName)
+    if installPath:
+        return "%s/%s" % ( installPath, "locale")
+    return "./locale/"
+
+def getDirname(filename):
+    return os.path.split(os.path.abspath(filename))[0]
+

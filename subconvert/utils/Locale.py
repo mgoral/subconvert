@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 """
@@ -20,10 +19,14 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-import subconvert.apprunner as apprunner
+import gettext
+from subconvert.utils import SubPath
 
-try:
-    apprunner.main()
-except KeyboardInterrupt:
-    raise SystemExit(0)
+t = gettext.translation(
+    domain='subconvert',
+    localedir=SubPath.getLocalePath(__file__),
+    fallback=True)
+gettext.install('subconvert')
+
+_ = t.gettext
+P_ = t.ngettext

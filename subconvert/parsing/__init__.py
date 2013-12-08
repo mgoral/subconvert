@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 """
@@ -20,10 +19,5 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-import subconvert.apprunner as apprunner
 
-try:
-    apprunner.main()
-except KeyboardInterrupt:
-    raise SystemExit(0)
+__all__ = ['Convert', 'FrameTime', 'SubParser', 'Parsers',]
