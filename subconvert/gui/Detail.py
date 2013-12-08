@@ -20,6 +20,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
 from subconvert.utils import SubPath
+from subconvert.utils.Locale import _, P_
 
 from PyQt4.QtGui import QListWidget, QTreeWidget, QComboBox, QAction, QIcon, QMessageBox
 from PyQt4.QtCore import Qt, pyqtSignal
@@ -133,8 +134,8 @@ class CannotOpenFilesMsg(MessageBoxWithList):
 
     def exec(self):
         fileListSize = self._listWidget.count()
-        if fileListSize > 1:
-            self.setText(_("Errors occured when trying to open following files:"))
-        else:
-            self.setText(_("An error occured when trying to open a file:"))
+        self.setText(P_(
+            "An error occured when trying to open a file:",
+            "Errors occured when trying to open following files:",
+            fileListSize))
         super().exec()

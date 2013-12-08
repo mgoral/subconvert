@@ -27,5 +27,6 @@ t = gettext.translation(
     localedir=SubPath.getLocalePath(__file__),
     fallback=True)
 gettext.install('subconvert')
-_ = t.gettext
 
+_ = t.gettext
+P_ = t.ngettext

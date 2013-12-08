@@ -27,7 +27,7 @@ import re
 import logging
 import datetime
 
-from subconvert.utils.Locale import _
+from subconvert.utils.Locale import _, P_
 from subconvert.utils.SubException import SubException
 
 try:
@@ -104,8 +104,8 @@ class File:
 
     @classmethod
     def _writeFile(cls, filePath, content, encoding = None):
-        """Safe file writing. Most common mistakes are checked against and reported before write 
-        operation. After that, if anything unexpected happens, user won't be left without data or 
+        """Safe file writing. Most common mistakes are checked against and reported before write
+        operation. After that, if anything unexpected happens, user won't be left without data or
         with corrupted one as this method writes to a temporary file and then simply renames it
         (which should be atomic operation according to POSIX but who knows how Ext4 really works.
         @see: http://lwn.net/Articles/322823/)."""
@@ -189,7 +189,10 @@ class File:
         except AttributeError:
             log.warning(_("Couldn't get FPS info from mplayer."))
         else:
-            log.info(_("Got %(fps)s FPS from '%(movie)s'.") % {"fps": fps, "movie": movieFile})
+            log.info(P_(
+                "Got %(fps)s FPS from '%(movie)s'.",
+                "Got %(fps)s FPS from '%(movie)s'.",
+                int(fps)) % {"fps": fps, "movie": movieFile})
 
         return fps
 

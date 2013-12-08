@@ -35,7 +35,7 @@ from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import ActionFactory, CannotOpenFilesMsg, MessageBoxWithList, FPS_VALUES
 from subconvert.gui.SubtitleCommands import *
-from subconvert.utils.Locale import _
+from subconvert.utils.Locale import _, P_
 from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File, SubFileError
@@ -70,7 +70,7 @@ Translations: $translators
 </p>
 
 <h3>About</h3>
-<p> This is Subconvert - movie subtitles editor and converter.</p>
+<p>This is Subconvert - movie subtitles editor and converter.</p>
 <p>If you'd like to help at developing Subconvert, see program <a href="$website">website</a> or contact author.</p>
 """)).substitute(substituteDict)
 
@@ -393,7 +393,7 @@ class MainWindow(QMainWindow):
     def saveAll(self):
         dialog = MessageBoxWithList(self)
         dialog.setIcon(QMessageBox.Critical)
-        dialog.setWindowTitle(_("Error on saving file(s)"))
+
 
         # TODO
         # When asked to save file, it should be should checked if it's parsed and parse it if it's
@@ -409,7 +409,16 @@ class MainWindow(QMainWindow):
                 dialog.addToList(str(msg))
 
         if dialog.listCount() > 0:
-            dialog.setText(_("Following errors occured when trying to save files:"))
+            dialog.setWindowTitle(P_(
+                "Error on saving a file",
+                "Error on saving files",
+                len(self.listCount())
+                ))
+            dialog.setText(P_(
+                "Following error occured when trying to save a file:",
+                "Following errors occured when trying to save files:",
+                len(self.listCount())
+                ))
             dialog.exec()
 
     def undo(self):
