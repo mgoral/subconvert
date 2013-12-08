@@ -1,5 +1,21 @@
 Version history
 
+0.9.5   : 08.12.2013 ()
+* ADD:  complete redesign of GUI which has a lot of cool features:
+        * subtitle editing
+        * undo/redo
+        * batch or single file works
+        * reencoding of subtitle file
+        * side panel
+* ADD:  introduced Subtitle Property Files
+* ADD:  introduced output file syntax ("%f" substitution)
+* FIX:  correct internationalization (moved *.po files + use of ngettext)
+* MOD:  HUGE code refactoring
+* MOD:  changed hand made install script to autotools
+* MOD:  migrate Subconvert to Python 3
+* MOD:  subconvert by default spawns GUI. Use '-c' to access commandline
+        interface
+
 0.9     : 12.05.2012 (Code Injector)
 * ADD:  "-g" option to SubConvert CLI version
 * ADD:  #32: added icon for the GUI file list which indicates a status of a job
