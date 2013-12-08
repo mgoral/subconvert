@@ -21,7 +21,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 __appname__ = "Subconvert"
 __author__ = "Michał Góral"
-__version__ = "0.95"
+__version__ = "0.9.5"
 __license__ = "GNU GPL 3"
 __website__ = "https://github.com/mgoral/subconvert"
 __transs__ = [
