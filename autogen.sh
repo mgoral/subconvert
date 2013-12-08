@@ -11,6 +11,15 @@ if [ $autorecst -ne 0 ]; then
     exit 1
 fi
 
+intltoolize --force
+intltoolst=$?
+if [ $intltoolst -ne 0 ]; then
+    echo ""
+    echo "*** An ERROR occured on intltoolize! Is it installed on your system? ***"
+    exit 1
+fi
+
+echo ""
 echo "*** Build system ready. ***"
 echo ""
 

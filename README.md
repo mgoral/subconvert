@@ -144,7 +144,8 @@ $ file1.tmp  file2.tmp
 * gettext
 
 Additionaly, to build and install Subconvert you'll need:
-* autotools
+* autotools (autoconf + automake)
+* intltool
 * pyrcc4 (comes with pyqt4-dev-tools)
 
 ## License

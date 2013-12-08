@@ -19,14 +19,17 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
 import gettext
-from subconvert.utils import SubPath
+
+localedir = os.path.join ("@prefix@", "@DATADIRNAME@", "locale")
+gettext.bindtextdomain("@GETTEXT_PACKAGE@", localedir)
+gettext.textdomain("subconvert")
 
 t = gettext.translation(
-    domain='subconvert',
-    localedir=SubPath.getLocalePath(__file__),
+    domain="subconvert",
+    localedir=localedir,
     fallback=True)
-gettext.install('subconvert')
 
 _ = t.gettext
 P_ = t.ngettext

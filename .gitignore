@@ -6,3 +6,5 @@ resources.py
 .coverage
 coverage/*
 tags
+subconvert/utils/Locale.py
+subconvert/utils/version.py

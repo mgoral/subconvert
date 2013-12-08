@@ -20,6 +20,7 @@ AC_PROG_MKDIR_P
 
 AM_GNU_GETTEXT_VERSION([0.17])
 AM_GNU_GETTEXT([external], [need-ngettext])
+IT_PROG_INTLTOOL([0.35.0])
 
 GETTEXT_PACKAGE=AC_PACKAGE_TARNAME
 AC_SUBST(GETTEXT_PACKAGE)
@@ -39,7 +40,10 @@ fi
 AM_CHECK_PYMOD(chardet,,,[AC_MSG_ERROR(Could not find python module: chardet)])
 AM_CHECK_PYMOD(PyQt4,,,[AC_MSG_ERROR(Could not find python module: PyQt4)])
 
-AC_OUTPUT
+AC_OUTPUT([
+    subconvert/utils/Locale.py
+    subconvert/utils/version.py
+])
 
 echo ""
 echo "Subconvert options:"

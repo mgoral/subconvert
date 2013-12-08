@@ -19,9 +19,9 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-__appname__ = "Subconvert"
+__appname__ = "@PACKAGE_NAME@"
 __author__ = "Michał Góral"
-__version__ = "0.9.5"
+__version__ = "@PACKAGE_VERSION@"
 __license__ = "GNU GPL 3"
 __website__ = "https://github.com/mgoral/subconvert"
 __transs__ = [
