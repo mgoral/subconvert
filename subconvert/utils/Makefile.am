@@ -8,7 +8,6 @@ utils_PYTHON = \
 	PropertyFile.py \
 	SubException.py \
 	SubFile.py \
-	SubPath.py \
 	SubSettings.py \
 	SubtitleData.py \
 	version.py

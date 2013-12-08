@@ -19,7 +19,6 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from subconvert.utils import SubPath
 from subconvert.utils.Locale import _, P_
 
 from PyQt4.QtGui import QListWidget, QTreeWidget, QComboBox, QAction, QIcon, QMessageBox
