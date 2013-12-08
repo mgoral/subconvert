@@ -20,12 +20,14 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import unittest
-from subconvert.parsing.Core import SubParser
+from subconvert.parsing.Core import SubParser, SubParsingError
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.parsing.Formats import *
 
 # FIXME: SubParser tests should not rely on actual subtitle parsers. A mocked parser should be
 # used instead.
+
+#TODO: test incorrect parsing
 class TestSubParser(unittest.TestCase):
     """SubParser test suite."""
 
@@ -44,17 +46,10 @@ class TestSubParser(unittest.TestCase):
         self.p.registerFormat(SubRip)
         self.p.registerFormat(SubViewer)
 
-    def test_isParsedReturnsFalseWhenNothingIsParsed(self):
-        self.assertFalse(self.p.isParsed)
-
-    def test_isParsedReturnsTrueWhenSomethingIsParsed(self):
+    def test_ExceptionRisesWhenRepeatedParsingWasIncorrect(self):
         self.p.parse(self.subWithoutHeader)
-        self.assertTrue(self.p.isParsed)
-
-    def test_isParsedReturnsFalseWhenRepeatedParsingWasIncorrect(self):
-        self.p.parse(self.subWithoutHeader)
-        self.p.parse([""])
-        self.assertFalse(self.p.isParsed)
+        with self.assertRaises(SubParsingError):
+            self.p.parse([""])
 
     def test_parseSubWithHeaderGivesProperSub(self):
         result = self.p.parse(self.subWithHeader)
@@ -84,9 +79,3 @@ class TestSubParser(unittest.TestCase):
     def test_parseSubWithoutHeaderDoesntFillInHeader(self):
         result = self.p.parse(self.subWithoutHeader)
         self.assertTrue(result.header().empty())
-
-    def test_parseReturnsEmptyWhenUnsuccessfull(self):
-        # We first make sure that there was something parsed earlier
-        self.p.parse(self.subWithHeader)
-        result = self.p.parse(["dummy text"])
-        self.assertEqual(0, result.size())

@@ -77,13 +77,16 @@ class File:
             minimumConfidence = 0.52
             with open(self._filePath, mode='rb',) as file_:
                 enc = chardet.detect(file_.read(self._chardetSize))
-                log.debug(_("Detecting encoding from %d bytes") % self._chardetSize)
+                log.debug(P_(
+                    "Detecting encoding from %d byte",
+                    "Detecting encoding from %d bytes",
+                    self._chardetSize) % self._chardetSize)
                 log.debug(_(" ...chardet: %s") % enc)
             if enc['confidence'] > minimumConfidence:
                 encoding = enc['encoding']
                 log.debug(_(" ...detected %s encoding.") % enc['encoding'])
             else:
-                log.info(_("I am not too confident about encoding (most probably %(enc)s). "
+                log.debug(_("I am not too confident about encoding (most probably %(enc)s). "
                     "Returning default %(def)s") % {"enc": enc["encoding"], "def": encoding})
         return encoding
 

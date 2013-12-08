@@ -25,7 +25,7 @@ import codecs
 
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils.Locale import _
-from subconvert.utils.SubException import SubException
+from subconvert.utils.SubException import SubException, SubAssert
 from subconvert.utils.Alias import *
 
 #TODO: add comparing Subtitles (i.e. __eq__, __ne__ etc.)
@@ -129,7 +129,7 @@ class Header(AliasBase):
 class SubParsingError(SubException):
     '''Custom parsing error class.'''
     def __init__(self, message, lineNo):
-        super().__init__(message)
+        super().__init__("%d: %s" % (lineNo, message))
         self.lineNo = lineNo
 
 class SubManager:
@@ -278,14 +278,10 @@ class SubParser:
     def formats(self):
         return frozenset(self._supportedFormats)
 
-    @property
-    def isParsed(self):
-        return self._formatFound
-
     # It is not a @property, because calling parser.parsedFormat() by accident would actually
     # return a created instance of SubFormat (i.e. would result in a SubFormat())
     def parsedFormat(self):
-        if self.isParsed:
+        if self._formatFound:
             return self._format
         return None
 
@@ -302,6 +298,8 @@ class SubParser:
                 except SubParsingError:
                     self._subtitles.clear()
                     raise
+        if self._subtitles.size() == 0:
+            raise SubParsingError(_("Not a known subtitle format"), 0)
         return self._subtitles
 
     def __parseFormat(self, fmt, content, fps = 25):
@@ -329,14 +327,17 @@ class SubParser:
                         subSection = ''
                         continue
                     elif self._subtitles.size() > 0:
-                        raise SubParsingError(_("%s parsing error.") % self.NAME, lineNo)
+                        raise SubParsingError(_("Parsing error"), lineNo)
                     else:
                         return
 
                 # store parsing result if new end marker occurred, then clear results
                 if subtitle.start and subtitle.text:
                     self._formatFound = True
-                    self._subtitles.append(subtitle)
+                    try:
+                        self._subtitles.append(subtitle)
+                    except SubException as msg:
+                        raise SubParsingError(msg, lineNo)
                 elif subtitle.start and not subtitle.text:
                     pass
                 else:

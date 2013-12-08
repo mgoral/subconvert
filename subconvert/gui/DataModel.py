@@ -22,10 +22,12 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt4.QtGui import QUndoStack
 
-from subconvert.parsing.Core import SubParser, SubConverter
+from subconvert.parsing.Core import SubParser, SubConverter, SubParsingError
 from subconvert.parsing.Formats import *
+from subconvert.utils.Locale import _
 from subconvert.utils.SubFile import File
 from subconvert.utils.SubtitleData import SubtitleData
+from subconvert.utils.SubException import SubException
 
 class SubtitleUndoStack(QUndoStack):
     def __init__(self, parent = None):
@@ -74,16 +76,14 @@ class DataController(QObject):
         inputEncoding = inputEncoding.lower()
 
         subtitles = self._parseFile(file_, inputEncoding, fps)
-        if self._parser.isParsed:
-            data = SubtitleData()
-            data.subtitles = subtitles
-            data.fps = fps
-            data.inputEncoding = inputEncoding
-            data.outputEncoding = inputEncoding
-            data.outputFormat = self._parser.parsedFormat()
-            return data
-        else:
-            raise RuntimeError(_("Unable to parse file '%s'.") % filePath)
+
+        data = SubtitleData()
+        data.subtitles = subtitles
+        data.fps = fps
+        data.inputEncoding = inputEncoding
+        data.outputEncoding = inputEncoding
+        data.outputFormat = self._parser.parsedFormat()
+        return data
 
     def execute(self, cmd):
         """Execute a command to modify storage[cmd.filePath]"""

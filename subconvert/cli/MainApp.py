@@ -24,7 +24,7 @@ import re
 import logging
 from string import Template
 
-from subconvert.parsing.Core import SubParser, SubConverter
+from subconvert.parsing.Core import SubParser, SubConverter, SubParsingError
 from subconvert.parsing.Formats import *
 from subconvert.utils.Locale import _
 from subconvert.utils.SubtitleData import SubtitleData
@@ -51,10 +51,12 @@ class SubApplication:
 
     def parseFile(self, subFile, inputEncoding , fps):
         content = subFile.read(inputEncoding)
-        subtitles = self._parser.parse(content, fps)
-
-        if not self._parser.isParsed:
+        try:
+            subtitles = self._parser.parse(content, fps)
+        except SubParsingError as msg:
+            log.error(msg)
             raise SubException(_("Couldn't parse file '%s'" % subFile.path))
+
         return subtitles
 
     def getFps(self, subFile):
@@ -157,6 +159,7 @@ class SubApplication:
             converter = SubConverter()
 
             for filePath in self._args.files:
+                log.info(_("Starting a job for file: '%s'") % filePath)
                 try:
                     subFile = File(filePath)
                 except IOError:
