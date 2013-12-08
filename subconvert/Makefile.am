@@ -5,6 +5,9 @@ app_PYTHON = \
 	apprunner.py \
 	resources.py
 
+EXTRA_DIST = \
+	resources.qrc
+
 appdir = $(datadir)/subconvert/subconvert
 
 SUBDIRS = cli gui img parsing utils

@@ -2,9 +2,6 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST = \
-	README \
-	CHANGELOG
 
 SUBDIRS = subconvert po
 
@@ -13,6 +10,13 @@ subconvertdir = $(datadir)/subconvert
 
 desktop_DATA = subconvert.desktop
 desktopdir = $(datadir)/applications
+
+EXTRA_DIST = \
+	README.md \
+	LICENSE.txt \
+	CHANGELOG \
+	$(subconvert_SCRIPTS) \
+	$(desktop_DATA)
 
 SUBCONVERT_PATH = "./subconvert/"
 COVERAGE_DIR = "coverage"
