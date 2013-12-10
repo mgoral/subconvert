@@ -216,7 +216,8 @@ class SubApplication:
             path, extension = os.path.splitext(filePath)
             filename = os.path.basename(path)
             dirname = os.path.dirname(path)
-
+            if extension.startswith('.'): # might be an empty string as well
+                extension = extension[1:]
             s = FileTemplate(template)
-            return s.substitute(f = filename)
+            return s.substitute(f = filename, e = extension)
         return None

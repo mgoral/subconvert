@@ -124,6 +124,14 @@ $ ls
 $ conv_%f.ABC  file1.srt  file2.txt
 ```
 
+You can also substitute `%e`, with original file extension (without a dot `.`):
+
+```
+$ subconvert -c file1.srt -o "conv_%f.%e_suffix"
+$ ls
+$ conv_file1.srt_suffix  file1.srt  file2.txt
+```
+
 #### Subtitle Property Files
 You can create a common set of subtitle properties and apply all of them at once. Say, your
 subtitles are usually iso-8859-4 encoded and you usually convert them to TMP. You can set those
