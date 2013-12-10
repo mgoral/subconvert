@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: subconvert 0.95\n"
+"Project-Id-Version: subconvert 1.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/mgoral/subconvert/issues\n"
-"POT-Creation-Date: 2013-12-08 22:21+0100\n"
+"POT-Creation-Date: 2013-12-10 21:16+0100\n"
 "PO-Revision-Date: 2013-12-08 22:22+0100\n"
 "Last-Translator: Michal Goral\n"
 "Language-Team: Polish\n"

@@ -28,7 +28,7 @@ Table of contents:
 This section covers installation/removing and usage of Subconvert.
 
 ### Installation
-Since a version 0.9.5, autotools have been introduced. Most probably, they are already installed on
+Since a version 1.0.0, autotools have been introduced. Most probably, they are already installed on
 your system. If not, install `automake` and `autoconf`.
 
 From now on we'll suppose that you changed directory to the one in which this `README.md` file is
