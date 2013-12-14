@@ -201,7 +201,7 @@ class File:
 
     def _searchForMovieFile(self):
         filename = os.path.splitext(self._filePath)[0]
-        for ext in MOVIE_EXTENSIONS:
+        for ext in self.MOVIE_EXTENSIONS:
             fileWithLowerExt = '.'.join((filename, ext))
             fileWithUpperExt = '.'.join((filename, ext.upper()))
 
