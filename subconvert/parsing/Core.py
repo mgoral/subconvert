@@ -253,7 +253,6 @@ class SubParser:
         self._maxHeaderLen = 50
         self._maxFmtSearch = 35
         self._formatFound= False
-        self._headerFound = False
 
         self._supportedFormats = set()
 
@@ -306,6 +305,7 @@ class SubParser:
         '''Actual parser. Please note that time_to is not required to process as not all subtitles
         provide it.'''
 
+        headerFound = False
         subSection = ''
         for lineNo, line in enumerate(content):
             line = self._initialLinePrepare(line, lineNo)
@@ -313,11 +313,11 @@ class SubParser:
                 return
 
             subSection = ''.join([subSection, line])
-            if fmt.WITH_HEADER and not self._headerFound:
+            if fmt.WITH_HEADER and not headerFound:
                 if lineNo > self._maxHeaderLen:
                     return
-                self._headerFound = fmt.addHeaderInfo(subSection, self._subtitles.header())
-                if self._headerFound:
+                headerFound = fmt.addHeaderInfo(subSection, self._subtitles.header())
+                if headerFound:
                     self._formatFound = True
                     subSection = ''
             elif fmt.subtitleEnds(line) or (lineNo + 1) == len(content):
