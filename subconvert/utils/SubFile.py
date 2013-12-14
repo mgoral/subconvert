@@ -172,13 +172,13 @@ class File:
         shutil.copyfile(self._filePath, backupFilePath)
         return backupFilePath
 
-    def detectFps(self, movieFile = None):
+    def detectFps(self, movieFile = None, default = 25.0):
         """Fetch movie FPS from MPlayer output or return given default."""
 
         if movieFile is None:
             movieFile = self._searchForMovieFile()
 
-        fps = 25.0
+        fps = float(default)
         command = ['mplayer',
             '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify', movieFile]
         try:
@@ -190,7 +190,8 @@ class File:
             log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH "
                 "to detect FPS."))
         except AttributeError:
-            log.warning(_("Couldn't get FPS info from mplayer."))
+            log.warning(_("Couldn't get FPS info for %(file)s. Using default value: %(fps)s.") %
+                {"file": self._filePath, "fps": fps})
         else:
             log.info(P_(
                 "Got %(fps)s FPS from '%(movie)s'.",

@@ -128,7 +128,7 @@ class PropertiesFileApplier:
 
         # fps
         if self._subProperties.autoFps:
-            data.fps = subtitleFile.detectFps()
+            data.fps = subtitleFile.detectFps(default=self._subProperties.fps)
         else:
             data.fps = self._subProperties.fps
 
