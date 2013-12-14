@@ -21,14 +21,12 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import logging
-import pkgutil
 import encodings
 
 from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QIcon, QTreeWidgetItem
 from PyQt4.QtGui import QTableView, QHeaderView, QStandardItemModel, QStandardItem, QSizePolicy
-from PyQt4.QtGui import QMessageBox, QAbstractItemView, QAction, QMenu, QCursor
-from PyQt4.QtGui import QFileDialog
-from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt4.QtGui import QMessageBox, QAbstractItemView, QAction, QMenu, QCursor, QFileDialog
+from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer
 
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils.Locale import _
@@ -38,6 +36,7 @@ from subconvert.utils.PropertyFile import SubtitleProperties, PropertiesFileAppl
 from subconvert.utils.SubFile import File
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import ActionFactory, SubtitleList, ComboBoxWithHistory, FPS_VALUES
+from subconvert.gui.Detail import CustomDataRoles, SubListItemDelegate
 from subconvert.gui.SubtitleCommands import *
 
 log = logging.getLogger('Subconvert.%s' % __name__)
@@ -409,10 +408,13 @@ class SubtitleEditor(SubTab):
         minimalSizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         # List of subtitles
+        subListDelegate = SubListItemDelegate()
         self._model = QStandardItemModel(0, 3, self)
         self._model.setHorizontalHeaderLabels([_("Begin"), _("End"), _("Subtitle")])
         self._subList = QTableView(self)
         self._subList.setModel(self._model)
+        self._subList.setItemDelegateForColumn(0, subListDelegate)
+        self._subList.setItemDelegateForColumn(1, subListDelegate)
         self._subList.horizontalHeader().setResizeMode(2, QHeaderView.Stretch)
 
         # Top toolbar
@@ -447,34 +449,60 @@ class SubtitleEditor(SubTab):
         timeStart = QStandardItem(sub.start.toStr())
         timeEnd = QStandardItem(sub.end.toStr())
         text = QStandardItem(sub.text)
+
+        timeStart.setData(sub.start, CustomDataRoles.FrameTimeRole)
+        timeEnd.setData(sub.end, CustomDataRoles.FrameTimeRole)
+
+        timeStart.setData(False, CustomDataRoles.ErrorFlagRole)
+        timeEnd.setData(False, CustomDataRoles.ErrorFlagRole)
+
         return [timeStart, timeEnd, text]
+
+    def _changeItemBackground(self, item, bg):
+        self._model.itemChanged.disconnect(self._subtitleChanged)
+        item.setBackground(bg)
+        self._model.itemChanged.connect(self._subtitleChanged)
+
+    def _changeItemData(self, item, val, role):
+        self._model.itemChanged.disconnect(self._subtitleChanged)
+        item.setData(val, role)
+        self._model.itemChanged.connect(self._subtitleChanged)
+
+    def _handleIncorrectItem(self, item):
+        self._model.itemChanged.disconnect(self._subtitleChanged)
+        item.setData(False, CustomDataRoles.ErrorFlagRole)
+        self._model.itemChanged.connect(self._subtitleChanged)
+
+        bg = item.background()
+        self._changeItemBackground(item, Qt.red)
+        QTimer.singleShot(1500, lambda item=item, bg=bg: self._changeItemBackground(item, bg))
 
     def _subtitleChanged(self, item):
         modelIndex = item.index()
         column = modelIndex.column()
         subNo = modelIndex.row()
 
-        # TODO: timeStart and timeEnd might be displayed in a frame format in a bright future.
-        # Check it and create FrameTime properly in that case.
-        # TODO: Maybe add column numbers to some kind of enum to avoid magic numbers?
-        try:
+        self._subList.clearSelection()
+
+        errorFlag = item.data(CustomDataRoles.ErrorFlagRole)
+        if errorFlag is True:
+            self._handleIncorrectItem(item)
+        else:
+            # TODO: timeStart and timeEnd might be displayed in a frame format in a bright future.
+            # Check it and create FrameTime properly in that case.
+            # TODO: Maybe add column numbers to some kind of enum to avoid magic numbers?
             oldSubtitle = self.subtitles[subNo]
             newSubtitle = oldSubtitle.clone()
             if 0 == column:
-                timeStart = FrameTime(time=item.text(), fps = self.data.subtitles.fps)
+                timeStart = item.data(CustomDataRoles.FrameTimeRole)
                 newSubtitle.change(start = timeStart)
             elif 1 == column:
-                timeEnd = FrameTime(time=item.text(), fps = self.data.subtitles.fps)
+                timeEnd = item.data(CustomDataRoles.FrameTimeRole)
                 newSubtitle.change(end = timeEnd)
             elif 2 == column:
                 newSubtitle.change(text = item.text())
-        except Exception as msg:
-            # TODO: highlight incorrect column or field with a color on any error
-            log.error(msg)
-        else:
             command = ChangeSubtitle(self.filePath, oldSubtitle, newSubtitle, subNo)
             self.execute(command)
-        self.refreshSubtitle(subNo)
 
     def showContextMenu(self):
         self._contextMenu.exec(QCursor.pos())

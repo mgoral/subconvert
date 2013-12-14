@@ -173,7 +173,8 @@ class FrameTime():
     def __sub__(self, other):
         """Defines FrameTime - FrameTime"""
         SubAssert(self._fps == other._fps, _("FPS values are not equal"))
-        SubAssert(self._full_seconds >= other._full_seconds, _("Incorrect order of time values"))
+        SubAssert(self._full_seconds >= other._full_seconds,
+            _("Cannot substract higher time from lower"))
         result = self._full_seconds - other._full_seconds
         return FrameTime(fps = self._fps, seconds = result)
 
