@@ -125,6 +125,17 @@ class FrameTimeSpinBox(QAbstractSpinBox):
         return QAbstractSpinBox.StepUpEnabled
 
     def frameTime(self):
+        self._validateLineEdit()
+        return self._frameTime
+
+    def text(self):
+        # frameTime() will first check if there are any text changes in QLineEdit
+        return self.frameTime().toStr()
+
+    def incorrectInput(self):
+        return self._incorrectInput
+
+    def _validateLineEdit(self):
         text = self.lineEdit().text()
         if text != self._frameTime.toStr():
             validator = FrameTimeValidator(self)
@@ -135,14 +146,6 @@ class FrameTimeSpinBox(QAbstractSpinBox):
                 self._frameTime = FrameTime(fps, time = text)
             else:
                 self._incorrectInput = True
-        return self._frameTime
-
-    def text(self):
-        # frameTime() will first check if there are any text changes in QLineEdit
-        return self.frameTime().toStr()
-
-    def incorrectInput(self):
-        return self._incorrectInput
 
     def _determineStep(self, position):
         textLen = len(self.lineEdit().text())
@@ -166,6 +169,7 @@ class SubListItemDelegate(QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         frameTime = editor.frameTime()
         modelFrameTime = index.model().data(index, CustomDataRoles.FrameTimeRole)
+
         if editor.incorrectInput() is True:
             model.setData(index, True, CustomDataRoles.ErrorFlagRole)
         elif frameTime is not None and frameTime != modelFrameTime:
