@@ -122,7 +122,7 @@ class MainWindow(QMainWindow):
         self._actions["saveFile"] = af.create(
             "document-save", _("&Save"), _("Save current file."), "ctrl+s", self.saveFile)
         self._actions["saveFileAs"] = af.create(
-            "document-save",_("S&ave as..."), _("Save current file as..."), "ctrl++shift+s",
+            "document-save-as",_("S&ave as..."), _("Save current file as..."), "ctrl++shift+s",
             self.saveFileAs)
         self._actions["saveAllFiles"] = af.create(
             "document-save", _("Sa&ve all"), _("Save all opened files."), None, self.saveAll)
@@ -141,9 +141,9 @@ class MainWindow(QMainWindow):
 
         # Subtitles
         self._actions["undo"] = af.create(
-            None, _("&Undo"), None, "ctrl+z", self.undo)
+            "undo", _("&Undo"), None, "ctrl+z", self.undo)
         self._actions["redo"] = af.create(
-            None, _("&Redo"), None, "ctrl+shift+z", self.redo)
+            "redo", _("&Redo"), None, "ctrl+shift+z", self.redo)
 
         for fps in FPS_VALUES:
             fpsStr = str(fps)
@@ -180,9 +180,9 @@ class MainWindow(QMainWindow):
 
         # Help
         self._actions["helpPage"] = af.create(
-            None, _("&Help"), _("Open &help page"), "F1", self.openHelp)
+            "help-contents", _("&Help"), _("Open &help page"), "F1", self.openHelp)
         self._actions["aboutSubconvert"] = af.create(
-            None, _("&About Subconvert"), None, None, self.openAboutDialog)
+            "help-about", _("&About Subconvert"), None, None, self.openAboutDialog)
 
     def __initMenuBar(self):
         menubar = self.menuBar()
