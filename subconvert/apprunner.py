@@ -20,12 +20,13 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
 from PyQt4.QtGui import QApplication
+from PyQt4.QtCore import QTimer
 
 import os
 import sys
-import signal
 import logging
 import argparse
+import atexit
 
 from subconvert.utils.Locale import _
 from subconvert.utils.version import __appname__, __version__
@@ -34,6 +35,10 @@ from subconvert.cli import MainApp
 from subconvert.utils.PropertyFile import SubtitleProperties
 
 log = logging.getLogger('Subconvert')
+
+def cleanup(app):
+    log.debug("Subconvert cleanup")
+    app.cleanup()
 
 def loadSpf(filePath):
     try:
@@ -97,18 +102,25 @@ def prepareOptions():
 def startApp(args):
     if args.console:
         app = MainApp.SubApplication(args)
+        atexit.register(cleanup, app)
         sys.exit(app.run())
     else:
         app = QApplication(sys.argv)
-        signal.signal(signal.SIGINT, signal.SIG_DFL) # allows ctrl-c which is blocked by default
         gui = MainWindow.MainWindow(args)
+
+        atexit.register(cleanup, gui)
+
+        # Let the interpreter run each 500 ms.
+        timer = QTimer()
+        timer.start(500)
+        timer.timeout.connect(lambda: None)
+
         gui.show()
         sys.exit(app.exec_())
 
 def main():
     optParser = prepareOptions()
     args = optParser.parse_args()
-
 
     if args.version:
         print("%s %s" % (__appname__, __version__))

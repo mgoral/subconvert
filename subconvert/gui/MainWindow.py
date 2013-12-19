@@ -23,7 +23,7 @@ import os
 import logging
 from string import Template
 
-from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QGridLayout, QAction, QIcon, qApp
+from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QVBoxLayout, QAction, QIcon, qApp
 from PyQt4.QtGui import QMessageBox, QPixmap, QSpacerItem, QDesktopServices
 from PyQt4.QtCore import pyqtSlot, QDir, Qt, QUrl
 
@@ -35,10 +35,12 @@ from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import ActionFactory, CannotOpenFilesMsg, MessageBoxWithList, FPS_VALUES
 from subconvert.gui.SubtitleCommands import *
+from subconvert.gui.VideoWidget import VideoWidget
 from subconvert.utils.Locale import _, P_
 from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File, SubFileError
+from subconvert.utils.VideoPlayer import VideoPlayer, VideoPlayerException
 from subconvert.utils.version import __version__, __author__, __license__, __website__, __transs__
 
 log = logging.getLogger('Subconvert.%s' % __name__)
@@ -90,19 +92,22 @@ class MainWindow(QMainWindow):
     def __initGui(self):
         self._settings = SubSettings()
         self.mainWidget = QWidget(self)
-        mainLayout = QGridLayout()
+        mainLayout = QVBoxLayout()
         mainLayout.setContentsMargins(3, 3, 3, 3)
+        mainLayout.setSpacing(2)
 
         self.setCentralWidget(self.mainWidget)
 
         self._subtitleData = DataController(self)
+        self._videoWidget = VideoWidget(self)
         self._tabs = SubtitleWindow.SubTabWidget(self._subtitleData)
 
-        mainLayout.addWidget(self._tabs, 0, 0)
+        mainLayout.addWidget(self._videoWidget, 1)
+        mainLayout.addWidget(self._tabs, 3)
 
         self.statusBar()
-
         self.mainWidget.setLayout(mainLayout)
+
         self.setWindowTitle('Subconvert')
 
     def __connectSignals(self):
@@ -165,16 +170,41 @@ class MainWindow(QMainWindow):
                 None, fmt.NAME, None, None,
                 lambda _, fmt = fmt: self._tabs.currentPage().changeSubFormat(fmt))
 
-
         self._actions["selectMovie"] = af.create(
-            None, _("Select &movie"), None, "ctrl+m",
+            None, _("Select &movie"), None, "ctrl+shift+m",
                 lambda: self._tabs.currentPage().selectMovieFile())
+
+        # Video
+        self._videoRatios = [(4, 3), (14, 9), (14, 10), (16, 9), (16, 10)]
+        self._actions["openVideo"] = af.create(
+            "document-open", _("&Open video"), None, "ctrl+m", self.openVideo)
+        self._actions["togglePlayback"] = af.create(
+            "media-playback-start", _("&Play/pause"), _("Toggle video playback"), "space",
+            self._videoWidget.togglePlayback)
+        self._actions["forward"] = af.create(
+            "media-skip-forward", _("&Forward"), None, "right", self._videoWidget.forward)
+        self._actions["rewind"] = af.create(
+            "media-skip-backward", _("&Rewind"), None, "left", self._videoWidget.rewind)
+        self._actions["frameStep"] = af.create(
+            None, _("Next &frame"), _("Go to the next frame in a movie"), ".",
+            self._videoWidget.nextFrame)
+
+        for ratio in self._videoRatios:
+            self._actions["changeRatio_%d_%d" % ratio] = af.create(
+                None, "%d:%d" % ratio, None, None,
+                lambda _, r=ratio: self._videoWidget.changePlayerAspectRatio(r[0], r[1]))
+
+        self._actions["changeRatio_fill"] = af.create(
+            None, _("Fill"), None, None, self._videoWidget.fillPlayer)
+
 
         # SPF editor
         self._actions["spfEditor"] = af.create(
             None, _("Subtitle &Properties Editor"), None, None, self.openPropertyEditor)
 
         # View
+        self._actions["togglePlayer"] = af.create(
+            None, _("&Movie player"), _("Show or hide movie player"), "F3", self.togglePlayer)
         self._actions["togglePanel"] = af.create(
             None, _("Side &panel"), _("Show or hide left panel"), "F4", self._tabs.togglePanel)
 
@@ -212,7 +242,25 @@ class MainWindow(QMainWindow):
             self._outputEncodingMenu.addAction(self._actions["out_%s" % encoding])
         subtitlesMenu.addAction(self._actions["selectMovie"])
 
-        viewMenu = menubar.addMenu(_("&View"))
+        videoMenu = menubar.addMenu(_("&Video"))
+        videoMenu.addAction(self._actions["openVideo"])
+        videoMenu.addSeparator()
+
+        playbackMenu = videoMenu.addMenu(_("&Playback"))
+        playbackMenu.addAction(self._actions["togglePlayback"])
+        playbackMenu.addSeparator()
+        playbackMenu.addAction(self._actions["forward"])
+        playbackMenu.addAction(self._actions["rewind"])
+        playbackMenu.addAction(self._actions["frameStep"])
+
+        self._ratioMenu = videoMenu.addMenu(_("Aspect ratio"))
+        for ratio in self._videoRatios:
+            self._ratioMenu.addAction(self._actions["changeRatio_%d_%d" % ratio])
+        self._ratioMenu.addSeparator()
+        self._ratioMenu.addAction(self._actions["changeRatio_fill"])
+
+        viewMenu = menubar.addMenu(_("Vie&w"))
+        viewMenu.addAction(self._actions["togglePlayer"])
         viewMenu.addAction(self._actions["togglePanel"])
 
         toolsMenu = menubar.addMenu(_("&Tools"))
@@ -226,6 +274,9 @@ class MainWindow(QMainWindow):
         self.addAction(self._actions["nextTab"])
         self.addAction(self._actions["previousTab"])
         self.addAction(self._actions["closeTab"])
+
+    def cleanup(self):
+        self._videoWidget.close()
 
     def __getAllSubExtensions(self):
         formats = self._subtitleData.supportedFormats
@@ -429,6 +480,24 @@ class MainWindow(QMainWindow):
         currentTab = self._tabs.currentPage()
         currentTab.history.redo()
 
+    def togglePlayer(self):
+        if self._videoWidget.isHidden():
+            self._videoWidget.show()
+        else:
+            self._videoWidget.hide()
+
+    def openVideo(self):
+        movieExtensions = "%s%s" % ("*.", ' *.'.join(File.MOVIE_EXTENSIONS))
+        fileDialog = FileDialog(
+            parent = self,
+            caption = _("Select movie"),
+            directory = self._settings.getLatestDirectory(),
+            filter = _("Movie files (%s);;All files (*)") % movieExtensions)
+        fileDialog.setFileMode(QFileDialog.ExistingFile)
+        if fileDialog.exec():
+            movieFilePath = fileDialog.selectedFiles()[0]
+            self._videoWidget.openFile(movieFilePath)
+
     def openPropertyEditor(self):
         editor = PropertyFileEditor(self._subtitleData.supportedFormats, self)
         editor.exec()
@@ -450,6 +519,6 @@ class MainWindow(QMainWindow):
             dialog = QMessageBox(self)
             dialog.setIcon(QMessageBox.Critical)
             dialog.setWindowTitle(_("Couldn't open URL"))
-            dialog.setText(_("""Failed to open URL: <a href="%(url)s">%(url)s</a>.""") % 
+            dialog.setText(_("""Failed to open URL: <a href="%(url)s">%(url)s</a>.""") %
                 {"url": url})
             dialog.exec()

@@ -10,7 +10,8 @@ gui_PYTHON = \
 	PropertyFileEditor.py \
 	SubtitleCommands.py \
 	SubtitleTabs.py \
-	SubtitleWindow.py
+	SubtitleWindow.py \
+	VideoWidget.py
 
 #CLEANFILES += $(gui_PYTHON)
 

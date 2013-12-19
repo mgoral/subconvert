@@ -21,9 +21,11 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import sys
+import signal
 import subconvert.apprunner as apprunner
 
-try:
-    apprunner.main()
-except KeyboardInterrupt:
-    raise SystemExit(0)
+def interruptHandler(signum, frame):
+    sys.exit(1) # will spawn atexit
+
+signal.signal(signal.SIGINT, interruptHandler)
+apprunner.main()
