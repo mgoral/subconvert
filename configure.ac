@@ -11,6 +11,7 @@ AC_CONFIG_FILES([
     subconvert/img/Makefile
     subconvert/parsing/Makefile
     subconvert/utils/Makefile
+    icons/Makefile
     po/Makefile.in
 ])
 

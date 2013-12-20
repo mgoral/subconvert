@@ -1,11 +1,6 @@
  <!DOCTYPE RCC><RCC version="1.0">
  <qresource>
-     <file>img/icons/32x32/subconvert.png</file>
-     <file>img/icons/48x48/subconvert.png</file>
-     <file>img/icons/128x128/subconvert.png</file>
-     <file>img/icons/256x256/subconvert.png</file>
-     <file>img/icons/scalable/subconvert.svg</file>
-
+     <file>img/logo.png</file>
      <file>img/not_clean.png</file>
      <file>img/ok.png</file>
      <file>img/nook.png</file>

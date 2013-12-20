@@ -436,7 +436,7 @@ class MainWindow(QMainWindow):
     def openAboutDialog(self):
         spacer = QSpacerItem(650, 0)
         dialog = QMessageBox(self)
-        dialog.setIconPixmap(QPixmap(":/img/icons/256x256/subconvert.png"))
+        dialog.setIconPixmap(QPixmap(":/img/logo.png"))
         dialog.setWindowTitle(_("About Subconvert"))
         dialog.setText(aboutText)
 

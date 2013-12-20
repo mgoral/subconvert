@@ -3,7 +3,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 
-SUBDIRS = subconvert po
+SUBDIRS = subconvert icons po
 
 subconvert_SCRIPTS = subconvert.py
 subconvertdir = $(datadir)/subconvert
