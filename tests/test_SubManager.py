@@ -21,7 +21,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
 from subconvert.parsing.Core import SubManager, Subtitle
-from subconvert.test.Mocks import *
+from tests.Mocks import *
 from subconvert.parsing.FrameTime import FrameTime
 
 class TestSubManager(unittest.TestCase):

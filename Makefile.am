@@ -3,7 +3,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 
-SUBDIRS = subconvert icons po
+SUBDIRS = subconvert icons img po
 
 subconvert_SCRIPTS = subconvert.py
 subconvertdir = $(datadir)/subconvert
@@ -15,14 +15,15 @@ EXTRA_DIST = \
 	README.md \
 	LICENSE.txt \
 	CHANGELOG \
+	resources.qrc \
 	$(subconvert_SCRIPTS) \
 	$(desktop_DATA)
 
-SUBCONVERT_PATH = "./subconvert/"
+SUBCONVERT_DIR = ./subconvert
 COVERAGE_DIR = "coverage"
 
 gen:
-	$(PYRCC) -py3 -o $(SUBCONVERT_PATH)/resources.py $(SUBCONVERT_PATH)/resources.qrc
+	$(PYRCC) -py3 -o $(SUBCONVERT_DIR)/resources.py resources.qrc
 
 test: gen
 	@nosetests3 -v

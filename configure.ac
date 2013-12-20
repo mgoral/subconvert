@@ -8,10 +8,10 @@ AC_CONFIG_FILES([
     subconvert/Makefile
     subconvert/cli/Makefile
     subconvert/gui/Makefile
-    subconvert/img/Makefile
     subconvert/parsing/Makefile
     subconvert/utils/Makefile
     icons/Makefile
+    img/Makefile
     po/Makefile.in
 ])
 

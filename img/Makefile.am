@@ -5,7 +5,8 @@ dist_img_DATA = \
 	nook.png \
 	not_clean.png \
 	ok.png \
-	skipped.png
+	skipped.png \
+	logo.png
 
-imgdir = $(datadir)/subconvert/subconvert/img
+imgdir = $(datadir)/subconvert/img
 
