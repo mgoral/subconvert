@@ -1,5 +1,11 @@
 Version history
 
+1.0.1   : 21.12.2013
+* ADD:  spinbox on subtitle time edit
+* FIX:  installing Subconvert icons
+* FIX:  missing icons
+* MOD:  FPS value from pfile will be used when there's no FPS specified
+
 1.0.0   : 10.12.2013 (Brave New World)
 * ADD:  complete redesign of GUI which has a lot of cool features:
         * subtitle editing
