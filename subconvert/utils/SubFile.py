@@ -193,7 +193,7 @@ class File:
             log.warning(_("Couldn't get FPS info for %(file)s. Using default value: %(fps)s.") %
                 {"file": self._filePath, "fps": fps})
         else:
-            log.info(P_(
+            log.debug(P_(
                 "Got %(fps)s FPS from '%(movie)s'.",
                 "Got %(fps)s FPS from '%(movie)s'.",
                 int(fps)) % {"fps": fps, "movie": movieFile})

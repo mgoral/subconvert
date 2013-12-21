@@ -60,7 +60,7 @@ class DataController(QObject):
         fileContent = file_.read(inputEncoding)
         return self._parser.parse(fileContent, fps)
 
-    def createDataFromFile(self, filePath, inputEncoding = None, fps = 25.0):
+    def createDataFromFile(self, filePath, inputEncoding = None, fps = None):
         """Fetch a given filePath and parse its contents.
 
         May raise the following exceptions:
@@ -74,6 +74,9 @@ class DataController(QObject):
         if inputEncoding is None:
             inputEncoding = file_.detectEncoding()
         inputEncoding = inputEncoding.lower()
+
+        if fps is None:
+            fps = file_.detectFps()
 
         subtitles = self._parseFile(file_, inputEncoding, fps)
 

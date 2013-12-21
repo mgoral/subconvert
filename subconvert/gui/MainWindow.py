@@ -170,9 +170,8 @@ class MainWindow(QMainWindow):
                 None, fmt.NAME, None, None,
                 lambda _, fmt = fmt: self._tabs.currentPage().changeSubFormat(fmt))
 
-        self._actions["selectMovie"] = af.create(
-            None, _("Select &movie"), None, "ctrl+shift+m",
-                lambda: self._tabs.currentPage().selectMovieFile())
+        self._actions["fpsFromMovie"] = af.create(
+            None, _("From current &movie"), None, "ctrl+shift+f", self.getFpsFromMovie)
 
         # Video
         self._videoRatios = [(4, 3), (14, 9), (14, 10), (16, 9), (16, 10)]
@@ -230,6 +229,8 @@ class MainWindow(QMainWindow):
         subtitlesMenu.addAction(self._actions["redo"])
         subtitlesMenu.addSeparator()
         self._fpsMenu = subtitlesMenu.addMenu(_("&Frames per second"))
+        self._fpsMenu.addAction(self._actions["fpsFromMovie"])
+        self._fpsMenu.addSeparator()
         for fps in FPS_VALUES:
             self._fpsMenu.addAction(self._actions[str(fps)])
         self._subFormatMenu = subtitlesMenu.addMenu(_("Subtitles forma&t"))
@@ -240,7 +241,6 @@ class MainWindow(QMainWindow):
         for encoding in ALL_ENCODINGS:
             self._inputEncodingMenu.addAction(self._actions["in_%s" % encoding])
             self._outputEncodingMenu.addAction(self._actions["out_%s" % encoding])
-        subtitlesMenu.addAction(self._actions["selectMovie"])
 
         videoMenu = menubar.addMenu(_("&Video"))
         videoMenu.addAction(self._actions["openVideo"])
@@ -344,7 +344,7 @@ class MainWindow(QMainWindow):
         self._actions["saveFile"].setEnabled(anyTabOpen and not tabIsStatic and not cleanState)
         self._actions["saveFileAs"].setEnabled(anyTabOpen and not tabIsStatic)
 
-        self._actions["selectMovie"].setEnabled(anyTabOpen and not tabIsStatic)
+        self._actions["fpsFromMovie"].setEnabled(anyTabOpen and not tabIsStatic)
         self._fpsMenu.setEnabled(anyTabOpen and not tabIsStatic)
         self._subFormatMenu.setEnabled(anyTabOpen and not tabIsStatic)
         self._inputEncodingMenu.setEnabled(anyTabOpen and not tabIsStatic)
@@ -485,6 +485,12 @@ class MainWindow(QMainWindow):
             self._videoWidget.show()
         else:
             self._videoWidget.hide()
+
+    def getFpsFromMovie(self):
+        currentTab = self._tabs.currentPage()
+        fps = self._videoWidget.movieProperties.fps
+        if fps is not None:
+            currentTab.changeFps(fps)
 
     def openVideo(self):
         movieExtensions = "%s%s" % ("*.", ' *.'.join(File.MOVIE_EXTENSIONS))

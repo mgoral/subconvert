@@ -556,23 +556,6 @@ class SubtitleEditor(SubTab):
             self.execute(command)
             self.refreshSubtitles()
 
-    def selectMovieFile(self):
-        # TODO: currently selectMovieFile only fetches FPS from it (but this behaviour also should
-        # be controlled by settings).
-
-        movieExtensions = "%s%s" % ("*.", ' *.'.join(File.MOVIE_EXTENSIONS))
-        fileDialog = FileDialog(
-            parent = self,
-            caption = _("Select movie"),
-            directory = self._settings.getLatestDirectory(),
-            filter = _("Movie files (%s);;All files (*)") % movieExtensions)
-        fileDialog.setFileMode(QFileDialog.ExistingFile)
-        if fileDialog.exec():
-            self._movieFilePath = fileDialog.selectedFiles()[0]
-            subFile = File(self.filePath)
-            fps = subFile.detectFps(self._movieFilePath)
-            self.changeFps(fps)
-
     def fileChanged(self, filePath):
         if filePath == self._filePath:
             self.refreshSubtitles()
