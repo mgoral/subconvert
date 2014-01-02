@@ -255,7 +255,7 @@ class MainWindow(QMainWindow):
         playbackMenu.addAction(self._actions["rewind"])
         playbackMenu.addAction(self._actions["frameStep"])
 
-        self._ratioMenu = videoMenu.addMenu(_("Aspect ratio"))
+        self._ratioMenu = videoMenu.addMenu(_("&Aspect ratio"))
         for ratio in self._videoRatios:
             self._ratioMenu.addAction(self._actions["changeRatio_%d_%d" % ratio])
         self._ratioMenu.addSeparator()
