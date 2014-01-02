@@ -196,6 +196,8 @@ class MainWindow(QMainWindow):
         self._actions["changeRatio_fill"] = af.create(
             None, _("Fill"), None, None, self._videoWidget.fillPlayer)
 
+        self._actions["videoJump"] = af.create(
+            None, _("&Jump to subtitle"), None, "ctrl+j", self.jumpToSelectedSubtitle)
 
         # SPF editor
         self._actions["spfEditor"] = af.create(
@@ -258,6 +260,9 @@ class MainWindow(QMainWindow):
             self._ratioMenu.addAction(self._actions["changeRatio_%d_%d" % ratio])
         self._ratioMenu.addSeparator()
         self._ratioMenu.addAction(self._actions["changeRatio_fill"])
+        videoMenu.addSeparator()
+
+        videoMenu.addAction(self._actions["videoJump"])
 
         viewMenu = menubar.addMenu(_("Vie&w"))
         viewMenu.addAction(self._actions["togglePlayer"])
@@ -352,6 +357,8 @@ class MainWindow(QMainWindow):
 
         self._actions["undo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canUndo())
         self._actions["redo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canRedo())
+
+        self._actions["videoJump"].setEnabled(anyTabOpen and not tabIsStatic)
 
     def handleArgs(self, args):
         self._openFiles(args.files, args.inputEncoding)
@@ -503,6 +510,12 @@ class MainWindow(QMainWindow):
         if fileDialog.exec():
             movieFilePath = fileDialog.selectedFiles()[0]
             self._videoWidget.openFile(movieFilePath)
+
+    def jumpToSelectedSubtitle(self):
+        currentTab = self._tabs.currentPage()
+        subtitleList = currentTab.selectedSubtitles()
+        if len(subtitleList) > 0:
+            self._videoWidget.jumpTo(subtitleList[0].start)
 
     def openPropertyEditor(self):
         editor = PropertyFileEditor(self._subtitleData.supportedFormats, self)

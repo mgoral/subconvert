@@ -22,6 +22,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 import os
 import logging
 import encodings
+from collections import OrderedDict
 
 from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QIcon, QTreeWidgetItem
 from PyQt4.QtGui import QTableView, QHeaderView, QStandardItemModel, QStandardItem, QSizePolicy
@@ -578,6 +579,16 @@ class SubtitleEditor(SubTab):
         self._subtitleData.fileChanged.disconnect(self.fileChanged)
         self._subtitleData.execute(cmd)
         self._subtitleData.fileChanged.connect(self.fileChanged)
+
+    def selectedSubtitles(self):
+        indices = self._subList.selectedIndexes()
+        if len(indices) > 0:
+            tempDict = OrderedDict.fromkeys([index.row() for index in indices])
+            rows = list(tempDict)
+            rows.sort()
+            subtitleList = [self.subtitles[row] for row in rows]
+            return subtitleList
+        return []
 
     @property
     def filePath(self):

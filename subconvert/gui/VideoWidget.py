@@ -91,12 +91,16 @@ class VideoWidget(QWidget):
     def fastRewind(self):
         self._player.seek(-30.0)
 
+    def jumpTo(self, frametime):
+        position = frametime.fullSeconds
+        self._changePosition(position)
+
     @property
     def position(self):
         ft = FrameTime(fps = self.movieProperties.fps, frames = self._movieFrame)
         return ft
 
-    def changePosition(self, position):
+    def _changePosition(self, position):
         if not isinstance(position, float):
             if self._player.videoData.fps is not None:
                 position = float(position) / self._player.videoData.fps
@@ -183,16 +187,16 @@ class VideoWidget(QWidget):
 
     def _sliderActionHandle(self, action):
         if action == QAbstractSlider.SliderPageStepAdd:
-            self._player.seek(30.0)
+            self._player.seek(1.0)
         elif action == QAbstractSlider.SliderPageStepSub:
-            self._player.seek(-15.0)
+            self._player.seek(-1.0)
         elif action == QAbstractSlider.SliderSingleStepAdd:
             self.forward()
         elif action == QAbstractSlider.SliderSingleStepSub:
             self.rewind()
         elif action == QAbstractSlider.SliderMove:
             position = self._slider.sliderPosition()
-            self.changePosition(position)
+            self._changePosition(position)
             if self._slider.isSliderDown():
                 fps = self._player.videoData.fps
                 ft = FrameTime(fps, frames=position)
