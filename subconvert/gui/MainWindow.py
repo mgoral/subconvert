@@ -181,9 +181,9 @@ class MainWindow(QMainWindow):
             "media-playback-start", _("&Play/pause"), _("Toggle video playback"), "space",
             self._videoWidget.togglePlayback)
         self._actions["forward"] = af.create(
-            "media-skip-forward", _("&Forward"), None, "right", self._videoWidget.forward)
+            "media-skip-forward", _("&Forward"), None, "ctrl+right", self._videoWidget.forward)
         self._actions["rewind"] = af.create(
-            "media-skip-backward", _("&Rewind"), None, "left", self._videoWidget.rewind)
+            "media-skip-backward", _("&Rewind"), None, "ctrl+left", self._videoWidget.rewind)
         self._actions["frameStep"] = af.create(
             None, _("Next &frame"), _("Go to the next frame in a movie"), ".",
             self._videoWidget.nextFrame)
