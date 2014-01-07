@@ -459,9 +459,11 @@ class SubtitleEditor(SubTab):
 
         return [timeStart, timeEnd, text]
 
-    def _changeItemBackground(self, item, bg):
+    def _changeRowBackground(self, rowNo, bg):
         self._model.itemChanged.disconnect(self._subtitleChanged)
-        item.setBackground(bg)
+        for columnNo in range(self._model.columnCount()):
+            item = self._model.item(rowNo, columnNo)
+            item.setBackground(bg)
         self._model.itemChanged.connect(self._subtitleChanged)
 
     def _changeItemData(self, item, val, role):
@@ -475,15 +477,15 @@ class SubtitleEditor(SubTab):
         self._model.itemChanged.connect(self._subtitleChanged)
 
         bg = item.background()
-        self._changeItemBackground(item, Qt.red)
-        QTimer.singleShot(1500, lambda item=item, bg=bg: self._changeItemBackground(item, bg))
+        rowNo = item.row()
+        self._changeRowBackground(rowNo, Qt.red)
+        QTimer.singleShot(600, lambda rowNo=rowNo, bg=bg: self._changeRowBackground(rowNo, bg))
 
     def _subtitleChanged(self, item):
         modelIndex = item.index()
         column = modelIndex.column()
         subNo = modelIndex.row()
 
-        self._subList.clearSelection()
 
         errorFlag = item.data(CustomDataRoles.ErrorFlagRole)
         if errorFlag is True:
