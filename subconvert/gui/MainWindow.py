@@ -173,6 +173,19 @@ class MainWindow(QMainWindow):
         self._actions["fpsFromMovie"] = af.create(
             None, _("From current &movie"), None, "ctrl+shift+f", self.getFpsFromMovie)
 
+        self._actions["insertSub"] = af.create(
+            None, _("&Insert subtitle"), None, "insert",
+            connection = lambda: self._tabs.currentPage().insertNewSubtitle())
+
+        self._actions["addSub"] = af.create(
+            None, _("&Add subtitle"), None, "alt+insert",
+            connection = lambda: self._tabs.currentPage().addNewSubtitle())
+
+        self._actions["removeSub"] = af.create(
+            None, _("&Remove subtitles"), None, "delete",
+            connection = lambda: self._tabs.currentPage().removeSelectedSubtitles())
+
+
         # Video
         self._videoRatios = [(4, 3), (14, 9), (14, 10), (16, 9), (16, 10)]
         self._actions["openVideo"] = af.create(
@@ -243,6 +256,11 @@ class MainWindow(QMainWindow):
         for encoding in ALL_ENCODINGS:
             self._inputEncodingMenu.addAction(self._actions["in_%s" % encoding])
             self._outputEncodingMenu.addAction(self._actions["out_%s" % encoding])
+        subtitlesMenu.addSeparator()
+        subtitlesMenu.addAction(self._actions["insertSub"])
+        subtitlesMenu.addAction(self._actions["addSub"])
+        subtitlesMenu.addAction(self._actions["removeSub"])
+
 
         videoMenu = menubar.addMenu(_("&Video"))
         videoMenu.addAction(self._actions["openVideo"])
@@ -357,6 +375,10 @@ class MainWindow(QMainWindow):
 
         self._actions["undo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canUndo())
         self._actions["redo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canRedo())
+
+        self._actions["insertSub"].setEnabled(anyTabOpen and not tabIsStatic)
+        self._actions["addSub"].setEnabled(anyTabOpen and not tabIsStatic)
+        self._actions["removeSub"].setEnabled(anyTabOpen and not tabIsStatic)
 
         self._actions["videoJump"].setEnabled(anyTabOpen and not tabIsStatic)
 

@@ -30,6 +30,7 @@ from PyQt4.QtGui import QMessageBox, QAbstractItemView, QAction, QMenu, QCursor,
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer
 
 from subconvert.parsing.FrameTime import FrameTime
+from subconvert.parsing.Core import Subtitle
 from subconvert.utils.Locale import _
 from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.SubSettings import SubSettings
@@ -437,13 +438,14 @@ class SubtitleEditor(SubTab):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         af = ActionFactory(self)
 
-        # TODO: implementation
-        insertSub = af.create(title = _("&Insert subtitle"), connection = None)
-        insertSub.setEnabled(False)
+        insertSub = af.create(title = _("&Insert subtitle"), connection = self.insertNewSubtitle)
         self._contextMenu.addAction(insertSub)
 
-        removeSub = af.create(title = _("&Remove subtitles"), connection = None)
-        removeSub.setEnabled(False)
+        insertSub = af.create(title = _("&Add subtitle"), connection = self.addNewSubtitle)
+        self._contextMenu.addAction(insertSub)
+
+        removeSub = af.create(title = _("&Remove subtitles"),
+            connection = self.removeSelectedSubtitles)
         self._contextMenu.addAction(removeSub)
 
     def _createRow(self, sub):
@@ -506,6 +508,64 @@ class SubtitleEditor(SubTab):
                 newSubtitle.change(text = item.text())
             command = ChangeSubtitle(self.filePath, oldSubtitle, newSubtitle, subNo)
             self.execute(command)
+
+    def _createNewSubtitle(self, data, subNo):
+        fps = data.fps # data is passed to avoid unnecessary copies
+        minFrameTime = FrameTime(fps, frames = 1)
+
+        # calculate correct minimum subtitle start time
+        if subNo > 0:
+            timeStart = data.subtitles[subNo - 1].end + minFrameTime
+        else:
+            timeStart = FrameTime(fps, frames = 0)
+
+        # calculate correct maximum subtitle end time
+        if subNo < data.subtitles.size():
+            try:
+                timeEnd = data.subtitles[subNo].start - minFrameTime
+            except SubException:
+                timeEnd = FrameTime(fps, frames = 0)
+        else:
+            timeEnd = timeStart + FrameTime(fps, frames = 50)
+
+        # add subtitle to DataModel
+        sub = Subtitle(timeStart, timeEnd, "")
+        command = AddSubtitle(self.filePath, subNo, sub)
+        self.execute(command)
+
+        # create subtitle graphical representation in editor sub list
+        row = self._createRow(sub)
+        self._model.insertRow(subNo, row)
+        index = self._model.index(subNo, 2)
+        self._subList.clearSelection()
+        self._subList.setCurrentIndex(index)
+        self._subList.edit(index)
+
+    def addNewSubtitle(self):
+        data = self.data
+        subNo = data.subtitles.size()
+        indices = self._subList.selectedIndexes()
+        if len(indices) > 0:
+            rows = [index.row() for index in indices]
+            subNo = max(rows) + 1
+        self._createNewSubtitle(data, subNo)
+
+    def insertNewSubtitle(self):
+        data = self.data
+        subNo = 0
+        indices = self._subList.selectedIndexes()
+        if len(indices) > 0:
+            rows = [index.row() for index in indices]
+            subNo = max(rows)
+        self._createNewSubtitle(data, subNo)
+
+    def removeSelectedSubtitles(self):
+        indices = self._subList.selectedIndexes()
+        rows = list(set([index.row() for index in indices]))
+
+        command = RemoveSubtitles(self.filePath, rows)
+        self.execute(command)
+        self.refreshSubtitles()
 
     def showContextMenu(self):
         self._contextMenu.exec(QCursor.pos())
