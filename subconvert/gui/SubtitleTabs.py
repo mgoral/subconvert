@@ -579,6 +579,10 @@ class SubtitleEditor(SubTab):
             rows = list(set([index.row() for index in indices]))
             command = RemoveSubtitles(self.filePath, rows)
             self._subtitleData.execute(command)
+            if self._model.rowCount() > rows[-1]:
+                self._subList.selectRow(rows[-1])
+            else:
+                self._subList.selectRow(self._model.rowCount() - 1)
 
     def showContextMenu(self):
         self._contextMenu.exec(QCursor.pos())
