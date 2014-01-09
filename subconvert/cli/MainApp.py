@@ -48,6 +48,8 @@ class SubApplication:
         for Format in SubFormat.__subclasses__():
             self._parser.registerFormat(Format)
 
+    def cleanup(self):
+        pass
 
     def parseFile(self, subFile, inputEncoding , fps):
         content = subFile.read(inputEncoding)
