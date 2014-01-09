@@ -203,24 +203,27 @@ class AddSubtitle(SubtitleChangeCommand):
 class RemoveSubtitles(SubtitleChangeCommand):
     def __init__(self, filePath, subNos, parent = None):
         super().__init__(filePath, parent)
-        self._subNos = subNos
+
         # we'll remove from the highest subtitle to keep things simple
+        self._subNos = subNos
         self._subNos.sort(reverse = True)
 
     def setup(self):
         super().setup()
-        self._oldSubtitles = self.controller.subtitles(self.filePath) # copy
+        storage = self.controller._storage[self.filePath]
+        self._subs = []
+        for subNo in self._subNos:
+            self._subs.append((subNo, storage.subtitles[subNo]))
 
     def redo(self):
-        #storage = self.controller._storage[self.filePath]
-        for subNo in self._subNos:
-            self.controller._storage[self.filePath].subtitles.remove(subNo)
+        storage = self.controller._storage[self.filePath]
+        for sub in self._subs:
+            storage.subtitles.remove(sub[0])
         self.controller.fileChanged.emit(self.filePath)
 
     def undo(self):
-        # It's simplier and less error-prone to swap subtitles than to insert subtitles in
-        # correct order.
         storage = self.controller._storage[self.filePath]
-        storage.subtitles = self._oldSubtitles.clone()
+        for sub in reversed(self._subs):
+            storage.subtitles.insert(sub[0], sub[1])
         self.controller.fileChanged.emit(self.filePath)
 
