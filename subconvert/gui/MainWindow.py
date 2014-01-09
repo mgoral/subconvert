@@ -111,11 +111,16 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Subconvert')
 
     def __connectSignals(self):
+        self._tabs.tabChanged.connect(self.__updateMenuItemsState)
+        self._tabs.tabChanged.connect(self.__updateWindowTitle)
         self._subtitleData.fileAdded.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
         self._subtitleData.fileChanged.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
         self._subtitleData.fileRemoved.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
-        self._tabs.tabChanged.connect(self.__updateMenuItemsState)
-        self._tabs.tabChanged.connect(self.__updateWindowTitle)
+        self._subtitleData.subtitlesAdded.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
+        self._subtitleData.subtitlesRemoved.connect(
+            self.__updateMenuItemsState, Qt.QueuedConnection)
+        self._subtitleData.subtitlesChanged.connect(
+            self.__updateMenuItemsState, Qt.QueuedConnection)
 
     def __initActions(self):
         self._actions = {}

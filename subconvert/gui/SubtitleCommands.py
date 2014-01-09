@@ -96,14 +96,14 @@ class ChangeSubtitle(SubtitleChangeCommand):
         storage.subtitles.changeSubText(self._subNo, self._newSubtitle.text)
         storage.subtitles.changeSubStart(self._subNo, self._newSubtitle.start)
         storage.subtitles.changeSubEnd(self._subNo, self._newSubtitle.end)
-        self.controller.fileChanged.emit(self.filePath)
+        self.controller.subtitlesChanged.emit([self._subNo])
 
     def undo(self):
         storage = self.controller._storage[self.filePath]
         storage.subtitles.changeSubText(self._subNo, self._oldSubtitle.text)
         storage.subtitles.changeSubStart(self._subNo, self._oldSubtitle.start)
         storage.subtitles.changeSubEnd(self._subNo, self._oldSubtitle.end)
-        self.controller.fileChanged.emit(self.filePath)
+        self.controller.subtitlesChanged.emit([self._subNo])
 
 class ChangeData(SubtitleChangeCommand):
     def __init__(self, filePath, newData, desc = None, parent = None):
@@ -193,12 +193,12 @@ class AddSubtitle(SubtitleChangeCommand):
     def redo(self):
         storage = self.controller._storage[self.filePath]
         storage.subtitles.insert(self._subNo, self._subtitle)
-        self.controller.fileChanged.emit(self.filePath)
+        self.controller.subtitlesAdded.emit([self._subNo])
 
     def undo(self):
         storage = self.controller._storage[self.filePath]
         storage.subtitles.remove(self._subNo)
-        self.controller.fileChanged.emit(self.filePath)
+        self.controller.subtitlesRemoved.emit([self._subNo])
 
 class RemoveSubtitles(SubtitleChangeCommand):
     def __init__(self, filePath, subNos, parent = None):
@@ -219,11 +219,11 @@ class RemoveSubtitles(SubtitleChangeCommand):
         storage = self.controller._storage[self.filePath]
         for sub in self._subs:
             storage.subtitles.remove(sub[0])
-        self.controller.fileChanged.emit(self.filePath)
+        self.controller.subtitlesRemoved.emit(self._subNos)
 
     def undo(self):
         storage = self.controller._storage[self.filePath]
         for sub in reversed(self._subs):
             storage.subtitles.insert(sub[0], sub[1])
-        self.controller.fileChanged.emit(self.filePath)
+        self.controller.subtitlesAdded.emit(reversed(self._subNos))
 

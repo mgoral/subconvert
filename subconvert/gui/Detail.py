@@ -36,6 +36,23 @@ class CustomDataRoles:
     FrameTimeRole = Qt.UserRole + 1
     ErrorFlagRole = Qt.UserRole + 2
 
+class DisableSignalling:
+    """
+    Usage example:
+    with DisableSignalling(cls.signal, self.slot):
+        # do something
+        pass
+    """
+    def __init__(self, signal, slot):
+        self._signal = signal
+        self._slot = slot
+
+    def __enter__(self):
+        self._signal.disconnect(self._slot)
+
+    def __exit__(self, type, value, traceback):
+        self._signal.connect(self._slot)
+
 class ActionFactory:
     def __init__(self, parent):
         self._parent = parent
