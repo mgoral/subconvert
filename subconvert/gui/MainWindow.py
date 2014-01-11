@@ -179,15 +179,15 @@ class MainWindow(QMainWindow):
             None, _("From current &video"), None, "ctrl+shift+f", self.getFpsFromMovie)
 
         self._actions["insertSub"] = af.create(
-            None, _("&Insert subtitle"), None, "insert",
+            "list-add", _("&Insert subtitle"), None, "insert",
             connection = lambda: self._tabs.currentPage().insertNewSubtitle())
 
         self._actions["addSub"] = af.create(
-            None, _("&Add subtitle"), None, "alt+insert",
+            "list-add", _("&Add subtitle"), None, "alt+insert",
             connection = lambda: self._tabs.currentPage().addNewSubtitle())
 
         self._actions["removeSub"] = af.create(
-            None, _("&Remove subtitles"), None, "delete",
+            "list-remove", _("&Remove subtitles"), None, "delete",
             connection = lambda: self._tabs.currentPage().removeSelectedSubtitles())
 
 
@@ -219,7 +219,7 @@ class MainWindow(QMainWindow):
 
         # SPF editor
         self._actions["spfEditor"] = af.create(
-            None, _("Subtitle &Properties Editor"), None, None, self.openPropertyEditor)
+            "accessories-text-editor", _("Subtitle &Properties Editor"), None, None, self.openPropertyEditor)
 
         # View
         self._actions["togglePlayer"] = af.create(

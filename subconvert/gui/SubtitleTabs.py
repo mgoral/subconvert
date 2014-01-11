@@ -192,11 +192,11 @@ class FileList(SubTab):
 
         # Undo/redo
 
-        actionUndo = af.create(None, _("&Undo"), None, None, self.undoSelectedFiles)
+        actionUndo = af.create("undo", _("&Undo"), None, None, self.undoSelectedFiles)
         actionUndo.setEnabled(anyItemSelected)
         self._contextMenu.addAction(actionUndo)
 
-        actionRedo = af.create(None, _("&Redo"), None, None, self.redoSelectedFiles)
+        actionRedo = af.create("redo", _("&Redo"), None, None, self.redoSelectedFiles)
         actionRedo.setEnabled(anyItemSelected)
         self._contextMenu.addAction(actionRedo)
 
@@ -441,13 +441,15 @@ class SubtitleEditor(SubTab):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         af = ActionFactory(self)
 
-        insertSub = af.create(title = _("&Insert subtitle"), connection = self.insertNewSubtitle)
+        insertSub = af.create(title = _("&Insert subtitle"), icon = "list-add",
+            connection = self.insertNewSubtitle)
         self._contextMenu.addAction(insertSub)
 
-        insertSub = af.create(title = _("&Add subtitle"), connection = self.addNewSubtitle)
+        insertSub = af.create(title = _("&Add subtitle"), icon = "list-add",
+            connection = self.addNewSubtitle)
         self._contextMenu.addAction(insertSub)
 
-        removeSub = af.create(title = _("&Remove subtitles"),
+        removeSub = af.create(title = _("&Remove subtitles"), icon = "list-remove",
             connection = self.removeSelectedSubtitles)
         self._contextMenu.addAction(removeSub)
 
