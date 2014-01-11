@@ -154,7 +154,26 @@ class NewSubtitles(SubtitleChangeCommand):
         self.controller.fileAdded.emit(self.filePath)
 
     def undo(self):
-        pass # TODO: raise "AtTheBeginning" exception?
+        pass
+
+class CreateSubtitlesFromData(SubtitleChangeCommand):
+    def __init__(self, filePath, data, parent = None):
+        super().__init__(filePath, parent)
+        self.setText(_("Copied subtitles: %s") % os.path.basename(filePath))
+        self._newData = data
+
+    def setup(self):
+        super().setup()
+        if self.controller.fileExists(self.filePath):
+            raise DoubleFileEntry("'%s' cannot be added twice" % self._filePath)
+        self._newData.verifyAll()
+
+    def redo(self):
+        self.controller._storage[self.filePath] = self._newData
+        self.controller.fileAdded.emit(self.filePath)
+
+    def undo(self):
+        pass
 
 class RemoveFile(SubtitleChangeCommand):
     def __init__(self, filePath, parent = None):

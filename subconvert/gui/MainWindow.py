@@ -459,6 +459,7 @@ class MainWindow(QMainWindow):
         fileDialog.setFileMode(QFileDialog.AnyFile)
 
         if fileDialog.exec():
+            newFilePath = fileDialog.selectedFiles()[0]
             data = currentTab.data
 
             outputFormat = fileDialog.getSubFormat()
@@ -468,12 +469,16 @@ class MainWindow(QMainWindow):
                 # save user changes
                 data.outputFormat = outputFormat
                 data.outputEncoding = outputEncoding
-                command = ChangeData(currentTab.filePath, data, _("Output data change"))
-                self._subtitleData.execute(command)
 
-            newFileName = fileDialog.selectedFiles()[0]
-            self.saveFile(newFileName)
-            self._settings.setLatestDirectory(os.path.dirname(newFileName))
+            if self._subtitleData.fileExists(newFilePath):
+                command = ChangeData(newFilePath, data)
+            else:
+                command = CreateSubtitlesFromData(newFilePath, data)
+            self._subtitleData.execute(command)
+            self._tabs.openTab(newFilePath)
+
+            self.saveFile(newFilePath)
+            self._settings.setLatestDirectory(os.path.dirname(newFilePath))
 
     def saveAll(self):
         dialog = MessageBoxWithList(self)
