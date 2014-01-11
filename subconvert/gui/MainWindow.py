@@ -176,7 +176,7 @@ class MainWindow(QMainWindow):
                 lambda _, fmt = fmt: self._tabs.currentPage().changeSubFormat(fmt))
 
         self._actions["fpsFromMovie"] = af.create(
-            None, _("From current &movie"), None, "ctrl+shift+f", self.getFpsFromMovie)
+            None, _("From current &video"), None, "ctrl+shift+f", self.getFpsFromMovie)
 
         self._actions["insertSub"] = af.create(
             None, _("&Insert subtitle"), None, "insert",
@@ -203,7 +203,7 @@ class MainWindow(QMainWindow):
         self._actions["rewind"] = af.create(
             "media-skip-backward", _("&Rewind"), None, "ctrl+left", self._videoWidget.rewind)
         self._actions["frameStep"] = af.create(
-            None, _("Next &frame"), _("Go to the next frame in a movie"), ".",
+            None, _("Next &frame"), _("Go to the next frame in a video"), ".",
             self._videoWidget.nextFrame)
 
         for ratio in self._videoRatios:
@@ -223,7 +223,7 @@ class MainWindow(QMainWindow):
 
         # View
         self._actions["togglePlayer"] = af.create(
-            None, _("&Movie player"), _("Show or hide movie player"), "F3", self.togglePlayer)
+            None, _("&Video player"), _("Show or hide video player"), "F3", self.togglePlayer)
         self._actions["togglePanel"] = af.create(
             None, _("Side &panel"), _("Show or hide left panel"), "F4", self._tabs.togglePanel)
 
@@ -535,9 +535,9 @@ class MainWindow(QMainWindow):
         movieExtensions = "%s%s" % ("*.", ' *.'.join(File.MOVIE_EXTENSIONS))
         fileDialog = FileDialog(
             parent = self,
-            caption = _("Select movie"),
+            caption = _("Select a video"),
             directory = self._settings.getLatestDirectory(),
-            filter = _("Movie files (%s);;All files (*)") % movieExtensions)
+            filter = _("Video files (%s);;All files (*)") % movieExtensions)
         fileDialog.setFileMode(QFileDialog.ExistingFile)
         if fileDialog.exec():
             movieFilePath = fileDialog.selectedFiles()[0]
