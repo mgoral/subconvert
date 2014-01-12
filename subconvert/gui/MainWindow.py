@@ -108,6 +108,7 @@ class MainWindow(QMainWindow):
         self.statusBar()
         self.mainWidget.setLayout(mainLayout)
 
+        self.setWindowIcon(QIcon(":/img/logo.png"))
         self.setWindowTitle('Subconvert')
 
     def __connectSignals(self):
