@@ -79,7 +79,12 @@ class VideoPlayer(QObject):
     def _compileRegex(self):
         # bunch of used regex patterns. Note that sometimes it's not necessary to use regex to
         # parse MPlayer output
-        self._commandLinePattern = re.compile(r"(?P<frame>\d+)/\s*\d+ ")
+        self._commandLinePattern = re.compile(r"""
+            V:\ *?(?P<time>\d+\.\d)     # fallback time (always available). Note spaces after V:
+            .*                          # anything between time and frame number
+            \d+/\s*?(?P<frame>\d+)\     # frame number (not always available). Note that space is
+                                        # the last character
+            """, re.X)
         self._idVideoBitratePattern = re.compile(r"^ID_VIDEO_BITRATE=(?P<bitrate>\d+)")
         self._idWidthPattern = re.compile(r"^ID_VIDEO_WIDTH=(?P<width>\d+)")
         self._idHeightPattern= re.compile(r"^ID_VIDEO_HEIGHT=(?P<height>\d+)")
@@ -216,6 +221,9 @@ class VideoPlayer(QObject):
         pos = self._commandLinePattern.search(message)
         if pos is not None:
             frame = int(pos.group("frame"))
+            time = float(pos.group("time"))
+            if frame == 0:
+                frame = int(time * self.videoData.fps)
             self.positionChanged.emit(frame)
 
     def _parseMovieInfo(self, message):

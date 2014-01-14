@@ -61,7 +61,7 @@ class VideoWidget(QWidget):
         super().hide()
 
     def play(self):
-        self._modulo = 10
+        self._modulo = 4
         self._player.play()
 
     def pause(self):
