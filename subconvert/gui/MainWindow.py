@@ -159,22 +159,20 @@ class MainWindow(QMainWindow):
         for fps in FPS_VALUES:
             fpsStr = str(fps)
             self._actions[fpsStr] = af.create(
-                None, fpsStr, None, None,
-                lambda _, fps=fps: self._tabs.currentPage().changeFps(fps))
+                None, fpsStr, None, None, lambda _, fps=fps: self.changeFps(fps))
 
         for encoding in ALL_ENCODINGS:
             self._actions["in_%s" % encoding] = af.create(
                 None, encoding, None, None,
-                lambda _, enc = encoding: self._tabs.currentPage().changeInputEncoding(enc))
+                lambda _, enc = encoding: self.changeInputEncoding(enc))
 
             self._actions["out_%s" % encoding] = af.create(
                 None, encoding, None, None,
-                lambda _, enc = encoding: self._tabs.currentPage().changeOutputEncoding(enc))
+                lambda _, enc = encoding: self.changeOutputEncoding(enc))
 
         for fmt in self._subtitleData.supportedFormats:
             self._actions[fmt.NAME] = af.create(
-                None, fmt.NAME, None, None,
-                lambda _, fmt = fmt: self._tabs.currentPage().changeSubFormat(fmt))
+                None, fmt.NAME, None, None, lambda _, fmt = fmt: self.changeSubFormat(fmt))
 
         self._actions["fpsFromMovie"] = af.create(
             None, _("From current &video"), None, "ctrl+shift+f", self.getFpsFromMovie)
@@ -190,7 +188,6 @@ class MainWindow(QMainWindow):
         self._actions["removeSub"] = af.create(
             "list-remove", _("&Remove subtitles"), None, "delete",
             connection = lambda: self._tabs.currentPage().removeSelectedSubtitles())
-
 
         # Video
         self._videoRatios = [(4, 3), (14, 9), (14, 10), (16, 9), (16, 10)]
@@ -374,13 +371,6 @@ class MainWindow(QMainWindow):
         self._actions["saveFileAs"].setEnabled(anyTabOpen and not tabIsStatic)
 
         self._actions["fpsFromMovie"].setEnabled(anyTabOpen and not tabIsStatic)
-        self._fpsMenu.setEnabled(anyTabOpen and not tabIsStatic)
-        self._subFormatMenu.setEnabled(anyTabOpen and not tabIsStatic)
-        self._inputEncodingMenu.setEnabled(anyTabOpen and not tabIsStatic)
-        self._outputEncodingMenu.setEnabled(anyTabOpen and not tabIsStatic)
-
-        self._actions["undo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canUndo())
-        self._actions["redo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canRedo())
 
         self._actions["insertSub"].setEnabled(anyTabOpen and not tabIsStatic)
         self._actions["addSub"].setEnabled(anyTabOpen and not tabIsStatic)
@@ -514,11 +504,45 @@ class MainWindow(QMainWindow):
 
     def undo(self):
         currentTab = self._tabs.currentPage()
-        currentTab.history.undo()
+        if currentTab.isStatic:
+            currentTab.undoSelectedFiles()
+        elif currentTab.history.canUndo():
+            currentTab.history.undo()
 
     def redo(self):
         currentTab = self._tabs.currentPage()
-        currentTab.history.redo()
+        if currentTab.isStatic:
+            currentTab.redoSelectedFiles()
+        elif currentTab.history.canRedo():
+            currentTab.history.redo()
+
+    def changeInputEncoding(self, encoding):
+        currentTab = self._tabs.currentPage()
+        if currentTab.isStatic:
+            currentTab.changeSelectedFilesInputEncoding(encoding)
+        else:
+            currentTab.changeInputEncoding(encoding)
+
+    def changeOutputEncoding(self, encoding):
+        currentTab = self._tabs.currentPage()
+        if currentTab.isStatic:
+            currentTab.changeSelectedFilesOutputEncoding(encoding)
+        else:
+            currentTab.changeOutputEncoding(encoding)
+
+    def changeSubFormat(self, fmt):
+        currentTab = self._tabs.currentPage()
+        if currentTab.isStatic:
+            currentTab.changeSelectedFilesFormat(fmt)
+        else:
+            currentTab.changeSubFormat(fmt)
+
+    def changeFps(self, fps):
+        currentTab = self._tabs.currentPage()
+        if currentTab.isStatic:
+            currentTab.changeSelectedFilesFps(fps)
+        else:
+            currentTab.changeFps(fps)
 
     def togglePlayer(self):
         if self._videoWidget.isHidden():
