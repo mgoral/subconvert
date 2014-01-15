@@ -110,6 +110,7 @@ class SubtitleProperties:
             obj = pickle.load(f)
             self._autoFps = obj.autoFps
             self._fps = obj.fps
+            self._autoInputEncoding = obj.autoInputEncoding
             self._inputEncoding = obj.inputEncoding
             self._outputEncoding = obj.outputEncoding
             self._changeEncoding = obj.changeEncoding
