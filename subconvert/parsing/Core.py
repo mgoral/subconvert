@@ -365,6 +365,7 @@ class SubConverter:
                     subText = sub.text.format(**fmt.formatting)
                 except KeyError:
                     subText = sub.text
+                subText = subText.strip() # unnecessary whitespaces will probably break subtitles
                 convertedSub = fmt.subFormatTemplate.format(gsp_no = subNo, \
                     gsp_from = fmt.convertTime(sub.start, 'time_from'), \
                     gsp_to = fmt.convertTime(sub.end, 'time_to'), \
