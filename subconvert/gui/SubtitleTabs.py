@@ -68,6 +68,7 @@ class SubTab(QWidget):
 class FileList(SubTab):
     requestOpen = pyqtSignal(str, bool)
     requestRemove = pyqtSignal(str)
+    selectionChanged = pyqtSignal()
 
     def __init__(self, name, subtitleData, parent = None):
         super(FileList, self).__init__(name, parent)
@@ -204,6 +205,7 @@ class FileList(SubTab):
         self.__fileList.mouseButtonDoubleClicked.connect(self._handleDoubleClick)
         self.__fileList.mouseButtonClicked.connect(self._handleClick)
         self.__fileList.keyPressed.connect(self._handleKeyPress)
+        self.__fileList.selectionModel().selectionChanged.connect(self._selectionChangedHandle)
         self.customContextMenuRequested.connect(self._showContextMenu)
 
         self._subtitleData.fileAdded.connect(self._addFile)
@@ -247,6 +249,13 @@ class FileList(SubTab):
             else:
                 icon = QIcon(":/img/not_clean.png")
             item.setIcon(0, icon)
+
+    def _selectionChangedHandle(self, selected, deselected):
+        self.selectionChanged.emit()
+
+    @property
+    def selectedItems(self):
+        return self.__fileList.selectedItems()
 
     def canClose(self):
         return False

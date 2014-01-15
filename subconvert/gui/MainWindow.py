@@ -114,6 +114,7 @@ class MainWindow(QMainWindow):
     def __connectSignals(self):
         self._tabs.tabChanged.connect(self.__updateMenuItemsState)
         self._tabs.tabChanged.connect(self.__updateWindowTitle)
+        self._tabs.fileList.selectionChanged.connect(self.__updateMenuItemsState)
         self._subtitleData.fileAdded.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
         self._subtitleData.fileChanged.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
         self._subtitleData.fileRemoved.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
@@ -264,7 +265,6 @@ class MainWindow(QMainWindow):
         subtitlesMenu.addAction(self._actions["addSub"])
         subtitlesMenu.addAction(self._actions["removeSub"])
 
-
         videoMenu = menubar.addMenu(_("&Video"))
         videoMenu.addAction(self._actions["openVideo"])
         videoMenu.addSeparator()
@@ -363,20 +363,33 @@ class MainWindow(QMainWindow):
         tabIsStatic = tab.isStatic if anyTabOpen else False
         if tabIsStatic:
             cleanState = False
+            anyItemSelected = len(tab.selectedItems) > 0
         else:
             cleanState = tab.history.isClean()
+            anyItemSelected = False
+
+        canUndo = (tabIsStatic and anyItemSelected) or (not tabIsStatic and tab.history.canUndo())
+        canRedo = (tabIsStatic and anyItemSelected) or (not tabIsStatic and tab.history.canRedo())
+        canEdit = (tabIsStatic and anyItemSelected) or (not tabIsStatic)
 
         self._actions["saveAllFiles"].setEnabled(dataAvailable)
-        self._actions["saveFile"].setEnabled(anyTabOpen and not tabIsStatic and not cleanState)
-        self._actions["saveFileAs"].setEnabled(anyTabOpen and not tabIsStatic)
+        self._actions["saveFile"].setEnabled(not tabIsStatic and not cleanState)
+        self._actions["saveFileAs"].setEnabled(not tabIsStatic)
 
-        self._actions["fpsFromMovie"].setEnabled(anyTabOpen and not tabIsStatic)
+        self._actions["undo"].setEnabled(canUndo)
+        self._actions["redo"].setEnabled(canRedo)
+        self._fpsMenu.setEnabled(canEdit)
+        self._subFormatMenu.setEnabled(canEdit)
+        self._inputEncodingMenu.setEnabled(canEdit)
+        self._outputEncodingMenu.setEnabled(canEdit)
 
-        self._actions["insertSub"].setEnabled(anyTabOpen and not tabIsStatic)
-        self._actions["addSub"].setEnabled(anyTabOpen and not tabIsStatic)
-        self._actions["removeSub"].setEnabled(anyTabOpen and not tabIsStatic)
+        self._actions["fpsFromMovie"].setEnabled(not tabIsStatic)
 
-        self._actions["videoJump"].setEnabled(anyTabOpen and not tabIsStatic)
+        self._actions["insertSub"].setEnabled(not tabIsStatic)
+        self._actions["addSub"].setEnabled(not tabIsStatic)
+        self._actions["removeSub"].setEnabled(not tabIsStatic)
+
+        self._actions["videoJump"].setEnabled(not tabIsStatic)
 
     def handleArgs(self, args):
         self._openFiles(args.files, args.inputEncoding)
@@ -506,14 +519,14 @@ class MainWindow(QMainWindow):
         currentTab = self._tabs.currentPage()
         if currentTab.isStatic:
             currentTab.undoSelectedFiles()
-        elif currentTab.history.canUndo():
+        else:
             currentTab.history.undo()
 
     def redo(self):
         currentTab = self._tabs.currentPage()
         if currentTab.isStatic:
             currentTab.redoSelectedFiles()
-        elif currentTab.history.canRedo():
+        else:
             currentTab.history.redo()
 
     def changeInputEncoding(self, encoding):
