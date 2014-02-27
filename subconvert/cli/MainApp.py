@@ -118,8 +118,8 @@ class SubApplication:
             file_ = File(filePath)
         except:
             # File doesn't exist, we can safely write to it
-            log.debug(_("Saving to file: %s" % filePath))
             File.write(filePath, convertedSubtitles, encoding)
+            log.info(_("File %s saved.") % filePath)
         else:
             # A little hack to ensure that translator won't make a mistake
             choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q'), 'backup': _('b') }
@@ -158,7 +158,7 @@ class SubApplication:
             converter = SubConverter()
 
             for filePath in self._args.files:
-                log.info(_("Starting a job for file: '%s'") % filePath)
+                log.info(_("Starting a job for file: %s") % filePath)
                 try:
                     subFile = File(filePath)
                 except IOError:
