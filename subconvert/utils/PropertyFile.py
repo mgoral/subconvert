@@ -19,12 +19,16 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import pickle
+import json
 from subconvert.parsing.Formats import *
 from subconvert.utils.SubFile import File
 
 class SubtitleProperties:
-    def __init__(self, filePath = None):
+    __JSON_ENCODING = "UTF-8"
+
+    def __init__(self, subFormats, filePath = None):
+        self._availableFormats = subFormats
+
         self._autoInputEncoding = True
         self._autoFps = False
         self._fps = 25.0
@@ -106,19 +110,42 @@ class SubtitleProperties:
         self._outputFormat = val
 
     def load(self, filePath):
-        with open(filePath, 'rb') as f:
-            obj = pickle.load(f)
-            self._autoFps = obj.autoFps
-            self._fps = obj.fps
-            self._autoInputEncoding = obj.autoInputEncoding
-            self._inputEncoding = obj.inputEncoding
-            self._outputEncoding = obj.outputEncoding
-            self._changeEncoding = obj.changeEncoding
-            self._outputFormat = obj.outputFormat
+        with open(filePath, 'r') as f:
+            obj = json.load(f)
+            self._fromJson(obj)
+
 
     def save(self, filePath):
-        with open(filePath, 'wb') as f:
-            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+        with open(filePath, 'w') as f:
+            json.dump(self._toJson(), f)
+
+    def _toJson(self):
+        serializable = {}
+        serializable["autoFps"] = self._autoFps
+        serializable["fps"] = self._fps
+        serializable["autoInputEncoding"] = self._autoInputEncoding
+        serializable["inputEncoding"] = self._inputEncoding
+        serializable["outputEncoding"] = self._outputEncoding
+        serializable["changeEncoding"] = self._changeEncoding
+        serializable["outputFormat"] = self._outputFormat.NAME
+        return serializable
+
+    def _fromJson(self, data):
+        self._autoFps = bool(data["autoFps"])
+        self._fps = float(data["fps"])
+        self._autoInputEncoding = bool(data["autoInputEncoding"])
+        self._inputEncoding = str(data["inputEncoding"])
+        self._outputEncoding = str(data["outputEncoding"])
+        self._changeEncoding = bool(data["changeEncoding"])
+        self._outputFormat = self._formatFromString(str(data["outputFormat"]))
+
+    # Convert a given string to format type or raise an exception if it's not possible.
+    def _formatFromString(self, fmt):
+        for availableFormat in self._availableFormats:
+            if fmt.lower() == availableFormat.NAME.lower():
+                return availableFormat
+        raise LookupError(_("Unknown format: %s") % fmt)
+
 
 class PropertiesFileApplier:
     def __init__(self, subProperties):

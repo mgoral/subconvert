@@ -34,21 +34,24 @@ from subconvert.gui import MainWindow
 from subconvert.cli import MainApp
 from subconvert.utils.PropertyFile import SubtitleProperties
 
+from subconvert.parsing.Core import SubParser
+from subconvert.parsing.Formats import *
+
 log = logging.getLogger('Subconvert')
 
 def cleanup(app):
     log.debug("Subconvert cleanup")
     app.cleanup()
 
-def loadSpf(filePath):
+def loadSpf(formats, filePath):
     try:
-        spf = SubtitleProperties(filePath)
+        spf = SubtitleProperties(formats, filePath)
     except FileNotFoundError:
         log.critical(_("No such file: '%s'") % filePath)
         sys.exit(2)
     return spf
 
-def prepareOptions():
+def prepareOptions(subFormats):
     parser = argparse.ArgumentParser(
         description = _("Subconvert is a movie subtitles editor and converter."))
 
@@ -76,7 +79,8 @@ def prepareOptions():
         type = str,
         help = _("sets output subtitle format to FMT"))
     subtitleGroup.add_argument("-p", "--property-file", metavar = _("FILE"), dest = "pfile",
-        type = loadSpf, default = SubtitleProperties(),
+        type = lambda filePath : loadSpf(subFormats, filePath),
+        default = SubtitleProperties(subFormats),
         help = _("loads settings from spf (subtitle property file)"))
 
     movieGroup = parser.add_argument_group(_("video options"))
@@ -99,14 +103,20 @@ def prepareOptions():
 
     return parser
 
-def startApp(args):
+def initSubParser():
+    parser = SubParser()
+    for Format in SubFormat.__subclasses__():
+        parser.registerFormat(Format)
+    return parser
+
+def startApp(args, parser):
     if args.console:
-        app = MainApp.SubApplication(args)
+        app = MainApp.SubApplication(args, parser)
         atexit.register(cleanup, app)
         sys.exit(app.run())
     else:
         app = QApplication(sys.argv)
-        gui = MainWindow.MainWindow(args)
+        gui = MainWindow.MainWindow(args, parser)
 
         atexit.register(cleanup, gui)
 
@@ -119,7 +129,8 @@ def startApp(args):
         sys.exit(app.exec_())
 
 def main():
-    optParser = prepareOptions()
+    parser = initSubParser()
+    optParser = prepareOptions(parser.formats)
     args = optParser.parse_args()
 
     if args.version:
@@ -134,4 +145,4 @@ def main():
         log.setLevel(logging.DEBUG)
     log.addHandler(logging.StreamHandler())
 
-    startApp(args)
+    startApp(args, parser)

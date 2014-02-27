@@ -77,8 +77,10 @@ Translations: $translators
 """)).substitute(substituteDict)
 
 class MainWindow(QMainWindow):
-    def __init__(self, args):
+    def __init__(self, args, parser):
         super(MainWindow, self).__init__()
+
+        self._subtitleData = DataController(parser, self)
 
         self.__initGui()
         self.__initActions()
@@ -98,7 +100,6 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.mainWidget)
 
-        self._subtitleData = DataController(self)
         self._videoWidget = VideoWidget(self)
         self._tabs = SubtitleWindow.SubTabWidget(self._subtitleData)
 

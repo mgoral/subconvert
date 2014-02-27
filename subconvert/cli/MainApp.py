@@ -24,7 +24,7 @@ import re
 import logging
 from string import Template
 
-from subconvert.parsing.Core import SubParser, SubConverter, SubParsingError
+from subconvert.parsing.Core import SubConverter, SubParsingError
 from subconvert.parsing.Formats import *
 from subconvert.utils.Locale import _
 from subconvert.utils.SubtitleData import SubtitleData
@@ -41,12 +41,9 @@ class FileTemplate(Template):
         delimiter = '%'
 
 class SubApplication:
-    def __init__(self, args):
+    def __init__(self, args, parser):
         self._args = args
-        self._parser = SubParser()
-
-        for Format in SubFormat.__subclasses__():
-            self._parser.registerFormat(Format)
+        self._parser = parser
 
     def cleanup(self):
         pass

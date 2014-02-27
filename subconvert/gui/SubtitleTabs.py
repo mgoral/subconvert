@@ -317,7 +317,8 @@ class FileList(SubTab):
     def _useSubProperties(self, propertyPath):
         if propertyPath:
             try:
-                subProperties = SubtitleProperties(propertyPath)
+                subProperties = SubtitleProperties(
+                    self._subtitleData.supportedFormats, propertyPath)
             except:
                 log.error(_("Cannot read %s as Subtitle Property file.") % propertyPath)
                 self._settings.removePropertyFile(propertyPath)

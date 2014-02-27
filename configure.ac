@@ -1,4 +1,4 @@
-AC_INIT([Subconvert], [1.0.1], [https://github.com/mgoral/subconvert/issues])
+AC_INIT([Subconvert], [1.0.2], [https://github.com/mgoral/subconvert/issues])
 AM_INIT_AUTOMAKE([foreign -Wall])
 
 AC_PREFIX_DEFAULT([/usr])

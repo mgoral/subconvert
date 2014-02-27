@@ -151,7 +151,7 @@ class PropertyFileEditor(QDialog):
         return widget
 
     def _createSubtitleProperties(self):
-        subProperties = SubtitleProperties()
+        subProperties = SubtitleProperties(list(self._formats.values()))
 
         subProperties.autoFps = self._autoFps.isChecked()
         subProperties.fps = self._fps.currentText()
@@ -214,6 +214,6 @@ class PropertyFileEditor(QDialog):
         if fileDialog.exec():
             filename = fileDialog.selectedFiles()[0]
             self._settings.setPropertyFilesPath(os.path.dirname(filename))
-            subProperties = SubtitleProperties(filename)
+            subProperties = SubtitleProperties(list(self._formats.values()), filename)
             self.changeProperties(subProperties)
 
