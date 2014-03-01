@@ -26,7 +26,7 @@ import encodings
 
 from PyQt4.QtGui import QDialog, QGridLayout, QWidget, QFileDialog, QComboBox, QTextEdit
 from PyQt4.QtGui import QCheckBox, QLabel, QGroupBox, QHBoxLayout, QVBoxLayout, QWidget
-from PyQt4.QtGui import QPushButton
+from PyQt4.QtGui import QPushButton, QMessageBox
 
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.parsing.Formats import *
@@ -155,7 +155,6 @@ class PropertyFileEditor(QDialog):
 
         subProperties.autoFps = self._autoFps.isChecked()
         subProperties.fps = self._fps.currentText()
-
         subProperties.autoInputEncoding = self._autoEncoding.isChecked()
         subProperties.changeEncoding = self._changeEncoding.isChecked()
         subProperties.inputEncoding = self._inputEncoding.currentText()
@@ -184,6 +183,19 @@ class PropertyFileEditor(QDialog):
                 subProperties.outputFormat.NAME)
 
     def saveProperties(self):
+        subProperties = None
+
+        try:
+            subProperties = self._createSubtitleProperties()
+        except Exception as e:
+            dialog = QMessageBox(self)
+            dialog.setIcon(QMessageBox.Critical)
+            dialog.setWindowTitle(_("Incorrect value"))
+            dialog.setText(_("Could not save SPF file because of incorrect parameters."));
+            dialog.setDetailedText(str(e));
+            dialog.exec()
+            return
+
         fileDialog = FileDialog(
             parent = self,
             caption = _('Save Subtitle Properties'),
@@ -197,7 +209,6 @@ class PropertyFileEditor(QDialog):
             if not filename.endswith(".spf"):
                 filename = "%s%s" % (filename, ".spf")
             self._settings.setPropertyFilesPath(os.path.dirname(filename))
-            subProperties = self._createSubtitleProperties()
             subProperties.save(filename)
             self._settings.addPropertyFile(filename)
             self.close()
