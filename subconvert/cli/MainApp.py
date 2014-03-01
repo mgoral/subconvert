@@ -157,6 +157,9 @@ class SubApplication:
             outputFormat = self.getOutputFormat()
             converter = SubConverter()
 
+            if len(self._args.files) == 0:
+                log.warning(_("No files selected."))
+
             for filePath in self._args.files:
                 log.info(_("Starting a job for file: %s") % filePath)
                 try:
