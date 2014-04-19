@@ -507,12 +507,12 @@ class MainWindow(QMainWindow):
             dialog.setWindowTitle(P_(
                 "Error on saving a file",
                 "Error on saving files",
-                len(self.listCount())
+                dialog.listCount()
                 ))
             dialog.setText(P_(
                 "Following error occured when trying to save a file:",
                 "Following errors occured when trying to save files:",
-                len(self.listCount())
+                dialog.listCount()
                 ))
             dialog.exec()
 
