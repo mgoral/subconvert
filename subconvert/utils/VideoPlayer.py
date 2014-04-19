@@ -218,13 +218,14 @@ class VideoPlayer(QObject):
                 self._parseMovieInfo(line)
 
     def _parsePositionChange(self, message):
-        pos = self._commandLinePattern.search(message)
-        if pos is not None:
-            frame = int(pos.group("frame"))
-            time = float(pos.group("time"))
-            if frame == 0:
-                frame = int(time * self.videoData.fps)
-            self.positionChanged.emit(frame)
+        if self.videoData.isAllDataSet():
+            pos = self._commandLinePattern.search(message)
+            if pos is not None:
+                frame = int(pos.group("frame"))
+                time = float(pos.group("time"))
+                if frame == 0:
+                    frame = int(time * self.videoData.fps)
+                self.positionChanged.emit(frame)
 
     def _parseMovieInfo(self, message):
         if message.startswith("ID_VIDEO_BITRATE"):
