@@ -1,4 +1,4 @@
-AC_INIT([Subconvert], [1.0.3], [https://github.com/mgoral/subconvert/issues])
+AC_INIT([Subconvert], [m4_esyscmd_s([git describe --abbrev=4 --dirty --always --tags])], [https://github.com/mgoral/subconvert/issues])
 AM_INIT_AUTOMAKE([foreign -Wall])
 
 AC_PREFIX_DEFAULT([/usr])
