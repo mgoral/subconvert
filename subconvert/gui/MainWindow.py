@@ -109,6 +109,7 @@ class MainWindow(QMainWindow):
         self.statusBar()
         self.mainWidget.setLayout(mainLayout)
 
+        self.setAcceptDrops(True)
         self.setWindowIcon(QIcon(":/img/logo.png"))
         self.setWindowTitle('Subconvert')
 
@@ -612,3 +613,38 @@ class MainWindow(QMainWindow):
             dialog.setText(_("""Failed to open URL: <a href="%(url)s">%(url)s</a>.""") %
                 {"url": url})
             dialog.exec()
+
+    def dragEnterEvent(self, event):
+        mime = event.mimeData()
+
+        # search for at least local file in dragged urls (and accept drag event only in that case)
+        if mime.hasUrls():
+            urls = mime.urls()
+            for url in urls:
+                if url.isLocalFile() and os.path.isfile(url.toLocalFile()):
+                    event.acceptProposedAction()
+                    return
+
+    def dropEvent(self, event):
+        mime = event.mimeData()
+        urls = mime.urls()
+
+        subPaths = []
+        moviePaths = []
+        for url in urls:
+            if url.isLocalFile():
+                filePath = url.toLocalFile()
+                if not os.path.isdir(filePath):
+                    fileName, fileExtension = os.path.splitext(filePath)
+
+                    if fileExtension.lower() in File.MOVIE_EXTENSIONS:
+                        moviePaths.append(filePath)
+                    else:
+                        subPaths.append(filePath)
+
+        # open all subtitles and only the first movie
+        if len(moviePaths) > 0:
+            self._videoWidget.openFile(moviePaths[0])
+        if len(subPaths) > 0:
+            self._openFiles(subPaths, None)
+
