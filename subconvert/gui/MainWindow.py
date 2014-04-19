@@ -23,7 +23,7 @@ import os
 import logging
 from string import Template
 
-from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QGridLayout, QAction, QIcon, qApp
+from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QVBoxLayout, QAction, QIcon, qApp
 from PyQt4.QtGui import QMessageBox, QPixmap, QSpacerItem, QDesktopServices
 from PyQt4.QtCore import pyqtSlot, QDir, Qt, QUrl
 
@@ -35,10 +35,12 @@ from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import ActionFactory, CannotOpenFilesMsg, MessageBoxWithList, FPS_VALUES
 from subconvert.gui.SubtitleCommands import *
+from subconvert.gui.VideoWidget import VideoWidget
 from subconvert.utils.Locale import _, P_
 from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.SubFile import File, SubFileError
+from subconvert.utils.VideoPlayer import VideoPlayer, VideoPlayerException
 from subconvert.utils.version import __version__, __author__, __license__, __website__, __transs__
 
 log = logging.getLogger('Subconvert.%s' % __name__)
@@ -75,8 +77,10 @@ Translations: $translators
 """)).substitute(substituteDict)
 
 class MainWindow(QMainWindow):
-    def __init__(self, args):
+    def __init__(self, args, parser):
         super(MainWindow, self).__init__()
+
+        self._subtitleData = DataController(parser, self)
 
         self.__initGui()
         self.__initActions()
@@ -90,27 +94,36 @@ class MainWindow(QMainWindow):
     def __initGui(self):
         self._settings = SubSettings()
         self.mainWidget = QWidget(self)
-        mainLayout = QGridLayout()
+        mainLayout = QVBoxLayout()
         mainLayout.setContentsMargins(3, 3, 3, 3)
+        mainLayout.setSpacing(2)
 
         self.setCentralWidget(self.mainWidget)
 
-        self._subtitleData = DataController(self)
+        self._videoWidget = VideoWidget(self)
         self._tabs = SubtitleWindow.SubTabWidget(self._subtitleData)
 
-        mainLayout.addWidget(self._tabs, 0, 0)
+        mainLayout.addWidget(self._videoWidget, 1)
+        mainLayout.addWidget(self._tabs, 3)
 
         self.statusBar()
-
         self.mainWidget.setLayout(mainLayout)
+
+        self.setWindowIcon(QIcon(":/img/logo.png"))
         self.setWindowTitle('Subconvert')
 
     def __connectSignals(self):
+        self._tabs.tabChanged.connect(self.__updateMenuItemsState)
+        self._tabs.tabChanged.connect(self.__updateWindowTitle)
+        self._tabs.fileList.selectionChanged.connect(self.__updateMenuItemsState)
         self._subtitleData.fileAdded.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
         self._subtitleData.fileChanged.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
         self._subtitleData.fileRemoved.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
-        self._tabs.tabChanged.connect(self.__updateMenuItemsState)
-        self._tabs.tabChanged.connect(self.__updateWindowTitle)
+        self._subtitleData.subtitlesAdded.connect(self.__updateMenuItemsState, Qt.QueuedConnection)
+        self._subtitleData.subtitlesRemoved.connect(
+            self.__updateMenuItemsState, Qt.QueuedConnection)
+        self._subtitleData.subtitlesChanged.connect(
+            self.__updateMenuItemsState, Qt.QueuedConnection)
 
     def __initActions(self):
         self._actions = {}
@@ -148,33 +161,69 @@ class MainWindow(QMainWindow):
         for fps in FPS_VALUES:
             fpsStr = str(fps)
             self._actions[fpsStr] = af.create(
-                None, fpsStr, None, None,
-                lambda _, fps=fps: self._tabs.currentPage().changeFps(fps))
+                None, fpsStr, None, None, lambda _, fps=fps: self.changeFps(fps))
 
         for encoding in ALL_ENCODINGS:
             self._actions["in_%s" % encoding] = af.create(
                 None, encoding, None, None,
-                lambda _, enc = encoding: self._tabs.currentPage().changeInputEncoding(enc))
+                lambda _, enc = encoding: self.changeInputEncoding(enc))
 
             self._actions["out_%s" % encoding] = af.create(
                 None, encoding, None, None,
-                lambda _, enc = encoding: self._tabs.currentPage().changeOutputEncoding(enc))
+                lambda _, enc = encoding: self.changeOutputEncoding(enc))
 
         for fmt in self._subtitleData.supportedFormats:
             self._actions[fmt.NAME] = af.create(
-                None, fmt.NAME, None, None,
-                lambda _, fmt = fmt: self._tabs.currentPage().changeSubFormat(fmt))
+                None, fmt.NAME, None, None, lambda _, fmt = fmt: self.changeSubFormat(fmt))
 
+        self._actions["fpsFromMovie"] = af.create(
+            None, _("From current &video"), None, "ctrl+shift+f", self.getFpsFromMovie)
 
-        self._actions["selectMovie"] = af.create(
-            None, _("Select &movie"), None, "ctrl+m",
-                lambda: self._tabs.currentPage().selectMovieFile())
+        self._actions["insertSub"] = af.create(
+            "list-add", _("&Insert subtitle"), None, "insert",
+            connection = lambda: self._tabs.currentPage().insertNewSubtitle())
+
+        self._actions["addSub"] = af.create(
+            "list-add", _("&Add subtitle"), None, "alt+insert",
+            connection = lambda: self._tabs.currentPage().addNewSubtitle())
+
+        self._actions["removeSub"] = af.create(
+            "list-remove", _("&Remove subtitles"), None, "delete",
+            connection = lambda: self._tabs.currentPage().removeSelectedSubtitles())
+
+        # Video
+        self._videoRatios = [(4, 3), (14, 9), (14, 10), (16, 9), (16, 10)]
+        self._actions["openVideo"] = af.create(
+            "document-open", _("&Open video"), None, "ctrl+m", self.openVideo)
+        self._actions["togglePlayback"] = af.create(
+            "media-playback-start", _("&Play/pause"), _("Toggle video playback"), "space",
+            self._videoWidget.togglePlayback)
+        self._actions["forward"] = af.create(
+            "media-skip-forward", _("&Forward"), None, "ctrl+right", self._videoWidget.forward)
+        self._actions["rewind"] = af.create(
+            "media-skip-backward", _("&Rewind"), None, "ctrl+left", self._videoWidget.rewind)
+        self._actions["frameStep"] = af.create(
+            None, _("Next &frame"), _("Go to the next frame in a video"), ".",
+            self._videoWidget.nextFrame)
+
+        for ratio in self._videoRatios:
+            self._actions["changeRatio_%d_%d" % ratio] = af.create(
+                None, "%d:%d" % ratio, None, None,
+                lambda _, r=ratio: self._videoWidget.changePlayerAspectRatio(r[0], r[1]))
+
+        self._actions["changeRatio_fill"] = af.create(
+            None, _("Fill"), None, None, self._videoWidget.fillPlayer)
+
+        self._actions["videoJump"] = af.create(
+            None, _("&Jump to subtitle"), None, "ctrl+j", self.jumpToSelectedSubtitle)
 
         # SPF editor
         self._actions["spfEditor"] = af.create(
-            None, _("Subtitle &Properties Editor"), None, None, self.openPropertyEditor)
+            "accessories-text-editor", _("Subtitle &Properties Editor"), None, None, self.openPropertyEditor)
 
         # View
+        self._actions["togglePlayer"] = af.create(
+            None, _("&Video player"), _("Show or hide video player"), "F3", self.togglePlayer)
         self._actions["togglePanel"] = af.create(
             None, _("Side &panel"), _("Show or hide left panel"), "F4", self._tabs.togglePanel)
 
@@ -200,6 +249,8 @@ class MainWindow(QMainWindow):
         subtitlesMenu.addAction(self._actions["redo"])
         subtitlesMenu.addSeparator()
         self._fpsMenu = subtitlesMenu.addMenu(_("&Frames per second"))
+        self._fpsMenu.addAction(self._actions["fpsFromMovie"])
+        self._fpsMenu.addSeparator()
         for fps in FPS_VALUES:
             self._fpsMenu.addAction(self._actions[str(fps)])
         self._subFormatMenu = subtitlesMenu.addMenu(_("Subtitles forma&t"))
@@ -210,9 +261,33 @@ class MainWindow(QMainWindow):
         for encoding in ALL_ENCODINGS:
             self._inputEncodingMenu.addAction(self._actions["in_%s" % encoding])
             self._outputEncodingMenu.addAction(self._actions["out_%s" % encoding])
-        subtitlesMenu.addAction(self._actions["selectMovie"])
+        subtitlesMenu.addSeparator()
+        subtitlesMenu.addAction(self._actions["insertSub"])
+        subtitlesMenu.addAction(self._actions["addSub"])
+        subtitlesMenu.addAction(self._actions["removeSub"])
 
-        viewMenu = menubar.addMenu(_("&View"))
+        videoMenu = menubar.addMenu(_("&Video"))
+        videoMenu.addAction(self._actions["openVideo"])
+        videoMenu.addSeparator()
+
+        playbackMenu = videoMenu.addMenu(_("&Playback"))
+        playbackMenu.addAction(self._actions["togglePlayback"])
+        playbackMenu.addSeparator()
+        playbackMenu.addAction(self._actions["forward"])
+        playbackMenu.addAction(self._actions["rewind"])
+        playbackMenu.addAction(self._actions["frameStep"])
+
+        self._ratioMenu = videoMenu.addMenu(_("&Aspect ratio"))
+        for ratio in self._videoRatios:
+            self._ratioMenu.addAction(self._actions["changeRatio_%d_%d" % ratio])
+        self._ratioMenu.addSeparator()
+        self._ratioMenu.addAction(self._actions["changeRatio_fill"])
+        videoMenu.addSeparator()
+
+        videoMenu.addAction(self._actions["videoJump"])
+
+        viewMenu = menubar.addMenu(_("Vie&w"))
+        viewMenu.addAction(self._actions["togglePlayer"])
         viewMenu.addAction(self._actions["togglePanel"])
 
         toolsMenu = menubar.addMenu(_("&Tools"))
@@ -226,6 +301,9 @@ class MainWindow(QMainWindow):
         self.addAction(self._actions["nextTab"])
         self.addAction(self._actions["previousTab"])
         self.addAction(self._actions["closeTab"])
+
+    def cleanup(self):
+        self._videoWidget.close()
 
     def __getAllSubExtensions(self):
         formats = self._subtitleData.supportedFormats
@@ -286,21 +364,33 @@ class MainWindow(QMainWindow):
         tabIsStatic = tab.isStatic if anyTabOpen else False
         if tabIsStatic:
             cleanState = False
+            anyItemSelected = len(tab.selectedItems) > 0
         else:
             cleanState = tab.history.isClean()
+            anyItemSelected = False
+
+        canUndo = (tabIsStatic and anyItemSelected) or (not tabIsStatic and tab.history.canUndo())
+        canRedo = (tabIsStatic and anyItemSelected) or (not tabIsStatic and tab.history.canRedo())
+        canEdit = (tabIsStatic and anyItemSelected) or (not tabIsStatic)
 
         self._actions["saveAllFiles"].setEnabled(dataAvailable)
-        self._actions["saveFile"].setEnabled(anyTabOpen and not tabIsStatic and not cleanState)
-        self._actions["saveFileAs"].setEnabled(anyTabOpen and not tabIsStatic)
+        self._actions["saveFile"].setEnabled(not tabIsStatic and not cleanState)
+        self._actions["saveFileAs"].setEnabled(not tabIsStatic)
 
-        self._actions["selectMovie"].setEnabled(anyTabOpen and not tabIsStatic)
-        self._fpsMenu.setEnabled(anyTabOpen and not tabIsStatic)
-        self._subFormatMenu.setEnabled(anyTabOpen and not tabIsStatic)
-        self._inputEncodingMenu.setEnabled(anyTabOpen and not tabIsStatic)
-        self._outputEncodingMenu.setEnabled(anyTabOpen and not tabIsStatic)
+        self._actions["undo"].setEnabled(canUndo)
+        self._actions["redo"].setEnabled(canRedo)
+        self._fpsMenu.setEnabled(canEdit)
+        self._subFormatMenu.setEnabled(canEdit)
+        self._inputEncodingMenu.setEnabled(canEdit)
+        self._outputEncodingMenu.setEnabled(canEdit)
 
-        self._actions["undo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canUndo())
-        self._actions["redo"].setEnabled(anyTabOpen and not tabIsStatic and tab.history.canRedo())
+        self._actions["fpsFromMovie"].setEnabled(not tabIsStatic)
+
+        self._actions["insertSub"].setEnabled(not tabIsStatic)
+        self._actions["addSub"].setEnabled(not tabIsStatic)
+        self._actions["removeSub"].setEnabled(not tabIsStatic)
+
+        self._actions["videoJump"].setEnabled(not tabIsStatic)
 
     def handleArgs(self, args):
         self._openFiles(args.files, args.inputEncoding)
@@ -374,6 +464,7 @@ class MainWindow(QMainWindow):
         fileDialog.setFileMode(QFileDialog.AnyFile)
 
         if fileDialog.exec():
+            newFilePath = fileDialog.selectedFiles()[0]
             data = currentTab.data
 
             outputFormat = fileDialog.getSubFormat()
@@ -383,12 +474,16 @@ class MainWindow(QMainWindow):
                 # save user changes
                 data.outputFormat = outputFormat
                 data.outputEncoding = outputEncoding
-                command = ChangeData(currentTab.filePath, data, _("Output data change"))
-                self._subtitleData.execute(command)
 
-            newFileName = fileDialog.selectedFiles()[0]
-            self.saveFile(newFileName)
-            self._settings.setLatestDirectory(os.path.dirname(newFileName))
+            if self._subtitleData.fileExists(newFilePath):
+                command = ChangeData(newFilePath, data)
+            else:
+                command = CreateSubtitlesFromData(newFilePath, data)
+            self._subtitleData.execute(command)
+            self._tabs.openTab(newFilePath)
+
+            self.saveFile(newFilePath)
+            self._settings.setLatestDirectory(os.path.dirname(newFilePath))
 
     def saveAll(self):
         dialog = MessageBoxWithList(self)
@@ -412,22 +507,86 @@ class MainWindow(QMainWindow):
             dialog.setWindowTitle(P_(
                 "Error on saving a file",
                 "Error on saving files",
-                len(self.listCount())
+                dialog.listCount()
                 ))
             dialog.setText(P_(
                 "Following error occured when trying to save a file:",
                 "Following errors occured when trying to save files:",
-                len(self.listCount())
+                dialog.listCount()
                 ))
             dialog.exec()
 
     def undo(self):
         currentTab = self._tabs.currentPage()
-        currentTab.history.undo()
+        if currentTab.isStatic:
+            currentTab.undoSelectedFiles()
+        else:
+            currentTab.history.undo()
 
     def redo(self):
         currentTab = self._tabs.currentPage()
-        currentTab.history.redo()
+        if currentTab.isStatic:
+            currentTab.redoSelectedFiles()
+        else:
+            currentTab.history.redo()
+
+    def changeInputEncoding(self, encoding):
+        currentTab = self._tabs.currentPage()
+        if currentTab.isStatic:
+            currentTab.changeSelectedFilesInputEncoding(encoding)
+        else:
+            currentTab.changeInputEncoding(encoding)
+
+    def changeOutputEncoding(self, encoding):
+        currentTab = self._tabs.currentPage()
+        if currentTab.isStatic:
+            currentTab.changeSelectedFilesOutputEncoding(encoding)
+        else:
+            currentTab.changeOutputEncoding(encoding)
+
+    def changeSubFormat(self, fmt):
+        currentTab = self._tabs.currentPage()
+        if currentTab.isStatic:
+            currentTab.changeSelectedFilesFormat(fmt)
+        else:
+            currentTab.changeSubFormat(fmt)
+
+    def changeFps(self, fps):
+        currentTab = self._tabs.currentPage()
+        if currentTab.isStatic:
+            currentTab.changeSelectedFilesFps(fps)
+        else:
+            currentTab.changeFps(fps)
+
+    def togglePlayer(self):
+        if self._videoWidget.isHidden():
+            self._videoWidget.show()
+        else:
+            self._videoWidget.hide()
+
+    def getFpsFromMovie(self):
+        currentTab = self._tabs.currentPage()
+        fps = self._videoWidget.movieProperties.fps
+        if fps is not None:
+            currentTab.changeFps(fps)
+
+    def openVideo(self):
+        movieExtensions = "%s%s" % ("*.", ' *.'.join(File.MOVIE_EXTENSIONS))
+        fileDialog = FileDialog(
+            parent = self,
+            caption = _("Select a video"),
+            directory = self._settings.getLatestDirectory(),
+            filter = _("Video files (%s);;All files (*)") % movieExtensions)
+        fileDialog.setFileMode(QFileDialog.ExistingFile)
+        if fileDialog.exec():
+            movieFilePath = fileDialog.selectedFiles()[0]
+            self._videoWidget.openFile(movieFilePath)
+
+    def jumpToSelectedSubtitle(self):
+        currentTab = self._tabs.currentPage()
+        subtitleList = currentTab.selectedSubtitles()
+        if len(subtitleList) > 0:
+            self._videoWidget.jumpTo(subtitleList[0].start)
 
     def openPropertyEditor(self):
         editor = PropertyFileEditor(self._subtitleData.supportedFormats, self)
@@ -450,6 +609,6 @@ class MainWindow(QMainWindow):
             dialog = QMessageBox(self)
             dialog.setIcon(QMessageBox.Critical)
             dialog.setWindowTitle(_("Couldn't open URL"))
-            dialog.setText(_("""Failed to open URL: <a href="%(url)s">%(url)s</a>.""") % 
+            dialog.setText(_("""Failed to open URL: <a href="%(url)s">%(url)s</a>.""") %
                 {"url": url})
             dialog.exec()

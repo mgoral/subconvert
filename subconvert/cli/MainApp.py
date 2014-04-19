@@ -24,7 +24,7 @@ import re
 import logging
 from string import Template
 
-from subconvert.parsing.Core import SubParser, SubConverter, SubParsingError
+from subconvert.parsing.Core import SubConverter, SubParsingError
 from subconvert.parsing.Formats import *
 from subconvert.utils.Locale import _
 from subconvert.utils.SubtitleData import SubtitleData
@@ -41,13 +41,12 @@ class FileTemplate(Template):
         delimiter = '%'
 
 class SubApplication:
-    def __init__(self, args):
+    def __init__(self, args, parser):
         self._args = args
-        self._parser = SubParser()
+        self._parser = parser
 
-        for Format in SubFormat.__subclasses__():
-            self._parser.registerFormat(Format)
-
+    def cleanup(self):
+        pass
 
     def parseFile(self, subFile, inputEncoding , fps):
         content = subFile.read(inputEncoding)
@@ -119,8 +118,8 @@ class SubApplication:
             file_ = File(filePath)
         except:
             # File doesn't exist, we can safely write to it
-            log.debug(_("Saving to file: %s" % filePath))
             File.write(filePath, convertedSubtitles, encoding)
+            log.info(_("File %s saved.") % filePath)
         else:
             # A little hack to ensure that translator won't make a mistake
             choices = { 'yes': _('y'), 'no': _('n'), 'quit': _('q'), 'backup': _('b') }
@@ -158,8 +157,11 @@ class SubApplication:
             outputFormat = self.getOutputFormat()
             converter = SubConverter()
 
+            if len(self._args.files) == 0:
+                log.warning(_("No files selected."))
+
             for filePath in self._args.files:
-                log.info(_("Starting a job for file: '%s'") % filePath)
+                log.info(_("Starting a job for file: %s") % filePath)
                 try:
                     subFile = File(filePath)
                 except IOError:

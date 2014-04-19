@@ -22,6 +22,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 import os
 import logging
 import encodings
+from collections import OrderedDict
 
 from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QIcon, QTreeWidgetItem
 from PyQt4.QtGui import QTableView, QHeaderView, QStandardItemModel, QStandardItem, QSizePolicy
@@ -29,6 +30,7 @@ from PyQt4.QtGui import QMessageBox, QAbstractItemView, QAction, QMenu, QCursor,
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer
 
 from subconvert.parsing.FrameTime import FrameTime
+from subconvert.parsing.Core import Subtitle
 from subconvert.utils.Locale import _
 from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.SubSettings import SubSettings
@@ -36,7 +38,7 @@ from subconvert.utils.PropertyFile import SubtitleProperties, PropertiesFileAppl
 from subconvert.utils.SubFile import File
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import ActionFactory, SubtitleList, ComboBoxWithHistory, FPS_VALUES
-from subconvert.gui.Detail import CustomDataRoles, SubListItemDelegate
+from subconvert.gui.Detail import CustomDataRoles, SubListItemDelegate, DisableSignalling
 from subconvert.gui.SubtitleCommands import *
 
 log = logging.getLogger('Subconvert.%s' % __name__)
@@ -66,6 +68,7 @@ class SubTab(QWidget):
 class FileList(SubTab):
     requestOpen = pyqtSignal(str, bool)
     requestRemove = pyqtSignal(str)
+    selectionChanged = pyqtSignal()
 
     def __init__(self, name, subtitleData, parent = None):
         super(FileList, self).__init__(name, parent)
@@ -190,11 +193,11 @@ class FileList(SubTab):
 
         # Undo/redo
 
-        actionUndo = af.create(None, _("&Undo"), None, None, self.undoSelectedFiles)
+        actionUndo = af.create("undo", _("&Undo"), None, None, self.undoSelectedFiles)
         actionUndo.setEnabled(anyItemSelected)
         self._contextMenu.addAction(actionUndo)
 
-        actionRedo = af.create(None, _("&Redo"), None, None, self.redoSelectedFiles)
+        actionRedo = af.create("redo", _("&Redo"), None, None, self.redoSelectedFiles)
         actionRedo.setEnabled(anyItemSelected)
         self._contextMenu.addAction(actionRedo)
 
@@ -202,6 +205,7 @@ class FileList(SubTab):
         self.__fileList.mouseButtonDoubleClicked.connect(self._handleDoubleClick)
         self.__fileList.mouseButtonClicked.connect(self._handleClick)
         self.__fileList.keyPressed.connect(self._handleKeyPress)
+        self.__fileList.selectionModel().selectionChanged.connect(self._selectionChangedHandle)
         self.customContextMenuRequested.connect(self._showContextMenu)
 
         self._subtitleData.fileAdded.connect(self._addFile)
@@ -245,6 +249,13 @@ class FileList(SubTab):
             else:
                 icon = QIcon(":/img/not_clean.png")
             item.setIcon(0, icon)
+
+    def _selectionChangedHandle(self, selected, deselected):
+        self.selectionChanged.emit()
+
+    @property
+    def selectedItems(self):
+        return self.__fileList.selectedItems()
 
     def canClose(self):
         return False
@@ -306,7 +317,8 @@ class FileList(SubTab):
     def _useSubProperties(self, propertyPath):
         if propertyPath:
             try:
-                subProperties = SubtitleProperties(propertyPath)
+                subProperties = SubtitleProperties(
+                    self._subtitleData.supportedFormats, propertyPath)
             except:
                 log.error(_("Cannot read %s as Subtitle Property file.") % propertyPath)
                 self._settings.removePropertyFile(propertyPath)
@@ -401,7 +413,10 @@ class SubtitleEditor(SubTab):
 
         # Some signals
         self._subtitleData.fileChanged.connect(self.fileChanged)
-        self._model.itemChanged.connect(self._subtitleChanged)
+        self._subtitleData.subtitlesAdded.connect(self._subtitlesAdded)
+        self._subtitleData.subtitlesRemoved.connect(self._subtitlesRemoved)
+        self._subtitleData.subtitlesChanged.connect(self._subtitlesChanged)
+        self._model.itemChanged.connect(self._subtitleEdited)
         self.customContextMenuRequested.connect(self.showContextMenu)
 
     def __initWidgets(self):
@@ -436,13 +451,16 @@ class SubtitleEditor(SubTab):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         af = ActionFactory(self)
 
-        # TODO: implementation
-        insertSub = af.create(title = _("&Insert subtitle"), connection = None)
-        insertSub.setEnabled(False)
+        insertSub = af.create(title = _("&Insert subtitle"), icon = "list-add",
+            connection = self.insertNewSubtitle)
         self._contextMenu.addAction(insertSub)
 
-        removeSub = af.create(title = _("&Remove subtitles"), connection = None)
-        removeSub.setEnabled(False)
+        insertSub = af.create(title = _("&Add subtitle"), icon = "list-add",
+            connection = self.addNewSubtitle)
+        self._contextMenu.addAction(insertSub)
+
+        removeSub = af.create(title = _("&Remove subtitles"), icon = "list-remove",
+            connection = self.removeSelectedSubtitles)
         self._contextMenu.addAction(removeSub)
 
     def _createRow(self, sub):
@@ -458,31 +476,29 @@ class SubtitleEditor(SubTab):
 
         return [timeStart, timeEnd, text]
 
-    def _changeItemBackground(self, item, bg):
-        self._model.itemChanged.disconnect(self._subtitleChanged)
-        item.setBackground(bg)
-        self._model.itemChanged.connect(self._subtitleChanged)
+    def _changeRowBackground(self, rowNo, bg):
+        with DisableSignalling(self._model.itemChanged, self._subtitleEdited):
+            for columnNo in range(self._model.columnCount()):
+                item = self._model.item(rowNo, columnNo)
+                item.setBackground(bg)
 
     def _changeItemData(self, item, val, role):
-        self._model.itemChanged.disconnect(self._subtitleChanged)
-        item.setData(val, role)
-        self._model.itemChanged.connect(self._subtitleChanged)
+        with DisableSignalling(self._model.itemChanged, self._subtitleEdited):
+            item.setData(val, role)
 
     def _handleIncorrectItem(self, item):
-        self._model.itemChanged.disconnect(self._subtitleChanged)
-        item.setData(False, CustomDataRoles.ErrorFlagRole)
-        self._model.itemChanged.connect(self._subtitleChanged)
+        with DisableSignalling(self._model.itemChanged, self._subtitleEdited):
+            item.setData(False, CustomDataRoles.ErrorFlagRole)
 
         bg = item.background()
-        self._changeItemBackground(item, Qt.red)
-        QTimer.singleShot(1500, lambda item=item, bg=bg: self._changeItemBackground(item, bg))
+        rowNo = item.row()
+        self._changeRowBackground(rowNo, Qt.red)
+        QTimer.singleShot(600, lambda rowNo=rowNo, bg=bg: self._changeRowBackground(rowNo, bg))
 
-    def _subtitleChanged(self, item):
+    def _subtitleEdited(self, item):
         modelIndex = item.index()
         column = modelIndex.column()
         subNo = modelIndex.row()
-
-        self._subList.clearSelection()
 
         errorFlag = item.data(CustomDataRoles.ErrorFlagRole)
         if errorFlag is True:
@@ -502,7 +518,83 @@ class SubtitleEditor(SubTab):
             elif 2 == column:
                 newSubtitle.change(text = item.text())
             command = ChangeSubtitle(self.filePath, oldSubtitle, newSubtitle, subNo)
-            self.execute(command)
+            self._subtitleData.execute(command)
+
+    def _subtitlesAdded(self, subNos):
+        subtitles = self.subtitles
+        for subNo in subNos:
+            row = self._createRow(subtitles[subNo])
+            self._model.insertRow(subNo, row)
+
+    def _subtitlesRemoved(self, subNos):
+        for subNo in subNos:
+            self._model.removeRow(subNo)
+
+    def _subtitlesChanged(self, subNos):
+        for subNo in subNos:
+            self.refreshSubtitle(subNo)
+
+    def _createNewSubtitle(self, data, subNo):
+        fps = data.fps # data is passed to avoid unnecessary copies
+        minFrameTime = FrameTime(fps, frames = 1)
+
+        # calculate correct minimum subtitle start time
+        if subNo > 0:
+            timeStart = data.subtitles[subNo - 1].end + minFrameTime
+        else:
+            timeStart = FrameTime(fps, frames = 0)
+
+        # calculate correct maximum subtitle end time
+        if subNo < data.subtitles.size():
+            try:
+                timeEnd = data.subtitles[subNo].start - minFrameTime
+            except SubException:
+                timeEnd = FrameTime(fps, frames = 0)
+        else:
+            timeEnd = timeStart + FrameTime(fps, frames = 50)
+
+        # add subtitle to DataModel
+        sub = Subtitle(timeStart, timeEnd, "")
+        command = AddSubtitle(self.filePath, subNo, sub)
+        with DisableSignalling(self._subtitleData.subtitlesAdded, self._subtitlesAdded):
+            self._subtitleData.execute(command)
+
+        # create subtitle graphical representation in editor sub list
+        row = self._createRow(sub)
+        self._model.insertRow(subNo, row)
+        index = self._model.index(subNo, 2)
+        self._subList.clearSelection()
+        self._subList.setCurrentIndex(index)
+        self._subList.edit(index)
+
+    def addNewSubtitle(self):
+        data = self.data
+        subNo = data.subtitles.size()
+        indices = self._subList.selectedIndexes()
+        if len(indices) > 0:
+            rows = [index.row() for index in indices]
+            subNo = max(rows) + 1
+        self._createNewSubtitle(data, subNo)
+
+    def insertNewSubtitle(self):
+        data = self.data
+        subNo = 0
+        indices = self._subList.selectedIndexes()
+        if len(indices) > 0:
+            rows = [index.row() for index in indices]
+            subNo = max(rows)
+        self._createNewSubtitle(data, subNo)
+
+    def removeSelectedSubtitles(self):
+        indices = self._subList.selectedIndexes()
+        if len(indices) > 0:
+            rows = list(set([index.row() for index in indices]))
+            command = RemoveSubtitles(self.filePath, rows)
+            self._subtitleData.execute(command)
+            if self._model.rowCount() > rows[-1]:
+                self._subList.selectRow(rows[-1])
+            else:
+                self._subList.selectRow(self._model.rowCount() - 1)
 
     def showContextMenu(self):
         self._contextMenu.exec(QCursor.pos())
@@ -529,8 +621,7 @@ class SubtitleEditor(SubTab):
             else:
                 # TODO: outputEncoding
                 command = ChangeData(self.filePath, data, _("Encoding changed: %s") % encoding)
-                self.execute(command)
-                self.refreshSubtitles()
+                self._subtitleData.execute(command)
 
     def changeOutputEncoding(self, encoding):
         data = self._subtitleData.data(self.filePath)
@@ -553,25 +644,7 @@ class SubtitleEditor(SubTab):
             data.subtitles.changeFps(val)
             data.fps = val
             command = ChangeData(self.filePath, data, _("FPS change: %s") % val)
-            self.execute(command)
-            self.refreshSubtitles()
-
-    def selectMovieFile(self):
-        # TODO: currently selectMovieFile only fetches FPS from it (but this behaviour also should
-        # be controlled by settings).
-
-        movieExtensions = "%s%s" % ("*.", ' *.'.join(File.MOVIE_EXTENSIONS))
-        fileDialog = FileDialog(
-            parent = self,
-            caption = _("Select movie"),
-            directory = self._settings.getLatestDirectory(),
-            filter = _("Movie files (%s);;All files (*)") % movieExtensions)
-        fileDialog.setFileMode(QFileDialog.ExistingFile)
-        if fileDialog.exec():
-            self._movieFilePath = fileDialog.selectedFiles()[0]
-            subFile = File(self.filePath)
-            fps = subFile.detectFps(self._movieFilePath)
-            self.changeFps(fps)
+            self._subtitleData.execute(command)
 
     def fileChanged(self, filePath):
         if filePath == self._filePath:
@@ -590,11 +663,15 @@ class SubtitleEditor(SubTab):
     def updateTab(self):
         self.refreshSubtitles()
 
-    def execute(self, cmd):
-        # TODO: check if subtitleData.fileExists(filePath) ???
-        self._subtitleData.fileChanged.disconnect(self.fileChanged)
-        self._subtitleData.execute(cmd)
-        self._subtitleData.fileChanged.connect(self.fileChanged)
+    def selectedSubtitles(self):
+        indices = self._subList.selectedIndexes()
+        if len(indices) > 0:
+            tempDict = OrderedDict.fromkeys([index.row() for index in indices])
+            rows = list(tempDict)
+            rows.sort()
+            subtitleList = [self.subtitles[row] for row in rows]
+            return subtitleList
+        return []
 
     @property
     def filePath(self):

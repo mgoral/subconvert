@@ -24,6 +24,12 @@ import re
 from subconvert.utils.SubException import SubAssert
 from subconvert.utils.Locale import _
 
+class FrameTimeType:
+    """Used to determine if frame or time should be changed on FPS change."""
+    Undefined = 0
+    Frame = 1
+    Time = 2
+
 class FrameTime():
     """Class defining a FrameTime object which consists of frame and time metrics (and fps as well)."""
 
@@ -43,6 +49,7 @@ class FrameTime():
 
         self._fps = float(fps)
         if frames is None and time is None and seconds is None:
+            self._origin = FrameTimeType.Undefined
             self._frame = 0
             self._full_seconds = 0.0
             self._miliseconds = 0
@@ -55,14 +62,18 @@ class FrameTime():
                 raise AttributeError("FrameTime can obly be initialized by one type.")
 
             if frames is not None:
+                self._origin = FrameTimeType.Frame
                 self.__setFrame__(int(frames))
             elif time is not None:
+                self._origin = FrameTimeType.Time
                 self.__setTime__(str(time))
-            if seconds is not None:
+            elif seconds is not None:
+                self._origin = FrameTimeType.Time
                 self.__setSeconds__(float(seconds))
 
     def clone(self):
         other = FrameTime(fps = self.fps)
+        other._origin = self._origin
         other._frame = self._frame
         other._full_seconds = self._full_seconds
         other._miliseconds = self._miliseconds
@@ -81,7 +92,13 @@ class FrameTime():
             self._fps = float(newFps)
         else:
             raise ValueError("Incorrect FPS value: %s." % newFps)
-        self.__setFrame__(self._full_seconds * self._fps)
+
+        # TODO: test
+        if self._origin == FrameTimeType.Time:
+            self.__setFrame__(self._full_seconds * self._fps)
+        else:
+            self.__setSeconds__(self._frame / self._fps)
+
 
     @property
     def frame(self):

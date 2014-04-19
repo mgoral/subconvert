@@ -161,4 +161,4 @@ Subconvert is free software, available under terms of GNU General Public License
 `License.txt` which should be delivered with Subconvert.
 
 [wiki]: https://github.com/mgoral/subconvert/wiki
-[wiki-gui]: https://github.com/mgoral/subconvert/wiki/GUI
+[wiki-gui]: https://github.com/mgoral/subconvert/wiki/Graphical-User-Interface

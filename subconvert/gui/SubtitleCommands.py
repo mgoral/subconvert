@@ -23,7 +23,7 @@ import os
 
 from subconvert.parsing.Core import Subtitle
 from subconvert.utils.Locale import _
-from subconvert.utils.SubException import SubException
+from subconvert.utils.SubException import SubException, SubAssert
 
 from PyQt4.QtGui import QUndoCommand
 
@@ -35,7 +35,7 @@ from PyQt4.QtGui import QUndoCommand
 # 2. Modify a subtitle by Change Subtitle
 # This way a reference stored in step 1 is also modified. BUT: as long as we provide only one step
 # undo/redo and as long as all modifications are done only by QUndoCommands, changes will be
-# reverted to the proper state before ChangeEncoding command will be on top of UndoStack again 
+# reverted to the proper state before ChangeEncoding command will be on top of UndoStack again
 # (in our case: after one 'undo').
 
 class IncorrectFilePath(SubException):
@@ -96,14 +96,14 @@ class ChangeSubtitle(SubtitleChangeCommand):
         storage.subtitles.changeSubText(self._subNo, self._newSubtitle.text)
         storage.subtitles.changeSubStart(self._subNo, self._newSubtitle.start)
         storage.subtitles.changeSubEnd(self._subNo, self._newSubtitle.end)
-        self.controller.fileChanged.emit(self.filePath)
+        self.controller.subtitlesChanged.emit([self._subNo])
 
     def undo(self):
         storage = self.controller._storage[self.filePath]
         storage.subtitles.changeSubText(self._subNo, self._oldSubtitle.text)
         storage.subtitles.changeSubStart(self._subNo, self._oldSubtitle.start)
         storage.subtitles.changeSubEnd(self._subNo, self._oldSubtitle.end)
-        self.controller.fileChanged.emit(self.filePath)
+        self.controller.subtitlesChanged.emit([self._subNo])
 
 class ChangeData(SubtitleChangeCommand):
     def __init__(self, filePath, newData, desc = None, parent = None):
@@ -154,7 +154,26 @@ class NewSubtitles(SubtitleChangeCommand):
         self.controller.fileAdded.emit(self.filePath)
 
     def undo(self):
-        pass # TODO: raise "AtTheBeginning" exception?
+        pass
+
+class CreateSubtitlesFromData(SubtitleChangeCommand):
+    def __init__(self, filePath, data, parent = None):
+        super().__init__(filePath, parent)
+        self.setText(_("Copied subtitles: %s") % os.path.basename(filePath))
+        self._newData = data
+
+    def setup(self):
+        super().setup()
+        if self.controller.fileExists(self.filePath):
+            raise DoubleFileEntry("'%s' cannot be added twice" % self._filePath)
+        self._newData.verifyAll()
+
+    def redo(self):
+        self.controller._storage[self.filePath] = self._newData
+        self.controller.fileAdded.emit(self.filePath)
+
+    def undo(self):
+        pass
 
 class RemoveFile(SubtitleChangeCommand):
     def __init__(self, filePath, parent = None):
@@ -177,3 +196,53 @@ class RemoveFile(SubtitleChangeCommand):
 
     def undo(self):
         pass
+
+class AddSubtitle(SubtitleChangeCommand):
+    def __init__(self, filePath, subNo, subtitle, parent = None):
+        super().__init__(filePath, parent)
+        self._subNo = subNo
+        self._subtitle = subtitle
+
+    def setup(self):
+        super().setup()
+        storage = self.controller._storage[self.filePath]
+        SubAssert(storage.subtitles.size() == 0 or storage.subtitles.fps == self._subtitle.fps,
+            "All subtitles must have equal fps values")
+
+    def redo(self):
+        storage = self.controller._storage[self.filePath]
+        storage.subtitles.insert(self._subNo, self._subtitle)
+        self.controller.subtitlesAdded.emit([self._subNo])
+
+    def undo(self):
+        storage = self.controller._storage[self.filePath]
+        storage.subtitles.remove(self._subNo)
+        self.controller.subtitlesRemoved.emit([self._subNo])
+
+class RemoveSubtitles(SubtitleChangeCommand):
+    def __init__(self, filePath, subNos, parent = None):
+        super().__init__(filePath, parent)
+
+        # we'll remove from the highest subtitle to keep things simple
+        self._subNos = subNos
+        self._subNos.sort(reverse = True)
+
+    def setup(self):
+        super().setup()
+        storage = self.controller._storage[self.filePath]
+        self._subs = []
+        for subNo in self._subNos:
+            self._subs.append((subNo, storage.subtitles[subNo]))
+
+    def redo(self):
+        storage = self.controller._storage[self.filePath]
+        for sub in self._subs:
+            storage.subtitles.remove(sub[0])
+        self.controller.subtitlesRemoved.emit(self._subNos)
+
+    def undo(self):
+        storage = self.controller._storage[self.filePath]
+        for sub in reversed(self._subs):
+            storage.subtitles.insert(sub[0], sub[1])
+        self.controller.subtitlesAdded.emit(reversed(self._subNos))
+

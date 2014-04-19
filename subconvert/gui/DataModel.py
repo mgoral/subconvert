@@ -22,8 +22,6 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt4.QtGui import QUndoStack
 
-from subconvert.parsing.Core import SubParser, SubConverter, SubParsingError
-from subconvert.parsing.Formats import *
 from subconvert.utils.Locale import _
 from subconvert.utils.SubFile import File
 from subconvert.utils.SubtitleData import SubtitleData
@@ -42,8 +40,11 @@ class DataController(QObject):
     _fileAdded = pyqtSignal(str, name = "fileAdded")
     _fileRemoved = pyqtSignal(str, name = "fileRemoved")
     _fileChanged = pyqtSignal(str, name = "fileChanged")
+    _subtitlesChanged = pyqtSignal(list, name = "subtitlesChanged")
+    _subtitlesAdded = pyqtSignal(list, name = "subtitlesAdded")
+    _subtitlesRemoved = pyqtSignal(list, name = "subtitlesRemoved")
 
-    def __init__(self, parent = None):
+    def __init__(self, parser, parent = None):
         super(DataController, self).__init__(parent)
         self._storage = {
             # filePath: SubtitleData
@@ -52,15 +53,13 @@ class DataController(QObject):
             # filePath: SubtitleUndoStack
         }
 
-        self._parser = SubParser()
-        for Format in SubFormat.__subclasses__():
-            self._parser.registerFormat(Format)
+        self._parser = parser
 
     def _parseFile(self, file_, inputEncoding, fps):
         fileContent = file_.read(inputEncoding)
         return self._parser.parse(fileContent, fps)
 
-    def createDataFromFile(self, filePath, inputEncoding = None, fps = 25.0):
+    def createDataFromFile(self, filePath, inputEncoding = None, fps = None):
         """Fetch a given filePath and parse its contents.
 
         May raise the following exceptions:
@@ -74,6 +73,9 @@ class DataController(QObject):
         if inputEncoding is None:
             inputEncoding = file_.detectEncoding()
         inputEncoding = inputEncoding.lower()
+
+        if fps is None:
+            fps = file_.detectFps()
 
         subtitles = self._parseFile(file_, inputEncoding, fps)
 

@@ -10,7 +10,8 @@ utils_PYTHON = \
 	SubFile.py \
 	SubSettings.py \
 	SubtitleData.py \
-	version.py
+	version.py \
+	VideoPlayer.py
 
 #CLEANFILES += $(utils_PYTHON)
 

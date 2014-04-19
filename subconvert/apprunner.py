@@ -20,12 +20,13 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
 from PyQt4.QtGui import QApplication
+from PyQt4.QtCore import QTimer
 
 import os
 import sys
-import signal
 import logging
 import argparse
+import atexit
 
 from subconvert.utils.Locale import _
 from subconvert.utils.version import __appname__, __version__
@@ -33,17 +34,24 @@ from subconvert.gui import MainWindow
 from subconvert.cli import MainApp
 from subconvert.utils.PropertyFile import SubtitleProperties
 
+from subconvert.parsing.Core import SubParser
+from subconvert.parsing.Formats import *
+
 log = logging.getLogger('Subconvert')
 
-def loadSpf(filePath):
+def cleanup(app):
+    log.debug("Subconvert cleanup")
+    app.cleanup()
+
+def loadSpf(formats, filePath):
     try:
-        spf = SubtitleProperties(filePath)
+        spf = SubtitleProperties(formats, filePath)
     except FileNotFoundError:
         log.critical(_("No such file: '%s'") % filePath)
         sys.exit(2)
     return spf
 
-def prepareOptions():
+def prepareOptions(subFormats):
     parser = argparse.ArgumentParser(
         description = _("Subconvert is a movie subtitles editor and converter."))
 
@@ -71,15 +79,16 @@ def prepareOptions():
         type = str,
         help = _("sets output subtitle format to FMT"))
     subtitleGroup.add_argument("-p", "--property-file", metavar = _("FILE"), dest = "pfile",
-        type = loadSpf, default = SubtitleProperties(),
+        type = lambda filePath : loadSpf(subFormats, filePath),
+        default = SubtitleProperties(subFormats),
         help = _("loads settings from spf (subtitle property file)"))
 
-    movieGroup = parser.add_argument_group(_("movie options"))
+    movieGroup = parser.add_argument_group(_("video options"))
     movieGroup.add_argument("--fps", type = float,
-        help = _("specifies movie frames per second"))
+        help = _("specifies video frames per second"))
     movieGroup.add_argument("-A", "--auto-fps", action = "store_true", dest = "autoFps",
-        help = _("uses MPlayer to automatically get FPS value from the movie"))
-    movieGroup.add_argument("-v", "--video", metavar = _("MOVIE"), type = os.path.expanduser,
+        help = _("uses MPlayer to automatically get FPS value from the video"))
+    movieGroup.add_argument("-v", "--video", metavar = _("VIDEO"), type = os.path.expanduser,
         # Translators: Do not translate '%%f'
         help = _("specifies a video file to get FPS value from. "
             "All occurences of '%%f' will be replaced by input file name base"))
@@ -94,21 +103,35 @@ def prepareOptions():
 
     return parser
 
-def startApp(args):
+def initSubParser():
+    parser = SubParser()
+    for Format in SubFormat.__subclasses__():
+        parser.registerFormat(Format)
+    return parser
+
+def startApp(args, parser):
     if args.console:
-        app = MainApp.SubApplication(args)
+        app = MainApp.SubApplication(args, parser)
+        atexit.register(cleanup, app)
         sys.exit(app.run())
     else:
         app = QApplication(sys.argv)
-        signal.signal(signal.SIGINT, signal.SIG_DFL) # allows ctrl-c which is blocked by default
-        gui = MainWindow.MainWindow(args)
+        gui = MainWindow.MainWindow(args, parser)
+
+        atexit.register(cleanup, gui)
+
+        # Let the interpreter run each 500 ms.
+        timer = QTimer()
+        timer.start(500)
+        timer.timeout.connect(lambda: None)
+
         gui.show()
         sys.exit(app.exec_())
 
 def main():
-    optParser = prepareOptions()
+    parser = initSubParser()
+    optParser = prepareOptions(parser.formats)
     args = optParser.parse_args()
-
 
     if args.version:
         print("%s %s" % (__appname__, __version__))
@@ -122,4 +145,4 @@ def main():
         log.setLevel(logging.DEBUG)
     log.addHandler(logging.StreamHandler())
 
-    startApp(args)
+    startApp(args, parser)
