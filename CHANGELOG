@@ -1,5 +1,20 @@
 Version history
 
+1.0.3   : 19.04.2013 (contains not released fixes from 1.0.2)
+* ADD:  Enabled menu bar subtitles editing (+undo/redo)
+* ADD:  "Save as..." opens a file in new tab to which subs are saved.
+* ADD:  Inserting and removing subtitles.
+* ADD:  Jumping to the start of highlighted sub
+* FIX:  Fixed not showing errors on "save all"
+* FIX:  Show a message box when there's an error on SPF saving
+* FIX:  Update "subtitles menu" on file list selection change
+* FIX:  Strip subtitles from whitespaces
+* FIX:  Fixed loading autoInputEncoding SPF flag
+* FIX:  Fixed displaying timestamp for some kind of movies
+* FIX:  Added missing window icon
+* MOD:  Change SubtitleProperties format: pickle -> JSON
+* MOD:  Changed forward/rewind shortucts to ctrl+right, ctrl+left
+
 1.0.1   : 21.12.2013
 * ADD:  spinbox on subtitle time edit
 * FIX:  installing Subconvert icons
