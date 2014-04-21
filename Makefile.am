@@ -17,13 +17,16 @@ EXTRA_DIST = \
 	CHANGELOG \
 	resources.qrc \
 	$(subconvert_SCRIPTS) \
-	$(desktop_DATA)
+	$(desktop_DATA) \
+	tools/subconvert_version.sh
 
 SUBCONVERT_DIR = ./subconvert
 COVERAGE_DIR = "coverage"
+VERSION = $(shell sh tools/subconvert_version.sh)
 
 gen:
 	$(PYRCC) -py3 -o $(SUBCONVERT_DIR)/resources.py resources.qrc
+	$(SED) -i 's/__version__ = .\+/__version__ = "$(VERSION)"/' subconvert/utils/version.py
 
 test: gen
 	@nosetests3 -v
@@ -44,6 +47,9 @@ install-data-hook:
 	$(MKDIR_P) $(DESTDIR)$(bindir)
 	cd $(DESTDIR)$(bindir) && \
 		$(LN_S) $(DESTDIR)$(datadir)/subconvert/subconvert.py subconvert
+
+dist-hook:
+	echo $(VERSION) > $(distdir)/.tarball-version
 
 reinstall:
 	make uninstall

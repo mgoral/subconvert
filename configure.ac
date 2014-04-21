@@ -1,4 +1,4 @@
-AC_INIT([Subconvert], [m4_esyscmd_s([git describe --abbrev=4 --dirty --always --tags])], [https://github.com/mgoral/subconvert/issues])
+AC_INIT([Subconvert], [m4_esyscmd_s([sh tools/subconvert_version.sh])], [https://github.com/mgoral/subconvert/issues])
 AM_INIT_AUTOMAKE([foreign -Wall])
 
 AC_PREFIX_DEFAULT([/usr])
@@ -26,6 +26,11 @@ IT_PROG_INTLTOOL([0.35.0])
 GETTEXT_PACKAGE=AC_PACKAGE_TARNAME
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [gettext package])
+
+AC_CHECK_PROGS([SED], [sed], [:])
+if test "$SED" = :; then
+    AC_MSG_ERROR([Could not find program: sed])
+fi
 
 AC_CHECK_PROGS([PYRCC], [pyrcc4], [:])
 if test "$PYRCC" = :; then
