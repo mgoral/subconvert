@@ -637,7 +637,7 @@ class MainWindow(QMainWindow):
                 if not os.path.isdir(filePath):
                     fileName, fileExtension = os.path.splitext(filePath)
 
-                    if fileExtension.lower() in File.MOVIE_EXTENSIONS:
+                    if fileExtension.strip('.').lower() in File.MOVIE_EXTENSIONS:
                         moviePaths.append(filePath)
                     else:
                         subPaths.append(filePath)
