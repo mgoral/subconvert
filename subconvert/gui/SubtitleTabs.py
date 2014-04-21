@@ -91,8 +91,9 @@ class FileList(SubTab):
 
         self.__fileList.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.__fileList.setColumnCount(4)
-        self.__fileList.setHeaderLabels(
-            [_("File name"), _("Input encoding"), _("Output encoding"), _("Subtitle format")])
+        self.__fileList.setHeaderLabels([
+            _("File name"), _("Input encoding"), _("Output encoding"), _("Subtitle format"),
+            _("FPS")])
         mainLayout.addWidget(self.__fileList)
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -217,7 +218,8 @@ class FileList(SubTab):
 
         icon = QIcon(":/img/ok.png")
         item = QTreeWidgetItem(
-            [filePath, data.inputEncoding, data.outputEncoding, data.outputFormat.NAME])
+            [filePath, data.inputEncoding, data.outputEncoding, data.outputFormat.NAME,
+                str(data.fps)])
         item.setIcon(0, icon)
         item.setToolTip(0, filePath)
         self.__fileList.addTopLevelItem(item)
@@ -240,6 +242,7 @@ class FileList(SubTab):
                 item.setText(1, data.inputEncoding)
                 item.setText(2, data.outputEncoding)
                 item.setText(3, data.outputFormat.NAME)
+                item.setText(4, str(data.fps))
 
     def _cleanStateChanged(self, filePath, clean):
         items = self.__fileList.findItems(filePath, Qt.MatchExactly)
