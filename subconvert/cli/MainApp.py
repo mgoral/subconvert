@@ -64,7 +64,8 @@ class SubApplication:
             fps = self._args.pfile.fps # default value
             if self._args.autoFps or (self._args.video is not None) or self._args.pfile.autoFps:
                 movieFile = self._parsePathTemplate(self._args.video, subFile.path)
-                fps = subFile.detectFps(movieFile, fps)
+                videoInfo = subFile.detectFps(movieFile, fps)
+                fps = videoInfo.fps
         return fps
 
     def updateEncodings(self, subFile):

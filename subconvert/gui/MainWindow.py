@@ -348,7 +348,7 @@ class MainWindow(QMainWindow):
             except DoubleFileEntry:
                 pass # file already opened
             except Exception as e:
-                log.error(str(e))
+                log.exception(e)
                 unsuccessfullFiles.append("%s: %s" % (filePath, str(e)))
         if len(unsuccessfullFiles) > 0:
             dialog = CannotOpenFilesMsg(self)

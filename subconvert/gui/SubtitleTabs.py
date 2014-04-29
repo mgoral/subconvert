@@ -216,12 +216,17 @@ class FileList(SubTab):
     def _addFile(self, filePath):
         data = self._subtitleData.data(filePath)
 
-        icon = QIcon(":/img/ok.png")
         item = QTreeWidgetItem(
             [filePath, data.inputEncoding, data.outputEncoding, data.outputFormat.NAME,
                 str(data.fps)])
-        item.setIcon(0, icon)
         item.setToolTip(0, filePath)
+
+        subtitleIcon = QIcon(":/img/ok.png")
+        item.setIcon(0, subtitleIcon)
+
+        videoIcon = QIcon(":/img/film.png") if data.videoPath is not None else QIcon()
+        item.setIcon(4, videoIcon)
+
         self.__fileList.addTopLevelItem(item)
 
         self._subtitleData.history(filePath).cleanChanged.connect(
@@ -243,6 +248,9 @@ class FileList(SubTab):
                 item.setText(2, data.outputEncoding)
                 item.setText(3, data.outputFormat.NAME)
                 item.setText(4, str(data.fps))
+
+                videoIcon = QIcon(":/img/film.png") if data.videoPath is not None else QIcon()
+                item.setIcon(4, videoIcon)
 
     def _cleanStateChanged(self, filePath, clean):
         items = self.__fileList.findItems(filePath, Qt.MatchExactly)
@@ -337,14 +345,14 @@ class FileList(SubTab):
         fileList = self.__fileList # shorten notation
         return [fileList.topLevelItem(i).text(0) for i in range(fileList.topLevelItemCount())]
 
-    def changeSelectedFilesFps(self, val):
+    def changeSelectedFilesFps(self, fps):
         items = self.__fileList.selectedItems()
         for item in items:
             filePath = item.text(0)
             data = self._subtitleData.data(filePath)
-            if data.fps != val:
-                data.fps = val
-                command = ChangeData(filePath, data, _("FPS change: %s") % val)
+            if data.fps != fps:
+                data.fps = fps
+                command = ChangeData(filePath, data, _("FPS change: %s") % fps)
                 self._subtitleData.execute(command)
 
     def changeSelectedFilesFormat(self, fmt):
@@ -641,12 +649,12 @@ class SubtitleEditor(SubTab):
             command = ChangeData(self.filePath, data)
             self._subtitleData.execute(command)
 
-    def changeFps(self, val):
+    def changeFps(self, fps):
         data = self.data
-        if (data.fps != val):
-            data.subtitles.changeFps(val)
-            data.fps = val
-            command = ChangeData(self.filePath, data, _("FPS change: %s") % val)
+        if data.fps != fps:
+            data.subtitles.changeFps(fps)
+            data.fps = fps
+            command = ChangeData(self.filePath, data, _("FPS change: %s") % fps)
             self._subtitleData.execute(command)
 
     def fileChanged(self, filePath):

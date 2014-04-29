@@ -116,6 +116,10 @@ class VideoWidget(QWidget):
     def movieProperties(self):
         return self._player.videoData
 
+    @property
+    def videoPath(self):
+        return self._player.path
+
     def changePlayerAspectRatio(self, width, height):
         ratio = float(width) / float(height)
         if ratio > 0:

@@ -23,7 +23,7 @@ from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
 from PyQt4.QtGui import QUndoStack
 
 from subconvert.utils.Locale import _
-from subconvert.utils.SubFile import File
+from subconvert.utils.SubFile import File, VideoInfo
 from subconvert.utils.SubtitleData import SubtitleData
 from subconvert.utils.SubException import SubException
 
@@ -59,7 +59,7 @@ class DataController(QObject):
         fileContent = file_.read(inputEncoding)
         return self._parser.parse(fileContent, fps)
 
-    def createDataFromFile(self, filePath, inputEncoding = None, fps = None):
+    def createDataFromFile(self, filePath, inputEncoding = None, defaultFps = None):
         """Fetch a given filePath and parse its contents.
 
         May raise the following exceptions:
@@ -74,17 +74,17 @@ class DataController(QObject):
             inputEncoding = file_.detectEncoding()
         inputEncoding = inputEncoding.lower()
 
-        if fps is None:
-            fps = file_.detectFps()
+        videoInfo = VideoInfo(defaultFps) if defaultFps is not None else file_.detectFps()
 
-        subtitles = self._parseFile(file_, inputEncoding, fps)
+        subtitles = self._parseFile(file_, inputEncoding, videoInfo.fps)
 
         data = SubtitleData()
         data.subtitles = subtitles
-        data.fps = fps
+        data.fps = videoInfo.fps
         data.inputEncoding = inputEncoding
         data.outputEncoding = inputEncoding
         data.outputFormat = self._parser.parsedFormat()
+        data.videoPath = videoInfo.videoPath
         return data
 
     def execute(self, cmd):

@@ -6,7 +6,8 @@ dist_img_DATA = \
 	not_clean.png \
 	ok.png \
 	skipped.png \
-	logo.png
+	logo.png \
+	film.png
 
 imgdir = $(datadir)/subconvert/img
 

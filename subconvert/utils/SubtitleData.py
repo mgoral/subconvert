@@ -29,6 +29,7 @@ class SubtitleData:
     outputFormat = None
     inputEncoding = None
     outputEncoding = None
+    videoPath = None
 
     def clone(self):
         other = SubtitleData()
@@ -40,6 +41,7 @@ class SubtitleData:
         other.outputFormat = self.outputFormat
         other.inputEncoding = self.inputEncoding
         other.outputEncoding = self.outputEncoding
+        other.videoPath = self.videoPath
         return other
 
     def empty(self):
@@ -48,7 +50,8 @@ class SubtitleData:
             self.fps is None and
             self.outputFormat is None and
             self.inputEncoding is None and
-            self.outputEncoding is None
+            self.outputEncoding is None and
+            self.videoPath is None
         )
 
     def encode(self, encoding):

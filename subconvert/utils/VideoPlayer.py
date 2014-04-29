@@ -164,6 +164,10 @@ class VideoPlayer(QObject):
         cmd = "volume %s" % val
         self._execute(cmd)
 
+    @property
+    def path(self):
+        return self._filePath
+
     def _run(self, filepath):
         arguments = [
             "-slave",

@@ -41,6 +41,14 @@ log = logging.getLogger('Subconvert.%s' % __name__)
 class SubFileError(SubException):
     pass
 
+class VideoInfo:
+    fps = 25.0 # FPS value
+    videoPath = None # Video file path from which FPS has been fetched
+
+    def __init__(self, fps, videoPath = None):
+        self.fps = fps
+        self.videoPath = videoPath
+
 class File:
     """Physical file handler. Reads/writes files, detects their encoding,
     backups etc."""
@@ -178,27 +186,34 @@ class File:
         if movieFile is None:
             movieFile = self._searchForMovieFile()
 
-        fps = float(default)
+        # initialize with a default FPS value, but not with a movieFile
+        videoInfo = VideoInfo(float(default))
+
         command = ['mplayer',
             '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify', movieFile]
         try:
             mpOut, mpErr = Popen(command, stdout=PIPE, stderr=PIPE).communicate()
             log.debug(mpOut)
             log.debug(mpErr)
-            fps = float(re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', str(mpOut)).group(1))
+
+            # Overwrite default (not fetched from video) values.
+            # If there's any error on changing videoInfo.fps, whole videoInfo won't be changed at all.
+            videoInfo.fps = float(re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', str(mpOut)).group(1))
+            videoInfo.videoPath = movieFile
         except OSError:
             log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH "
                 "to detect FPS."))
         except AttributeError:
             log.warning(_("Couldn't get FPS info for %(file)s. Using default value: %(fps)s.") %
-                {"file": self._filePath, "fps": fps})
+                {"file": self._filePath, "fps": videoInfo.fps})
         else:
+            pass
             log.debug(P_(
                 "Got %(fps)s FPS from '%(movie)s'.",
                 "Got %(fps)s FPS from '%(movie)s'.",
-                int(fps)) % {"fps": fps, "movie": movieFile})
+                int(videoInfo.fps)) % {"fps": videoInfo.fps, "movie": videoInfo.videoPath})
 
-        return fps
+        return videoInfo
 
     def _searchForMovieFile(self):
         filename = os.path.splitext(self._filePath)[0]
