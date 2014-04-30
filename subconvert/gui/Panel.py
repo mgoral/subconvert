@@ -61,7 +61,13 @@ class SidePanel(QWidget):
         inEncodingLabel = QLabel(data.inputEncoding, dataGroup)
         outEncodingLabel = QLabel(data.outputEncoding, dataGroup)
 
+        if data.videoPath is not None:
+            videoLabel = QLabel(data.videoPath, dataGroup)
+        else:
+            videoLabel = QLabel("-", dataGroup)
+
         dataGroupLayout.addRow(_("File name:"), fileNameLabel)
+        dataGroupLayout.addRow(_("Video:"), videoLabel)
         dataGroupLayout.addRow(_("FPS:"), fpsLabel)
         dataGroupLayout.addRow(_("Format:"), formatLabel)
         dataGroupLayout.addRow(_("Input encoding:"), inEncodingLabel)

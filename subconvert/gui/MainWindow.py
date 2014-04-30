@@ -177,8 +177,14 @@ class MainWindow(QMainWindow):
             self._actions[fmt.NAME] = af.create(
                 None, fmt.NAME, None, None, lambda _, fmt = fmt: self.changeSubFormat(fmt))
 
+        self._actions["linkVideo"] = af.create(
+            None, _("&Link video"), None, "ctrl+l", self.linkVideo)
+
+        self._actions["unlinkVideo"] = af.create(
+            None, _("U&nlink video"), None, "ctrl+u", lambda: self._setVideoLink(None))
+
         self._actions["fpsFromMovie"] = af.create(
-            None, _("From current &video"), None, "ctrl+shift+f", self.getFpsFromMovie)
+            None, _("&Get FPS"), None, "ctrl+g", self.getFpsFromMovie)
 
         self._actions["insertSub"] = af.create(
             "list-add", _("&Insert subtitle"), None, "insert",
@@ -250,7 +256,6 @@ class MainWindow(QMainWindow):
         subtitlesMenu.addAction(self._actions["redo"])
         subtitlesMenu.addSeparator()
         self._fpsMenu = subtitlesMenu.addMenu(_("&Frames per second"))
-        self._fpsMenu.addAction(self._actions["fpsFromMovie"])
         self._fpsMenu.addSeparator()
         for fps in FPS_VALUES:
             self._fpsMenu.addAction(self._actions[str(fps)])
@@ -262,6 +267,10 @@ class MainWindow(QMainWindow):
         for encoding in ALL_ENCODINGS:
             self._inputEncodingMenu.addAction(self._actions["in_%s" % encoding])
             self._outputEncodingMenu.addAction(self._actions["out_%s" % encoding])
+        subtitlesMenu.addSeparator()
+        subtitlesMenu.addAction(self._actions["linkVideo"])
+        subtitlesMenu.addAction(self._actions["unlinkVideo"])
+        subtitlesMenu.addAction(self._actions["fpsFromMovie"])
         subtitlesMenu.addSeparator()
         subtitlesMenu.addAction(self._actions["insertSub"])
         subtitlesMenu.addAction(self._actions["addSub"])
@@ -355,6 +364,13 @@ class MainWindow(QMainWindow):
             dialog.setFileList(unsuccessfullFiles)
             dialog.exec()
 
+    def _setVideoLink(self, videoPath):
+        currentTab = self._tabs.currentPage()
+        if currentTab.isStatic:
+            currentTab.changeSelectedFilesVideoPath(videoPath)
+        else:
+            currentTab.changeVideoPath(videoPath)
+
     @pyqtSlot(bool)
     @pyqtSlot(int)
     @pyqtSlot(str)
@@ -385,7 +401,9 @@ class MainWindow(QMainWindow):
         self._inputEncodingMenu.setEnabled(canEdit)
         self._outputEncodingMenu.setEnabled(canEdit)
 
-        self._actions["fpsFromMovie"].setEnabled(not tabIsStatic)
+        self._actions["linkVideo"].setEnabled(canEdit)
+        self._actions["unlinkVideo"].setEnabled(canEdit)
+        self._actions["fpsFromMovie"].setEnabled(canEdit)
 
         self._actions["insertSub"].setEnabled(not tabIsStatic)
         self._actions["addSub"].setEnabled(not tabIsStatic)
@@ -567,9 +585,10 @@ class MainWindow(QMainWindow):
 
     def getFpsFromMovie(self):
         currentTab = self._tabs.currentPage()
-        fps = self._videoWidget.movieProperties.fps
-        if fps is not None:
-            currentTab.changeFps(fps)
+        if currentTab.isStatic:
+            currentTab.detectSelectedFilesFps()
+        else:
+            currentTab.detectFps()
 
     def openVideo(self):
         movieExtensions = "%s%s" % ("*.", ' *.'.join(File.MOVIE_EXTENSIONS))
@@ -648,3 +667,14 @@ class MainWindow(QMainWindow):
         if len(subPaths) > 0:
             self._openFiles(subPaths, None)
 
+    def linkVideo(self):
+        movieExtensions = "%s%s" % ("*.", ' *.'.join(File.MOVIE_EXTENSIONS))
+        fileDialog = FileDialog(
+            parent = self,
+            caption = _("Select a video"),
+            directory = self._settings.getLatestDirectory(),
+            filter = _("Video files (%s);;All files (*)") % movieExtensions)
+        fileDialog.setFileMode(QFileDialog.ExistingFile)
+        if fileDialog.exec():
+            movieFilePath = fileDialog.selectedFiles()[0]
+            self._setVideoLink(movieFilePath)

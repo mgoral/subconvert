@@ -174,6 +174,23 @@ class FileList(SubTab):
 
         self._contextMenu.addSeparator()
 
+        # Link/unlink video
+        actionLink = af.create(None, _("&Link video"), None, None, self.linkVideo)
+        actionLink.setEnabled(anyItemSelected)
+        self._contextMenu.addAction(actionLink)
+
+        actionLink = af.create(
+            None, _("U&nlink video"), None, None, lambda: self.changeSelectedFilesVideoPath(None))
+        actionLink.setEnabled(anyItemSelected)
+        self._contextMenu.addAction(actionLink)
+
+        actionLink = af.create(None, _("&Get FPS"), None, None, self.detectSelectedFilesFps)
+        actionLink.setEnabled(anyItemSelected)
+        self._contextMenu.addAction(actionLink)
+
+        self._contextMenu.addSeparator()
+
+
         # Show/Remove files
 
         # Key shortcuts are actually only a hack to provide some kind of info to user that he can
@@ -345,6 +362,18 @@ class FileList(SubTab):
         fileList = self.__fileList # shorten notation
         return [fileList.topLevelItem(i).text(0) for i in range(fileList.topLevelItemCount())]
 
+    def linkVideo(self):
+        movieExtensions = "%s%s" % ("*.", ' *.'.join(File.MOVIE_EXTENSIONS))
+        fileDialog = FileDialog(
+            parent = self,
+            caption = _("Select a video"),
+            directory = self._settings.getLatestDirectory(),
+            filter = _("Video files (%s);;All files (*)") % movieExtensions)
+        fileDialog.setFileMode(QFileDialog.ExistingFile)
+        if fileDialog.exec():
+            movieFilePath = fileDialog.selectedFiles()[0]
+            self.changeSelectedFilesVideoPath(movieFilePath)
+
     def changeSelectedFilesFps(self, fps):
         items = self.__fileList.selectedItems()
         for item in items:
@@ -354,6 +383,29 @@ class FileList(SubTab):
                 data.fps = fps
                 command = ChangeData(filePath, data, _("FPS change: %s") % fps)
                 self._subtitleData.execute(command)
+
+    def changeSelectedFilesVideoPath(self, path):
+        items = self.__fileList.selectedItems()
+        for item in items:
+            filePath = item.text(0)
+            data = self._subtitleData.data(filePath)
+            if data.videoPath != path:
+                data.videoPath = path
+                command = ChangeData(filePath, data, _("Video path change: %s") % path)
+                self._subtitleData.execute(command)
+
+    def detectSelectedFilesFps(self):
+        items = self.__fileList.selectedItems()
+        for item in items:
+            filePath = item.text(0)
+            data = self._subtitleData.data(filePath)
+            if data.videoPath is not None:
+                fpsInfo = File.detectFpsFromMovie(data.videoPath)
+                if data.videoPath != fpsInfo.videoPath or data.fps != fpsInfo.fps:
+                    data.videoPath = fpsInfo.videoPath
+                    data.fps = fpsInfo.fps
+                    command = ChangeData(filePath, data, _("FPS detection"))
+                    self._subtitleData.execute(command)
 
     def changeSelectedFilesFormat(self, fmt):
         items = self.__fileList.selectedItems()
@@ -379,7 +431,6 @@ class FileList(SubTab):
                 else:
                     command = ChangeData(filePath, data, _("Encoding changed: %s") % inputEncoding)
                     self._subtitleData.execute(command)
-
 
     def changeSelectedFilesOutputEncoding(self, outputEncoding):
         items = self.__fileList.selectedItems()
@@ -656,6 +707,23 @@ class SubtitleEditor(SubTab):
             data.fps = fps
             command = ChangeData(self.filePath, data, _("FPS change: %s") % fps)
             self._subtitleData.execute(command)
+
+    def changeVideoPath(self, path):
+        data = self.data
+        if data.videoPath != path:
+            data.videoPath = path
+            command = ChangeData(self.filePath, data, _("Video path change: %s") % path)
+            self._subtitleData.execute(command)
+
+    def detectFps(self):
+        data = self.data
+        if data.videoPath is not None:
+            fpsInfo = File.detectFpsFromMovie(data.videoPath)
+            if data.videoPath != fpsInfo.videoPath or data.fps != fpsInfo.fps:
+                data.videoPath = fpsInfo.videoPath
+                data.fps = fpsInfo.fps
+                command = ChangeData(self.filePath, data, _("FPS detection"))
+                self._subtitleData.execute(command)
 
     def fileChanged(self, filePath):
         if filePath == self._filePath:

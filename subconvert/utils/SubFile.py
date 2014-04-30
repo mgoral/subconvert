@@ -185,27 +185,34 @@ class File:
 
         if movieFile is None:
             movieFile = self._searchForMovieFile()
+        return File.detectFpsFromMovie(movieFile, default)
+
+    @classmethod
+    def detectFpsFromMovie(cls, movieFile, default = 25.0):
+        """Fetch movie FPS from MPlayer output or return given default."""
 
         # initialize with a default FPS value, but not with a movieFile
         videoInfo = VideoInfo(float(default))
 
         command = ['mplayer',
             '-really-quiet', '-vo', 'null', '-ao', 'null', '-frames', '0', '-identify', movieFile]
+
         try:
             mpOut, mpErr = Popen(command, stdout=PIPE, stderr=PIPE).communicate()
             log.debug(mpOut)
             log.debug(mpErr)
 
             # Overwrite default (not fetched from video) values.
-            # If there's any error on changing videoInfo.fps, whole videoInfo won't be changed at all.
+            # If there's any error on changing videoInfo.fps, whole videoInfo won't be changed at
+            # all.
             videoInfo.fps = float(re.search(r'ID_VIDEO_FPS=([\w/.]+)\s?', str(mpOut)).group(1))
             videoInfo.videoPath = movieFile
         except OSError:
             log.warning(_("Couldn't run mplayer. It has to be installed and placed in your $PATH "
                 "to detect FPS."))
         except AttributeError:
-            log.warning(_("Couldn't get FPS info for %(file)s. Using default value: %(fps)s.") %
-                {"file": self._filePath, "fps": videoInfo.fps})
+            log.warning(_("Couldn't get FPS from %(movie)s. Using default value: %(fps)s.") %
+                {"movie": movieFile, "fps": videoInfo.fps})
         else:
             pass
             log.debug(P_(
