@@ -108,6 +108,7 @@ class VideoWidget(QWidget):
 
     def openFile(self, filePath):
         self._player.loadFile(filePath)
+        self._slider.setDisabled(False)
 
     def loadSubtitles(self, subtitles):
         pass
@@ -173,6 +174,7 @@ class VideoWidget(QWidget):
         self._playButton.setCheckable(True)
         self._playButton.setFocusPolicy(Qt.NoFocus)
         self._slider = QSlider(Qt.Horizontal, self)
+        self._slider.setDisabled(True)
         self._timeLabel = QLabel("0:00:00.000", self)
         layout.addWidget(self._playButton)
         layout.addWidget(self._slider)
@@ -201,7 +203,7 @@ class VideoWidget(QWidget):
         elif action == QAbstractSlider.SliderMove:
             position = self._slider.sliderPosition()
             self._changePosition(position)
-            if self._slider.isSliderDown():
+            if self._slider.isSliderDown() and self._player.videoData.fps is not None:
                 fps = self._player.videoData.fps
                 ft = FrameTime(fps, frames=position)
                 self._timeLabel.setText(ft.toStr())
