@@ -53,13 +53,13 @@ class SubSettings:
 
     def getLatestDirectory(self):
         if self.getUseDefaultDirectory():
-            ret = self._settings.value("gui/latest_dir", QDir.homePath())
+            ret = self._programState.value("gui/latest_dir", QDir.homePath())
             if ret:
                 return ret
         return QDir.homePath()
 
     def setLatestDirectory(self, val):
-        self._settings.setValue("gui/latest_dir", val)
+        self._programState.setValue("gui/latest_dir", val)
 
     #
     # Subtitle "property files" paths, number etc.
