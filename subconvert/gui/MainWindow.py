@@ -255,6 +255,10 @@ class MainWindow(QMainWindow):
         subtitlesMenu.addAction(self._actions["undo"])
         subtitlesMenu.addAction(self._actions["redo"])
         subtitlesMenu.addSeparator()
+        subtitlesMenu.addAction(self._actions["insertSub"])
+        subtitlesMenu.addAction(self._actions["addSub"])
+        subtitlesMenu.addAction(self._actions["removeSub"])
+        subtitlesMenu.addSeparator()
         self._fpsMenu = subtitlesMenu.addMenu(_("&Frames per second"))
         self._fpsMenu.addSeparator()
         for fps in FPS_VALUES:
@@ -271,10 +275,6 @@ class MainWindow(QMainWindow):
         subtitlesMenu.addAction(self._actions["linkVideo"])
         subtitlesMenu.addAction(self._actions["unlinkVideo"])
         subtitlesMenu.addAction(self._actions["fpsFromMovie"])
-        subtitlesMenu.addSeparator()
-        subtitlesMenu.addAction(self._actions["insertSub"])
-        subtitlesMenu.addAction(self._actions["addSub"])
-        subtitlesMenu.addAction(self._actions["removeSub"])
 
         videoMenu = menubar.addMenu(_("&Video"))
         videoMenu.addAction(self._actions["openVideo"])

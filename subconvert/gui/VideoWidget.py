@@ -27,6 +27,8 @@ from PyQt4.QtCore import Qt
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils.VideoPlayer import VideoPlayer, VideoPlayerException
 
+from subconvert.utils.Locale import _
+
 class VideoWidget(QWidget):
     def __init__(self, parent = None):
         super().__init__(parent)
@@ -173,6 +175,7 @@ class VideoWidget(QWidget):
         self._playButton = QPushButton(QIcon.fromTheme("media-playback-start"), "", self)
         self._playButton.setCheckable(True)
         self._playButton.setFocusPolicy(Qt.NoFocus)
+        self._playButton.setToolTip(_("Play/Pause"))
         self._slider = QSlider(Qt.Horizontal, self)
         self._slider.setDisabled(True)
         self._timeLabel = QLabel("0:00:00.000", self)

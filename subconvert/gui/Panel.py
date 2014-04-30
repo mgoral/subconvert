@@ -56,15 +56,26 @@ class SidePanel(QWidget):
         dataGroup.setLayout(dataGroupLayout)
 
         fileNameLabel = QLabel(os.path.split(filePath)[1], dataGroup)
+        fileNameLabel.setToolTip(fileNameLabel.text())
+
         fpsLabel = QLabel(str(data.fps), dataGroup)
+        fpsLabel.setToolTip(fpsLabel.text())
+
         formatLabel = QLabel(data.outputFormat.NAME, dataGroup)
+        formatLabel.setToolTip(formatLabel.text())
+
         inEncodingLabel = QLabel(data.inputEncoding, dataGroup)
+        inEncodingLabel.setToolTip(inEncodingLabel.text())
+
         outEncodingLabel = QLabel(data.outputEncoding, dataGroup)
+        outEncodingLabel.setToolTip(outEncodingLabel.text())
 
         if data.videoPath is not None:
             videoLabel = QLabel(data.videoPath, dataGroup)
+            videoLabel.setToolTip(videoLabel.text())
         else:
             videoLabel = QLabel("-", dataGroup)
+            videoLabel.setToolTip(_("No video"))
 
         dataGroupLayout.addRow(_("File name:"), fileNameLabel)
         dataGroupLayout.addRow(_("Video:"), videoLabel)
