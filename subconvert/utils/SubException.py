@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 
 """
-Copyright (C) 2011, 2012, 2013 Michal Goral.
+Copyright (C) 2011-2014 Michal Goral.
 
 This file is part of Subconvert
 
@@ -19,11 +19,11 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-class SubAssert:
-    def __init__(self, val, msg = ""):
-        if bool(val) is False:
-            raise SubException(msg)
-
 class SubException(Exception):
     """Base class for all Subconvert specific exceptions."""
     pass
+
+class SubAssert:
+    def __init__(self, val, msg = "", ExceptionType = SubException):
+        if bool(val) is False:
+            raise ExceptionType(msg)
