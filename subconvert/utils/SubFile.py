@@ -138,8 +138,11 @@ class File:
 
         tmpFilePath = "%s.tmp" % filePath
         bakFilePath = "%s.bak" % filePath
-        with open(tmpFilePath, 'wb') as file_:
-            file_.write(encodedContent)
+        with open(tmpFilePath, 'wb') as f:
+            f.write(encodedContent)
+            # ensure that all data is on disk.
+            # for performance reasons, we skip os.fsync(f.fileno())
+            f.flush()
 
         try:
             os.rename(filePath, bakFilePath)
