@@ -121,6 +121,9 @@ class File:
         (which should be atomic operation according to POSIX but who knows how Ext4 really works.
         @see: http://lwn.net/Articles/322823/)."""
 
+        filePath = os.path.realpath(filePath)
+        log.debug(_("Real file path to write: %s" % filePath))
+
         if encoding is None:
             encoding = File.DEFAULT_ENCODING
 
