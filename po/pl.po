@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: subconvert 1.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/mgoral/subconvert/issues\n"
 "POT-Creation-Date: 2014-01-11 18:51+0100\n"
-"PO-Revision-Date: 2014-01-11 19:02+0100\n"
+"PO-Revision-Date: 2015-05-15 17:32+0100\n"
 "Last-Translator: Michal Goral\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -17,6 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 1.6.10\n"
 
 #: ../subconvert/apprunner.py:47
 #, python-format
@@ -25,7 +26,7 @@ msgstr "Plik nie istnieje: '%s'"
 
 #: ../subconvert/apprunner.py:53
 msgid "Subconvert is a movie subtitles editor and converter."
-msgstr "Subconvert jest edytorem in konwerterem napisów filmowych."
+msgstr "Subconvert jest edytorem i konwerterem napisów filmowych."
 
 #: ../subconvert/apprunner.py:55 ../subconvert/apprunner.py:65
 #: ../subconvert/apprunner.py:78
@@ -162,7 +163,7 @@ msgstr "b"
 #, python-format
 msgid "File '%(file)s' exists. Overwrite? [%(yes)s/%(no)s/%(bck)s/%(quit)s]"
 msgstr ""
-"Plik '%(file)s' nie istnieje. Nadpisać? [%(yes)s/%(no)s/%(bck)s/%(quit)s]"
+"Plik '%(file)s' już istnieje. Nadpisać? [%(yes)s/%(no)s/%(bck)s/%(quit)s]"
 
 #: ../subconvert/cli/MainApp.py:145
 #, python-format
