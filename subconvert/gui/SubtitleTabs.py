@@ -380,6 +380,7 @@ class FileList(SubTab):
             filePath = item.text(0)
             data = self._subtitleData.data(filePath)
             if data.fps != fps:
+                data.subtitles.changeFps(fps)
                 data.fps = fps
                 command = ChangeData(filePath, data, _("FPS: %s") % fps)
                 self._subtitleData.execute(command)

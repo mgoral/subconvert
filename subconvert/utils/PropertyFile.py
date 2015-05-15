@@ -157,9 +157,11 @@ class PropertiesFileApplier:
         # fps
         if self._subProperties.autoFps:
             videoInfo = subtitleFile.detectFps(default=self._subProperties.fps)
+            data.subtitles.changeFps(videoInfo.fps)
             data.fps = videoInfo.fps
             data.videoPath = videoInfo.videoPath
         else:
+            data.subtitles.changeFps(self._subProperties.fps)
             data.fps = self._subProperties.fps
             data.videoPath = None
 
