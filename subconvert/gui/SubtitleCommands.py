@@ -22,7 +22,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 import os
 
 from subconvert.parsing.Core import Subtitle
-from subconvert.utils.Locale import _
+from subconvert.utils.Locale import _, P_
 from subconvert.utils.SubException import SubException, SubAssert
 
 from PyQt4.QtGui import QUndoCommand
@@ -43,6 +43,12 @@ class IncorrectFilePath(SubException):
 
 class DoubleFileEntry(SubException):
     pass
+
+def subExcerpt(sub):
+    maxChars = 20
+    if len(sub.text) > maxChars:
+        return "%s..." % sub.text[:maxChars]
+    return sub.text
 
 class SubtitleChangeCommand(QUndoCommand):
     """Base class for all Subconvert undo/redo actions."""
@@ -74,7 +80,7 @@ class SubtitleChangeCommand(QUndoCommand):
 class ChangeSubtitle(SubtitleChangeCommand):
     def __init__(self, filePath, oldSubtitle, newSubtitle, index, parent = None):
         super(ChangeSubtitle, self).__init__(filePath, parent)
-        self.setText(_("Subtitle change"))
+        self.setText(_("Subtitle change (%d: %s)") % (int(index + 1), subExcerpt(newSubtitle)))
 
         self._oldSubtitle = oldSubtitle
         self._newSubtitle = newSubtitle
@@ -139,7 +145,7 @@ class ChangeData(SubtitleChangeCommand):
 class NewSubtitles(SubtitleChangeCommand):
     def __init__(self, filePath, encoding = None, parent = None):
         super().__init__(filePath, parent)
-        self.setText(_("New subtitles: %s") % os.path.basename(filePath))
+        self.setText(_("New file: %s") % os.path.basename(filePath))
         self._filePath = filePath
         self._encoding = encoding
 
@@ -159,7 +165,7 @@ class NewSubtitles(SubtitleChangeCommand):
 class CreateSubtitlesFromData(SubtitleChangeCommand):
     def __init__(self, filePath, data, parent = None):
         super().__init__(filePath, parent)
-        self.setText(_("Copied subtitles: %s") % os.path.basename(filePath))
+        self.setText(_("New file (copy): %s") % os.path.basename(filePath))
         self._newData = data
 
     def setup(self):
@@ -179,7 +185,7 @@ class RemoveFile(SubtitleChangeCommand):
     def __init__(self, filePath, parent = None):
         super().__init__(filePath, parent)
         # Dunno why we set this text...
-        self.setText(_("Remove subtitle file: %s") % os.path.basename(filePath))
+        self.setText(_("Removal of file: %s") % os.path.basename(filePath))
         self._filePath = filePath
 
     def setup(self):
@@ -202,6 +208,7 @@ class AddSubtitle(SubtitleChangeCommand):
         super().__init__(filePath, parent)
         self._subNo = subNo
         self._subtitle = subtitle
+        self.setText(_("New subtitle (%d)") % int(subNo + 1))
 
     def setup(self):
         super().setup()
@@ -230,6 +237,20 @@ class RemoveSubtitles(SubtitleChangeCommand):
     def setup(self):
         super().setup()
         storage = self.controller._storage[self.filePath]
+
+        if len(self._subNos) == 0:
+            # Just for the peace of soul
+            self.setText(_("Subtitle removal"))
+            return
+
+        self.setText(P_(
+            "Subtitle removal (%(sub)s)",
+            "%(noOfSubs)d subtitles removal (%(sub)s)",
+            len(self._subNos)) % { 
+                "sub" : subExcerpt(storage.subtitles[self._subNos[-1]]),
+                "noOfSubs" : len(self._subNos) 
+            })
+
         self._subs = []
         for subNo in self._subNos:
             self._subs.append((subNo, storage.subtitles[subNo]))

@@ -495,7 +495,7 @@ class MainWindow(QMainWindow):
                 data.outputEncoding = outputEncoding
 
             if self._subtitleData.fileExists(newFilePath):
-                command = ChangeData(newFilePath, data)
+                command = ChangeData(newFilePath, data, _("Overwritten by %s") % currentTab.name)
             else:
                 command = CreateSubtitlesFromData(newFilePath, data)
             self._subtitleData.execute(command)

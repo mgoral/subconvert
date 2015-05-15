@@ -21,7 +21,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 
-from PyQt4.QtGui import QWidget, QVBoxLayout, QFormLayout, QGroupBox, QLabel, QTextEdit
+from PyQt4.QtGui import QWidget, QVBoxLayout, QFormLayout, QGroupBox, QLabel, QTextEdit, QUndoView
 from PyQt4.QtCore import Qt
 
 from subconvert.utils.Locale import _
@@ -87,6 +87,18 @@ class SidePanel(QWidget):
         mainLayout = self.layout()
         mainLayout.addWidget(dataGroup)
 
+    def _createUndoView(self, history):
+        undoGroup = QGroupBox(_("History of changes"), self)
+        undoGroupLayout = QVBoxLayout()
+        undoGroup.setLayout(undoGroupLayout)
+
+        undoView = QUndoView(history, self)
+        undoView.setEmptyLabel(_("<Original file>"))
+        undoGroupLayout.addWidget(undoView)
+
+        mainLayout = self.layout()
+        mainLayout.addWidget(undoGroup)
+
     def _updateFileInfo(self, filePath):
         if self._filePath == filePath:
             self.setInfoForFile(filePath)
@@ -104,7 +116,10 @@ class SidePanel(QWidget):
         self._filePath = filePath
         if self._filePath is not None:
             data = self._subtitleData.data(filePath)
+            history = self._subtitleData.history(filePath)
+
             self._createFileInfo(filePath, data)
+            self._createUndoView(history)
         else:
             self._createEmptyPanel()
 

@@ -326,7 +326,7 @@ class FileList(SubTab):
             filePath = item.text(0)
             data = self._subtitleData.data(filePath)
             applier.applyFor(filePath, data)
-            command = ChangeData(filePath, data)
+            command = ChangeData(filePath, data, _("Property file: %s") % filePath)
             self._subtitleData.execute(command)
 
     def _chooseSubProperties(self):
@@ -381,7 +381,7 @@ class FileList(SubTab):
             data = self._subtitleData.data(filePath)
             if data.fps != fps:
                 data.fps = fps
-                command = ChangeData(filePath, data, _("FPS change: %s") % fps)
+                command = ChangeData(filePath, data, _("FPS: %s") % fps)
                 self._subtitleData.execute(command)
 
     def changeSelectedFilesVideoPath(self, path):
@@ -391,7 +391,7 @@ class FileList(SubTab):
             data = self._subtitleData.data(filePath)
             if data.videoPath != path:
                 data.videoPath = path
-                command = ChangeData(filePath, data, _("Video path change: %s") % path)
+                command = ChangeData(filePath, data, _("Video path: %s") % path)
                 self._subtitleData.execute(command)
 
     def detectSelectedFilesFps(self):
@@ -404,7 +404,7 @@ class FileList(SubTab):
                 if data.videoPath != fpsInfo.videoPath or data.fps != fpsInfo.fps:
                     data.videoPath = fpsInfo.videoPath
                     data.fps = fpsInfo.fps
-                    command = ChangeData(filePath, data, _("FPS detection"))
+                    command = ChangeData(filePath, data, _("Detected FPS: %s") % data.fps)
                     self._subtitleData.execute(command)
 
     def changeSelectedFilesFormat(self, fmt):
@@ -414,7 +414,7 @@ class FileList(SubTab):
             data = self._subtitleData.data(filePath)
             if data.outputFormat != fmt:
                 data.outputFormat = fmt
-                command = ChangeData(filePath, data)
+                command = ChangeData(filePath, data, _("Format: %s ") % fmt.NAME)
                 self._subtitleData.execute(command)
 
     def changeSelectedFilesInputEncoding(self, inputEncoding):
@@ -429,7 +429,7 @@ class FileList(SubTab):
                     # TODO: indicate with something more than log entry
                     log.error(_("Cannot decode subtitles to '%s' encoding.") % inputEncoding)
                 else:
-                    command = ChangeData(filePath, data, _("Encoding changed: %s") % inputEncoding)
+                    command = ChangeData(filePath, data, _("Input encoding: %s") % inputEncoding)
                     self._subtitleData.execute(command)
 
     def changeSelectedFilesOutputEncoding(self, outputEncoding):
@@ -439,7 +439,7 @@ class FileList(SubTab):
             data = self._subtitleData.data(filePath)
             if data.outputEncoding != outputEncoding:
                 data.outputEncoding = outputEncoding
-                command = ChangeData(filePath, data)
+                command = ChangeData(filePath, data, _("Output encoding: %s") % outputEncoding)
                 self._subtitleData.execute(command)
 
     def undoSelectedFiles(self):
@@ -682,15 +682,14 @@ class SubtitleEditor(SubTab):
                 message.exec()
             else:
                 # TODO: outputEncoding
-                command = ChangeData(self.filePath, data, _("Encoding changed: %s") % encoding)
+                command = ChangeData(self.filePath, data, _("Input encoding: %s") % encoding)
                 self._subtitleData.execute(command)
 
     def changeOutputEncoding(self, encoding):
         data = self._subtitleData.data(self.filePath)
         if encoding != data.outputEncoding:
             data.outputEncoding = encoding
-            command = ChangeData(self.filePath, data,
-                _("Output encoding changed: %s") % encoding)
+            command = ChangeData(self.filePath, data, _("Output encoding: %s") % encoding)
             self._subtitleData.execute(command)
 
     def changeSubFormat(self, fmt):
@@ -705,14 +704,14 @@ class SubtitleEditor(SubTab):
         if data.fps != fps:
             data.subtitles.changeFps(fps)
             data.fps = fps
-            command = ChangeData(self.filePath, data, _("FPS change: %s") % fps)
+            command = ChangeData(self.filePath, data, _("FPS: %s") % fps)
             self._subtitleData.execute(command)
 
     def changeVideoPath(self, path):
         data = self.data
         if data.videoPath != path:
             data.videoPath = path
-            command = ChangeData(self.filePath, data, _("Video path change: %s") % path)
+            command = ChangeData(self.filePath, data, _("Video path: %s") % path)
             self._subtitleData.execute(command)
 
     def detectFps(self):
@@ -722,7 +721,7 @@ class SubtitleEditor(SubTab):
             if data.videoPath != fpsInfo.videoPath or data.fps != fpsInfo.fps:
                 data.videoPath = fpsInfo.videoPath
                 data.fps = fpsInfo.fps
-                command = ChangeData(self.filePath, data, _("FPS detection"))
+                command = ChangeData(self.filePath, data, _("Detected FPS: %s") % data.fps)
                 self._subtitleData.execute(command)
 
     def fileChanged(self, filePath):
