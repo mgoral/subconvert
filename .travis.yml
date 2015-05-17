@@ -8,7 +8,8 @@ before_install:
     - sudo apt-get update -qq
 
 install:
-    - sudo apt-get install -y gettext libgettextpo-dev python3-chardet mplayer python-qt4-dev pyqt4-dev-tools intltool autopoint
+    - sudo apt-get install -y gettext libgettextpo-dev mplayer python3-pyqt4 pyqt4-dev-tools intltool autopoint
+    - pip install chardet
  
 before_script:
     - ./autogen.sh && ./configure
