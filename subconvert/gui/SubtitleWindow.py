@@ -24,10 +24,11 @@ import logging
 
 from PyQt4.QtGui import QWidget, QFrame, QHBoxLayout, QVBoxLayout, QGridLayout, QTabBar
 from PyQt4.QtGui import  QSplitter, QStackedWidget
-from PyQt4.QtCore import pyqtSignal, pyqtSlot
+from PyQt4.QtCore import pyqtSignal, pyqtSlot, QByteArray
 
 from subconvert.utils.Locale import _
 from subconvert.utils.SubFile import File
+from subconvert.utils.SubSettings import SubSettings
 from subconvert.gui.SubtitleTabs import FileList, SubtitleEditor
 from subconvert.gui.Panel import SidePanel
 from subconvert.gui.SubtitleCommands import *
@@ -45,6 +46,8 @@ class SubTabWidget(QWidget):
         self.__initTabWidget()
 
     def __initTabWidget(self):
+        settings = SubSettings()
+
         mainLayout = QVBoxLayout(self)
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
@@ -54,13 +57,14 @@ class SubTabWidget(QWidget):
 
         # Splitter (bookmarks + pages)
         self.splitter = QSplitter(self)
+        self.splitter.setObjectName("sidebar_splitter")
 
         self.leftWidget = QWidget()
+        self.leftWidget.setObjectName("sidebar")
         leftLayout = QVBoxLayout()
         leftLayout.setMargin(0)
         self.leftWidget.setLayout(leftLayout)
         self.leftWidget.setMinimumWidth(100)
-        self.leftWidget.hide()
 
         self.rightWidget = QWidget()
         rightLayout = QGridLayout()
@@ -94,10 +98,11 @@ class SubTabWidget(QWidget):
         # Don't resize left panel if it's not needed
         leftWidgetIndex = self.splitter.indexOf(self.leftWidget)
         rightWidgetIndex = self.splitter.indexOf(self.rightWidget)
+
         self.splitter.setStretchFactor(leftWidgetIndex, 0)
         self.splitter.setStretchFactor(rightWidgetIndex, 1)
         self.splitter.setCollapsible(leftWidgetIndex, False)
-        self.splitter.setSizes([250]) # TODO: save/read panel state
+        self.splitter.setSizes([250])
 
         # Some signals
         self.tabBar.currentChanged.connect(self.showTab)
@@ -107,7 +112,6 @@ class SubTabWidget(QWidget):
         self._mainTab.requestRemove.connect(self.removeFile)
 
         self.setLayout(mainLayout)
-
 
     def __addTab(self, filePath):
         """Returns existing tab index. Creates a new one if it isn't opened and returns its index
@@ -149,6 +153,17 @@ class SubTabWidget(QWidget):
                 if self.tabBar.tabText(i)[:len(page.name)] == page.name:
                     self.tabBar.setTabText(i, self._createTabName(page.name, cleanState))
                     return
+
+    def saveWidgetState(self, settings):
+        settings.setState(self.splitter, self.splitter.saveState())
+        settings.setHidden(self.leftWidget, self.leftWidget.isHidden())
+
+    def restoreWidgetState(self, settings):
+        self.showPanel(not settings.getHidden(self.leftWidget))
+
+        splitterState = settings.getState(self.splitter)
+        if not splitterState.isEmpty():
+            self.splitter.restoreState(settings.getState(self.splitter))
 
     @pyqtSlot(str, bool)
     def openTab(self, filePath, background=False):

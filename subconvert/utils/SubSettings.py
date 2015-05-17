@@ -19,8 +19,17 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
+from subconvert.utils.SubException import SubAssert
+
 import os
-from PyQt4.QtCore import QSettings, QDir
+from PyQt4.QtCore import QSettings, QDir, QByteArray
+
+def str2Bool(val):
+    # Really, fuck pyqt
+    if val is True or val.lower() == "true":
+        return True
+    if val is False or val.lower() == "false":
+        return False
 
 class SubSettings:
     """A wrapper to QSettings. Provides an interface to all available Subconvert options."""
@@ -101,3 +110,33 @@ class SubSettings:
             self._programState.setValue("pfiles/latest", propertyFiles)
         except ValueError:
             pass
+
+    #
+    # Generic functions for windows/widgets. Please note that passed QWidgets must have previously
+    # set objects names via QWidget::setObjectName(str) method. The convention is to use underscores
+    # as words separators (e.g. main_window, my_super_widget, etc.).
+    #
+
+    def setGeometry(self, widget, val):
+        SubAssert(widget.objectName() != "", "Widget's name isn't set!")
+        self._programState.setValue("gui/%s/geometry" % widget.objectName(), val)
+
+    def getGeometry(self, widget, default = QByteArray()):
+        SubAssert(widget.objectName() != "", "Widget's name isn't set!")
+        return self._programState.value("gui/%s/geometry" % widget.objectName(), default)
+
+    def setState(self, widget, val):
+        SubAssert(widget.objectName() != "", "Widget's name isn't set!")
+        self._programState.setValue("gui/%s/state" % widget.objectName(), val)
+
+    def getState(self, widget, default = QByteArray()):
+        SubAssert(widget.objectName() != "", "Widget's name isn't set!")
+        return self._programState.value("gui/%s/state" % widget.objectName(), default)
+
+    def setHidden(self, widget, val):
+        SubAssert(widget.objectName() != "", "Widget's name isn't set!")
+        self._programState.setValue("gui/%s/hidden" % widget.objectName(), val)
+
+    def getHidden(self, widget, default = True):
+        SubAssert(widget.objectName() != "", "Widget's name isn't set!")
+        return str2Bool(self._programState.value("gui/%s/hidden" % widget.objectName(), default))

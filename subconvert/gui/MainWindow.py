@@ -80,6 +80,8 @@ class MainWindow(QMainWindow):
     def __init__(self, args, parser):
         super(MainWindow, self).__init__()
 
+        self.setObjectName("main_window")
+
         self._subtitleData = DataController(parser, self)
 
         self.__initGui()
@@ -88,6 +90,7 @@ class MainWindow(QMainWindow):
         self.__initShortcuts()
         self.__updateMenuItemsState()
         self.__connectSignals()
+        self.restoreWidgetState()
 
         self.handleArgs(args)
 
@@ -410,6 +413,23 @@ class MainWindow(QMainWindow):
         self._actions["removeSub"].setEnabled(not tabIsStatic)
 
         self._actions["videoJump"].setEnabled(not tabIsStatic)
+
+    def closeEvent(self, ev):
+        self.saveWidgetState()
+
+    def saveWidgetState(self):
+        self._settings.setGeometry(self, self.saveGeometry())
+        self._settings.setState(self, self.saveState())
+
+        self._videoWidget.saveWidgetState(self._settings)
+        self._tabs.saveWidgetState(self._settings)
+
+    def restoreWidgetState(self):
+        self.restoreGeometry(self._settings.getGeometry(self))
+        self.restoreState(self._settings.getState(self))
+
+        self._videoWidget.restoreWidgetState(self._settings)
+        self._tabs.restoreWidgetState(self._settings)
 
     def handleArgs(self, args):
         self._openFiles(args.files, args.inputEncoding)

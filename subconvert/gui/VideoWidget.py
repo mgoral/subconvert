@@ -26,6 +26,7 @@ from PyQt4.QtCore import Qt
 
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils.VideoPlayer import VideoPlayer, VideoPlayerException
+from subconvert.utils.SubSettings import SubSettings
 
 from subconvert.utils.Locale import _
 
@@ -47,9 +48,6 @@ class VideoWidget(QWidget):
         self._player.playbackChanged.connect(self._playButton.setChecked)
         self._playButton.clicked.connect(self._playButtonToggled)
         self._slider.actionTriggered.connect(self._sliderActionHandle)
-
-    def __del__(self):
-        self.close()
 
     def close(self):
         self._player = None # will be garbage collected
@@ -148,6 +146,8 @@ class VideoWidget(QWidget):
         self._background.layout().setContentsMargins(margin, 0, margin, 0)
 
     def _initWidget(self):
+        self.setObjectName("video_player")
+
         mainLayout = QVBoxLayout()
         mainLayout.setContentsMargins(0, 0, 0, 0)
         mainLayout.setSpacing(0)
@@ -184,6 +184,16 @@ class VideoWidget(QWidget):
         layout.addWidget(self._timeLabel)
         layout.addSpacing(5)
         return layout
+
+    def saveWidgetState(self, settings):
+        settings = SubSettings()
+        settings.setHidden(self, self.isHidden())
+
+    def restoreWidgetState(self, settings):
+        if settings.getHidden(self) is True:
+            self.hide()
+        else:
+            self.show()
 
     def _moviePositionChanged(self, frame):
         if not self._slider.isSliderDown():
