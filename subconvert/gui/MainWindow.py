@@ -21,6 +21,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import logging
+import bisect
 from string import Template
 
 from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QVBoxLayout, QAction, QIcon, qApp
@@ -201,6 +202,10 @@ class MainWindow(QMainWindow):
             "list-remove", _("&Remove subtitles"), None, "delete",
             connection = lambda: self._tabs.currentPage().removeSelectedSubtitles())
 
+        self._actions["findSub"] = af.create(
+            "edit-find", _("&Find..."), None, "ctrl+f",
+            connection = lambda: self._tabs.currentPage().highlight())
+
         # Video
         self._videoRatios = [(4, 3), (14, 9), (14, 10), (16, 9), (16, 10)]
         self._actions["openVideo"] = af.create(
@@ -261,6 +266,7 @@ class MainWindow(QMainWindow):
         subtitlesMenu.addAction(self._actions["insertSub"])
         subtitlesMenu.addAction(self._actions["addSub"])
         subtitlesMenu.addAction(self._actions["removeSub"])
+        subtitlesMenu.addAction(self._actions["findSub"])
         subtitlesMenu.addSeparator()
         self._fpsMenu = subtitlesMenu.addMenu(_("&Frames per second"))
         self._fpsMenu.addSeparator()
@@ -411,6 +417,7 @@ class MainWindow(QMainWindow):
         self._actions["insertSub"].setEnabled(not tabIsStatic)
         self._actions["addSub"].setEnabled(not tabIsStatic)
         self._actions["removeSub"].setEnabled(not tabIsStatic)
+        self._actions["findSub"].setEnabled(not tabIsStatic)
 
         self._actions["videoJump"].setEnabled(not tabIsStatic)
 

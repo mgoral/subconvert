@@ -10,6 +10,7 @@ utils_PYTHON = \
 	SubFile.py \
 	SubSettings.py \
 	SubtitleData.py \
+	SubtitleSearch.py \
 	version.py \
 	VideoPlayer.py
 

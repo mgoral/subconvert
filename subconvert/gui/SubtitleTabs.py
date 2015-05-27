@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 
 """
-Copyright (C) 2011, 2012, 2013 Michal Goral.
+Copyright (C) 2011-2015 Michal Goral.
 
 This file is part of Subconvert
 
@@ -22,11 +22,13 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 import os
 import logging
 import encodings
-from collections import OrderedDict
+import bisect
+from enum import Enum
 
 from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QIcon, QTreeWidgetItem
 from PyQt4.QtGui import QTableView, QHeaderView, QStandardItemModel, QStandardItem, QSizePolicy
 from PyQt4.QtGui import QMessageBox, QAbstractItemView, QAction, QMenu, QCursor, QFileDialog
+from PyQt4.QtGui import QPushButton
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer
 
 from subconvert.parsing.FrameTime import FrameTime
@@ -36,9 +38,11 @@ from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.PropertyFile import SubtitleProperties, PropertiesFileApplier
 from subconvert.utils.SubFile import File
+from subconvert.utils.SubtitleSearch import SearchIterator, matchText
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.gui.Detail import ActionFactory, SubtitleList, ComboBoxWithHistory, FPS_VALUES
 from subconvert.gui.Detail import CustomDataRoles, SubListItemDelegate, DisableSignalling
+from subconvert.gui.Detail import SearchEdit
 from subconvert.gui.SubtitleCommands import *
 
 log = logging.getLogger('Subconvert.%s' % __name__)
@@ -495,6 +499,9 @@ class SubtitleEditor(SubTab):
         self._subList.setItemDelegateForColumn(1, subListDelegate)
         self._subList.horizontalHeader().setResizeMode(2, QHeaderView.Stretch)
 
+        self._searchBar = SearchBar(self)
+        self._searchBar.hide()
+
         # Top toolbar
         toolbar = QHBoxLayout()
         toolbar.setAlignment(Qt.AlignLeft)
@@ -507,6 +514,7 @@ class SubtitleEditor(SubTab):
         grid.setContentsMargins(0, 3, 0, 0)
         grid.addLayout(toolbar, 0, 0, 1, 1) # stretch to the right
         grid.addWidget(self._subList, 1, 0)
+        grid.addWidget(self._searchBar, 2, 0)
         self.setLayout(grid)
 
     def __initContextMenu(self):
@@ -659,6 +667,10 @@ class SubtitleEditor(SubTab):
             else:
                 self._subList.selectRow(self._model.rowCount() - 1)
 
+    def highlight(self):
+        self._searchBar.show()
+        self._searchBar.highlight()
+
     def showContextMenu(self):
         self._contextMenu.exec(QCursor.pos())
 
@@ -743,14 +755,19 @@ class SubtitleEditor(SubTab):
         self.refreshSubtitles()
 
     def selectedSubtitles(self):
+        rows = self.selectedRows()
+        subtitleList = [self.subtitles[row] for row in rows]
+        return subtitleList
+
+    def selectedRows(self):
         indices = self._subList.selectedIndexes()
-        if len(indices) > 0:
-            tempDict = OrderedDict.fromkeys([index.row() for index in indices])
-            rows = list(tempDict)
-            rows.sort()
-            subtitleList = [self.subtitles[row] for row in rows]
-            return subtitleList
-        return []
+        # unique list
+        rows = list(set([index.row() for index in indices]))
+        rows.sort()
+        return rows
+
+    def selectRow(self, row):
+        self._subList.selectRow(row)
 
     @property
     def filePath(self):
@@ -783,3 +800,91 @@ class SubtitleEditor(SubTab):
     @property
     def outputFormat(self):
         return self.data.outputFormat
+
+class SearchBar(QWidget):
+    class SearchDirection(Enum):
+        Forward = 1
+        Backward = 2
+
+    def __init__(self, parent):
+        super(SearchBar, self).__init__(parent)
+
+        self._sit = None
+
+        self._editor = SearchEdit(self)
+        self._prevButton = QPushButton("<", self)
+        self._nextButton = QPushButton(">", self)
+        self._closeButton = QPushButton(QIcon.fromTheme("window-close"), "", self)
+
+        layout = QHBoxLayout()
+        layout.setAlignment(Qt.AlignLeft)
+        layout.setSpacing(0)
+
+        layout.addWidget(self._editor)
+        layout.addWidget(self._prevButton)
+        layout.addWidget(self._nextButton)
+        layout.addWidget(self._closeButton)
+        layout.setContentsMargins(1, 1, 1, 1)
+
+        self.setLayout(layout)
+
+        self._nextButton.clicked.connect(self.next)
+        self._prevButton.clicked.connect(self.prev)
+        self._closeButton.clicked.connect(self.hide)
+        self._editor.textChanged.connect(self._reset)
+        self._editor.returnPressed.connect(self.next)
+        self._editor.escapePressed.connect(self.hide)
+
+    def highlight(self):
+        self._editor.setFocus()
+        self._editor.selectAll()
+
+    def next(self):
+        self._search(self.SearchDirection.Forward)
+
+    def prev(self):
+        self._search(self.SearchDirection.Backward)
+
+    def _search(self, direction):
+        if self._editor.text() == "":
+            self._reset()
+            return
+
+        if self._sit is None:
+            data = self.parent().data
+            case = any(map(str.isupper, self._editor.text()))
+            self._sit = SearchIterator(data.subtitles,
+                lambda sub, text = self._editor.text(), case = case: matchText(sub, text, case))
+
+        self._updateIteratorPositionFromSelection(direction)
+
+        fn = self._sit.next if direction == self.SearchDirection.Forward else self._sit.prev
+        try:
+            subNo = fn()
+            self.parent().selectRow(subNo)
+        except StopIteration:
+            self._searchError()
+
+    def _updateIteratorPositionFromSelection(self, direction):
+        selections = self.parent().selectedRows()
+        startRow = selections[-1] if len(selections) > 0 else -1
+
+        if startRow == -1 or len(self._sit.range()) == 0:
+            return
+
+        # When iterator points at different row, it means that user changed it
+        if startRow != self._sit.get():
+            pos = None
+            if direction == self.SearchDirection.Forward:
+                pos = bisect.bisect_right(self._sit.range(), startRow) - 1
+            else:
+                pos = bisect.bisect_left(self._sit.range(), startRow)
+            self._sit.setpos(pos)
+
+    def _searchError(self):
+        self._editor.setStyleSheet("background-color: #CD5555")
+
+    def _reset(self):
+        self._sit = None
+        self._editor.setStyleSheet("")
+

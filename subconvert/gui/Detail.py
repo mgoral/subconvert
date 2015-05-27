@@ -25,7 +25,7 @@ from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils.Locale import _, P_
 
 from PyQt4.QtGui import QListWidget, QTreeWidget, QComboBox, QAction, QIcon, QMessageBox
-from PyQt4.QtGui import QAbstractSpinBox, QStyledItemDelegate, QValidator, QBrush
+from PyQt4.QtGui import QAbstractSpinBox, QStyledItemDelegate, QValidator, QBrush, QLineEdit
 from PyQt4.QtCore import Qt, pyqtSignal
 
 # define globally to avoid mistakes
@@ -287,3 +287,13 @@ class CannotOpenFilesMsg(MessageBoxWithList):
             "Errors occured when trying to open following files:",
             fileListSize))
         super().exec()
+
+class SearchEdit(QLineEdit):
+    escapePressed = pyqtSignal()
+    def __init__(self, parent = None):
+        super().__init__(parent)
+
+    def keyPressEvent(self, ev):
+        if ev.key() == Qt.Key_Escape:
+            self.escapePressed.emit()
+        super().keyPressEvent(ev)
