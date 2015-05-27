@@ -23,7 +23,6 @@ import os
 import logging
 import encodings
 import bisect
-from enum import Enum
 
 from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QIcon, QTreeWidgetItem
 from PyQt4.QtGui import QTableView, QHeaderView, QStandardItemModel, QStandardItem, QSizePolicy
@@ -802,7 +801,7 @@ class SubtitleEditor(SubTab):
         return self.data.outputFormat
 
 class SearchBar(QWidget):
-    class SearchDirection(Enum):
+    class SearchDirection:
         Forward = 1
         Backward = 2
 
