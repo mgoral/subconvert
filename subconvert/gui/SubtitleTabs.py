@@ -872,7 +872,7 @@ class SearchBar(QWidget):
             return
 
         # When iterator points at different row, it means that user changed it
-        if startRow != self._sit.get():
+        if startRow != self._sit.last():
             pos = None
             if direction == self.SearchDirection.Forward:
                 pos = bisect.bisect_right(self._sit.range(), startRow) - 1

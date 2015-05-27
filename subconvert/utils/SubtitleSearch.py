@@ -42,9 +42,13 @@ class SearchIterator:
     def range(self):
         return self._range
 
-    def get(self):
+    def last(self):
+        """Returns the last element accessed via next() or prev().
+        Returns the first element of range() if neither of these was called."""
         if len(self._range) == 0:
             raise IndexError("range is empty")
+        if self._idx == -1:
+            return self._range[0]
         return self._get(self._idx)
 
     def next(self):
