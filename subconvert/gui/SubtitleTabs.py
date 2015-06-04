@@ -24,11 +24,11 @@ import logging
 import encodings
 import bisect
 
-from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QIcon, QTreeWidgetItem
-from PyQt4.QtGui import QTableView, QHeaderView, QStandardItemModel, QStandardItem, QSizePolicy
-from PyQt4.QtGui import QMessageBox, QAbstractItemView, QAction, QMenu, QCursor, QFileDialog
-from PyQt4.QtGui import QPushButton
-from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QTreeWidgetItem
+from PyQt5.QtWidgets import QTableView, QHeaderView, QSizePolicy, QPushButton
+from PyQt5.QtWidgets import QMessageBox, QAbstractItemView, QAction, QMenu, QFileDialog
+from PyQt5.QtGui import QIcon, QStandardItem, QStandardItemModel, QCursor
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer
 
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.parsing.Core import Subtitle
@@ -496,7 +496,7 @@ class SubtitleEditor(SubTab):
         self._subList.setModel(self._model)
         self._subList.setItemDelegateForColumn(0, subListDelegate)
         self._subList.setItemDelegateForColumn(1, subListDelegate)
-        self._subList.horizontalHeader().setResizeMode(2, QHeaderView.Stretch)
+        self._subList.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
 
         self._searchBar = SearchBar(self)
         self._searchBar.hide()

@@ -24,9 +24,10 @@ import re
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils.Locale import _, P_
 
-from PyQt4.QtGui import QListWidget, QTreeWidget, QComboBox, QAction, QIcon, QMessageBox
-from PyQt4.QtGui import QAbstractSpinBox, QStyledItemDelegate, QValidator, QBrush, QLineEdit
-from PyQt4.QtCore import Qt, pyqtSignal
+from PyQt5.QtWidgets import QListWidget, QTreeWidget, QComboBox, QAction, QMessageBox
+from PyQt5.QtWidgets import QAbstractSpinBox, QStyledItemDelegate, QLineEdit
+from PyQt5.QtGui import QValidator, QBrush, QIcon
+from PyQt5.QtCore import Qt, pyqtSignal
 
 # define globally to avoid mistakes
 AUTO_ENCODING_STR = _("[Auto]")

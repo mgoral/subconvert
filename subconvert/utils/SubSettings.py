@@ -22,7 +22,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 from subconvert.utils.SubException import SubAssert
 
 import os
-from PyQt4.QtCore import QSettings, QDir, QByteArray
+from PyQt5.QtCore import QSettings, QDir, QByteArray
 
 def str2Bool(val):
     # Really, fuck pyqt

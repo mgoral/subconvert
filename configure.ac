@@ -32,9 +32,9 @@ if test "$SED" = :; then
     AC_MSG_ERROR([Could not find program: sed])
 fi
 
-AC_CHECK_PROGS([PYRCC], [pyrcc4], [:])
+AC_CHECK_PROGS([PYRCC], [pyrcc5], [:])
 if test "$PYRCC" = :; then
-    AC_MSG_ERROR([Could not find program: pyrcc4])
+    AC_MSG_ERROR([Could not find program: pyrcc5])
 fi
 
 AC_CHECK_PROGS([MPLAYER], [mplayer], [:])
@@ -44,7 +44,7 @@ fi
 
 
 AM_CHECK_PYMOD(chardet,,,[AC_MSG_ERROR(Could not find python module: chardet)])
-AM_CHECK_PYMOD(PyQt4,,,[AC_MSG_ERROR(Could not find python module: PyQt4)])
+AM_CHECK_PYMOD(PyQt5,,,[AC_MSG_ERROR(Could not find python module: PyQt5)])
 
 AC_OUTPUT([
     subconvert/utils/Locale.py

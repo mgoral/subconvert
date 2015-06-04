@@ -24,9 +24,9 @@ import errno
 import pkgutil
 import encodings
 
-from PyQt4.QtGui import QDialog, QGridLayout, QWidget, QFileDialog, QComboBox, QTextEdit
-from PyQt4.QtGui import QCheckBox, QLabel, QGroupBox, QHBoxLayout, QVBoxLayout, QWidget
-from PyQt4.QtGui import QPushButton, QMessageBox
+from PyQt5.QtWidgets import QDialog, QGridLayout, QWidget, QFileDialog, QComboBox, QTextEdit
+from PyQt5.QtWidgets import QCheckBox, QLabel, QGroupBox, QHBoxLayout, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QPushButton, QMessageBox
 
 from subconvert.gui.FileDialogs import FileDialog
 from subconvert.parsing.Formats import *

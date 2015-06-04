@@ -20,9 +20,10 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt4.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QIcon, QSlider, QPushButton, QSizePolicy
-from PyQt4.QtGui import QAbstractSlider, QLabel
-from PyQt4.QtCore import Qt
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSlider, QPushButton, QSizePolicy
+from PyQt5.QtWidgets import QAbstractSlider, QLabel
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt
 
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.utils.VideoPlayer import VideoPlayer, VideoPlayerException

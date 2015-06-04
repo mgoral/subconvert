@@ -5,6 +5,7 @@ gui_PYTHON = \
 	DataModel.py \
 	Detail.py \
 	FileDialogs.py \
+	GuiApp.py \
 	MainWindow.py \
 	Panel.py \
 	PropertyFileEditor.py \

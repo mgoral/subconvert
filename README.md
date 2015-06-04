@@ -148,15 +148,15 @@ $ file1.tmp  file2.tmp
 
 ### Dependencies
 * Python 3.2+
-* python-qt4
-* python-chardet
+* python3-pyqt5
+* python3-chardet
 * MPlayer
 * gettext
 
 Additionaly, to build and install Subconvert you'll need:
 * autotools (autoconf + automake)
 * intltool
-* pyrcc4 (comes with pyqt4-dev-tools)
+* pyrcc4 (comes with pyqt5-dev-tools)
 
 ## License
 Subconvert is free software, available under terms of GNU General Public License 3. For details see

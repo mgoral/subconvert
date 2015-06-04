@@ -25,7 +25,7 @@ COVERAGE_DIR = "coverage"
 VERSION = $(shell sh tools/subconvert_version.sh)
 
 gen:
-	$(PYRCC) -py3 -o $(SUBCONVERT_DIR)/resources.py resources.qrc
+	$(PYRCC) -o $(SUBCONVERT_DIR)/resources.py resources.qrc
 	$(SED) -i 's/__version__ = .\+/__version__ = "$(VERSION)"/' subconvert/utils/version.py
 
 test: gen

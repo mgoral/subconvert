@@ -19,8 +19,8 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt4.QtCore import QObject, pyqtSignal, pyqtSlot
-from PyQt4.QtGui import QUndoStack
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QUndoStack
 
 from subconvert.utils.Locale import _
 from subconvert.utils.SubFile import File, VideoInfo

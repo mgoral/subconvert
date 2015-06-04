@@ -19,9 +19,6 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt4.QtGui import QApplication
-from PyQt4.QtCore import QTimer
-
 import os
 import sys
 import logging
@@ -30,8 +27,8 @@ import atexit
 
 from subconvert.utils.Locale import _
 from subconvert.utils.version import __appname__, __version__
-from subconvert.gui import MainWindow
 from subconvert.cli import MainApp
+from subconvert.gui import GuiApp
 from subconvert.utils.PropertyFile import SubtitleProperties
 
 from subconvert.parsing.Core import SubParser
@@ -110,23 +107,14 @@ def initSubParser():
     return parser
 
 def startApp(args, parser):
+    app = None
     if args.console:
         app = MainApp.SubApplication(args, parser)
-        atexit.register(cleanup, app)
-        sys.exit(app.run())
     else:
-        app = QApplication(sys.argv)
-        gui = MainWindow.MainWindow(args, parser)
+        app = GuiApp.SubApplication(args, parser)
 
-        atexit.register(cleanup, gui)
-
-        # Let the interpreter run each 500 ms.
-        timer = QTimer()
-        timer.start(500)
-        timer.timeout.connect(lambda: None)
-
-        gui.show()
-        sys.exit(app.exec_())
+    atexit.register(cleanup, app)
+    sys.exit(app.run())
 
 def main():
     parser = initSubParser()

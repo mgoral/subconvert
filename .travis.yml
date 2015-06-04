@@ -7,7 +7,7 @@ before_install:
     - sudo ln -s "`which nosetests`" "`which nosetests`3" # yea...
 
 install:
-    - sudo apt-get install -y gettext mplayer libgettextpo-dev python3-pyqt4 pyqt4-dev-tools intltool autopoint
+    - sudo apt-get install -y gettext mplayer libgettextpo-dev python3-pyqt5 pyqt5-dev-tools intltool autopoint
     - pip install chardet
  
 before_script:

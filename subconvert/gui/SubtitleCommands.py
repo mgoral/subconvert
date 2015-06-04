@@ -25,7 +25,7 @@ from subconvert.parsing.Core import Subtitle
 from subconvert.utils.Locale import _, P_
 from subconvert.utils.SubException import SubException, SubAssert
 
-from PyQt4.QtGui import QUndoCommand
+from PyQt5.QtWidgets import QUndoCommand
 
 # TODO/FIXME: Maybe it's a good idea to copy local subtitles saved in commands but as long as during
 # empirical tests no errors are detected, we won't do it to save some time and memory.

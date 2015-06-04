@@ -27,11 +27,12 @@ from subconvert.parsing.Formats import *
 from subconvert.gui.Detail import AUTO_ENCODING_STR
 from subconvert.utils.Locale import _
 
-from PyQt4.QtGui import QFileDialog, QHBoxLayout, QComboBox, QLabel
+from PyQt5.QtWidgets import QFileDialog, QHBoxLayout, QComboBox, QLabel
 
 class SubFileDialog(QFileDialog):
     def __init__(self, parent = None, caption = "", directory = "", filter = ""):
         super().__init__(parent, caption, directory, filter)
+        self.setOption(QFileDialog.DontUseNativeDialog)
 
     def _initAllSubFormats(self, formatList):
         self._formats = {}

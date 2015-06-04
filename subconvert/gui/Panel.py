@@ -21,8 +21,8 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 
-from PyQt4.QtGui import QWidget, QVBoxLayout, QFormLayout, QGroupBox, QLabel, QTextEdit, QUndoView
-from PyQt4.QtCore import Qt
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QGroupBox, QLabel, QTextEdit, QUndoView
+from PyQt5.QtCore import Qt
 
 from subconvert.utils.Locale import _
 

@@ -22,9 +22,9 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 import os
 import logging
 
-from PyQt4.QtGui import QWidget, QFrame, QHBoxLayout, QVBoxLayout, QGridLayout, QTabBar
-from PyQt4.QtGui import  QSplitter, QStackedWidget
-from PyQt4.QtCore import pyqtSignal, pyqtSlot, QByteArray
+from PyQt5.QtWidgets import QWidget, QFrame, QHBoxLayout, QVBoxLayout, QGridLayout, QTabBar
+from PyQt5.QtWidgets import  QSplitter, QStackedWidget
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QByteArray
 
 from subconvert.utils.Locale import _
 from subconvert.utils.SubFile import File
@@ -62,13 +62,13 @@ class SubTabWidget(QWidget):
         self.leftWidget = QWidget()
         self.leftWidget.setObjectName("sidebar")
         leftLayout = QVBoxLayout()
-        leftLayout.setMargin(0)
+        leftLayout.setContentsMargins(0, 0, 0, 0)
         self.leftWidget.setLayout(leftLayout)
         self.leftWidget.setMinimumWidth(100)
 
         self.rightWidget = QWidget()
         rightLayout = QGridLayout()
-        rightLayout.setMargin(0)
+        rightLayout.setContentsMargins(0, 0, 0, 0)
         self.rightWidget.setLayout(rightLayout)
 
         self._mainTab = FileList(_("Subtitles"), self._subtitleData, self)
@@ -132,7 +132,7 @@ class SubTabWidget(QWidget):
 
         splitterLayout = QVBoxLayout(splitterHandle)
         splitterLayout.setSpacing(0)
-        splitterLayout.setMargin(0)
+        splitterLayout.setContentsMargins(0, 0, 0, 0)
 
         line = QFrame(splitterHandle)
         line.setFrameShape(QFrame.HLine)

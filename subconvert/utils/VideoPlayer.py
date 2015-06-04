@@ -22,7 +22,7 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 import re
 import logging
 
-from PyQt4.QtCore import pyqtSignal, QObject, QProcess
+from PyQt5.QtCore import pyqtSignal, QObject, QProcess
 
 from subconvert.utils.Locale import _
 
@@ -177,7 +177,7 @@ class VideoPlayer(QObject):
             "-osdlevel", "0",
             "-input", "nodefault-bindings",
             "-noconfig", "all",
-            "-wid", str(self._window.winId()),
+            "-wid", str(int(self._window.winId())),
             filepath
         ]
 

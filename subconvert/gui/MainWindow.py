@@ -24,9 +24,10 @@ import logging
 import bisect
 from string import Template
 
-from PyQt4.QtGui import QMainWindow, QWidget, QFileDialog, QVBoxLayout, QAction, QIcon, qApp
-from PyQt4.QtGui import QMessageBox, QPixmap, QSpacerItem, QDesktopServices
-from PyQt4.QtCore import pyqtSlot, QDir, Qt, QUrl
+from PyQt5.QtWidgets import QMainWindow, QWidget, QFileDialog, QVBoxLayout, QAction, qApp
+from PyQt5.QtWidgets import QMessageBox, QSpacerItem
+from PyQt5.QtGui import QPixmap, QDesktopServices, QIcon
+from PyQt5.QtCore import pyqtSlot, QDir, Qt, QUrl
 
 from subconvert.parsing.Core import SubConverter
 from subconvert.parsing.Formats import *
@@ -80,6 +81,8 @@ Translations: $translators
 class MainWindow(QMainWindow):
     def __init__(self, args, parser):
         super(MainWindow, self).__init__()
+        log.debug(_("Theme search paths: %s") % QIcon.themeSearchPaths())
+        log.debug(_("Used theme name: '%s'") % QIcon.themeName())
 
         self.setObjectName("main_window")
 
