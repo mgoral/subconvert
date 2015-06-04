@@ -3,12 +3,13 @@ python:
     - "3.2_with_system_site_packages"
 
 before_install:
+    - sudo add-apt-repository --yes ppa:ubuntu-sdk-team/ppa
     - sudo apt-get update -qq
     - sudo ln -s "`which nosetests`" "`which nosetests`3" # yea...
 
 install:
-    - sudo apt-get install -y gettext mplayer libgettextpo-dev python3-pyqt5 pyqt5-dev-tools intltool autopoint
-    - pip install chardet
+    - sudo apt-get install -y gettext mplayer libgettextpo-dev pyqt5-dev-tools intltool autopoint
+    - pip install chardet python-qt5
  
 before_script:
     - ./autogen.sh && ./configure
