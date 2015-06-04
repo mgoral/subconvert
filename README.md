@@ -156,7 +156,7 @@ $ file1.tmp  file2.tmp
 Additionaly, to build and install Subconvert you'll need:
 * autotools (autoconf + automake)
 * intltool
-* pyrcc4 (comes with pyqt5-dev-tools)
+* pyrcc5 (comes with pyqt5-dev-tools)
 
 ## License
 Subconvert is free software, available under terms of GNU General Public License 3. For details see
