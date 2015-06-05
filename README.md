@@ -1,8 +1,6 @@
 Subconvert - movie subtitles converter.
 ====================
 
-[![Build Status](https://travis-ci.org/mgoral/subconvert.svg?branch=master)](https://travis-ci.org/mgoral/subconvert)
-
 Table of contents:
 
 1. Capabilities
@@ -65,7 +63,7 @@ $ make
 $ make install
 ```
 
-*Note: If you have previous Subconvert installation, remove it first!*
+*Note: If you have previous Subconvert installation, remove it first: `make reinstall`.*
 
 If `${prefix}/bin` isn't in your $PATH, you might consider adding Subconvert to it:
 
