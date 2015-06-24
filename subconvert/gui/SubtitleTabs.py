@@ -121,6 +121,15 @@ class FileList(SubTab):
         selectedItems = self.__fileList.selectedItems()
         anyItemSelected = len(selectedItems) > 0
 
+        # Open in tab
+
+        actionOpenInTab = af.create(
+            icon = "window-new", title = _("&Open in tab"), connection = self.requestOpeningSelectedFiles)
+        actionOpenInTab.setEnabled(anyItemSelected)
+        self._contextMenu.addAction(actionOpenInTab)
+
+        self._contextMenu.addSeparator()
+
         # Property Files
 
         pfileMenu = self._contextMenu.addMenu(_("Use Subtitle &Properties"))
@@ -376,6 +385,13 @@ class FileList(SubTab):
         if fileDialog.exec():
             movieFilePath = fileDialog.selectedFiles()[0]
             self.changeSelectedFilesVideoPath(movieFilePath)
+
+    def requestOpeningSelectedFiles(self):
+        # Open all files, but focus only the last one
+        items = self.__fileList.selectedItems()
+        for item in items:
+            self.requestOpen.emit(item.text(0), True)
+        self.requestOpen.emit(items[-1].text(0), False)
 
     def changeSelectedFilesFps(self, fps):
         items = self.__fileList.selectedItems()
