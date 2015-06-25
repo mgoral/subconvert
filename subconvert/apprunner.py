@@ -84,7 +84,7 @@ def prepareOptions(subFormats):
     movieGroup.add_argument("--fps", type = float,
         help = _("specifies video frames per second"))
     movieGroup.add_argument("-A", "--auto-fps", action = "store_true", dest = "autoFps",
-        help = _("uses MPlayer to automatically get FPS value from the video"))
+        help = _("[DEPRECATED] uses MPlayer to automatically get FPS value from the video"))
     movieGroup.add_argument("-v", "--video", metavar = _("VIDEO"), type = os.path.expanduser,
         # Translators: Do not translate '%%f'
         help = _("specifies a video file to get FPS value from. "

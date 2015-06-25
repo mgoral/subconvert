@@ -161,7 +161,7 @@ class SubApplication:
             if len(self._args.files) == 0:
                 log.warning(_("No files selected."))
 
-            if self._args.autoFps is not None:
+            if self._args.autoFps:
                 log.warning(_("-A, --auto-fps switches are deprecated."))
                 log.warning(_("  note: FPS is now automatically fetched whenever it's suitable."))
 
