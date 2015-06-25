@@ -62,7 +62,7 @@ class SubApplication:
         fps = self._args.fps
         if fps is None:
             fps = self._args.pfile.fps # default value
-            if self._args.autoFps or (self._args.video is not None) or self._args.pfile.autoFps:
+            if self._args.pfile.autoFps:
                 movieFile = self._parsePathTemplate(self._args.video, subFile.path)
                 videoInfo = subFile.detectFps(movieFile, fps)
                 fps = videoInfo.fps
@@ -160,6 +160,10 @@ class SubApplication:
 
             if len(self._args.files) == 0:
                 log.warning(_("No files selected."))
+
+            if self._args.autoFps is not None:
+                log.warning(_("-A, --auto-fps switches are deprecated."))
+                log.warning(_("  note: FPS is now automatically fetched whenever it's suitable."))
 
             for filePath in self._args.files:
                 log.info(_("Starting a job for file: %s") % filePath)
