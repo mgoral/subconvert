@@ -28,6 +28,8 @@ Table of contents:
 This section covers installation/removing and usage of Subconvert.
 
 ### Installation
+*Arch users: you can install Subconvert from [AUR][aur].*
+
 Since a version 1.0.0, autotools have been introduced. Most probably, they are already installed on
 your system. If not, install `automake` and `autoconf`.
 
@@ -162,3 +164,4 @@ Subconvert is free software, available under terms of GNU General Public License
 
 [wiki]: https://github.com/mgoral/subconvert/wiki
 [wiki-gui]: https://github.com/mgoral/subconvert/wiki/Graphical-User-Interface
+[aur]: https://aur.archlinux.org/packages/subconvert/
