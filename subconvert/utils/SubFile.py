@@ -42,7 +42,7 @@ class SubFileError(SubException):
     pass
 
 class VideoInfo:
-    fps = 25.0 # FPS value
+    fps = 23.976 # FPS value
     videoPath = None # Video file path from which FPS has been fetched
 
     def __init__(self, fps, videoPath = None):
@@ -186,7 +186,7 @@ class File:
         shutil.copyfile(self._filePath, backupFilePath)
         return backupFilePath
 
-    def detectFps(self, movieFile = None, default = 25.0):
+    def detectFps(self, movieFile = None, default = 23.976):
         """Fetch movie FPS from MPlayer output or return given default."""
 
         if movieFile is None:
@@ -194,7 +194,7 @@ class File:
         return File.detectFpsFromMovie(movieFile, default)
 
     @classmethod
-    def detectFpsFromMovie(cls, movieFile, default = 25.0):
+    def detectFpsFromMovie(cls, movieFile, default = 23.976):
         """Fetch movie FPS from MPlayer output or return given default."""
 
         # initialize with a default FPS value, but not with a movieFile

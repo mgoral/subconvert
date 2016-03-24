@@ -31,7 +31,7 @@ class SubtitleProperties:
 
         self._autoInputEncoding = True
         self._autoFps = True
-        self._fps = 25.0
+        self._fps = 23.976
         self._inputEncoding = None
         self._outputEncoding = None
         self._changeEncoding = False
