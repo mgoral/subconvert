@@ -8,6 +8,9 @@ python:
     - "3.4"
     - "3.5"
 
+virtualenv:
+    system_site_packages: true
+
 before_install:
     - sudo apt-get update -qq
     - sudo ln -s "`which nosetests`" "`which nosetests`3" # yea...
