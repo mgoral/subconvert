@@ -1,6 +1,8 @@
 Subconvert - movie subtitles converter.
 ====================
 
+[![Build Status](https://travis-ci.org/mgoral/subconvert.svg?branch=master)](https://travis-ci.org/mgoral/subconvert)
+
 Table of contents:
 
 1. Capabilities
