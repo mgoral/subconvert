@@ -423,6 +423,7 @@ class FileList(SubTab):
                 fpsInfo = File.detectFpsFromMovie(data.videoPath)
                 if data.videoPath != fpsInfo.videoPath or data.fps != fpsInfo.fps:
                     data.videoPath = fpsInfo.videoPath
+                    data.subtitles.changeFps(fpsInfo.fps)
                     data.fps = fpsInfo.fps
                     command = ChangeData(filePath, data, _("Detected FPS: %s") % data.fps)
                     self._subtitleData.execute(command)
@@ -748,6 +749,7 @@ class SubtitleEditor(SubTab):
             fpsInfo = File.detectFpsFromMovie(data.videoPath)
             if data.videoPath != fpsInfo.videoPath or data.fps != fpsInfo.fps:
                 data.videoPath = fpsInfo.videoPath
+                data.subtitles.changeFps(fpsInfo.fps)
                 data.fps = fpsInfo.fps
                 command = ChangeData(self.filePath, data, _("Detected FPS: %s") % data.fps)
                 self._subtitleData.execute(command)

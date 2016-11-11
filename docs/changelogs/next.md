@@ -11,4 +11,7 @@
 
     Strings are no longer accepted, only encoded byte steams.
 
+* Fixed not changing framerate of particular subtitles when detecting it from
+  linked videos.
+
 <!-- vim: set tw=80 colorcolumn=81 : -->
