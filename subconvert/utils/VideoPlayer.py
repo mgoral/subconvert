@@ -196,7 +196,7 @@ class VideoPlayer(QObject):
         if self._proc.state() == QProcess.Running:
             if cmd is not None and cmd != "":
                 procCmd = "%s%s" % (str(cmd), "\n")
-                self._proc.write(procCmd)
+                self._proc.write(procCmd.encode('utf-8'))
 
     def _changePlayingState(self, state):
         if state != self._isPlaying:
