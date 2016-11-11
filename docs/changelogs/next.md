@@ -4,4 +4,11 @@
 
 ### Bug fixes
 
-* Fixed incorrect slot definition which prevented starting Subconvert in GUI mode.
+* Fixed incorrect slot definition which prevented starting Subconvert in GUI
+  mode.
+
+* Fixed a crash when sending any command to MPlayer process.
+
+    Strings are no longer accepted, only encoded byte steams.
+
+<!-- vim: set tw=80 colorcolumn=81 : -->
