@@ -386,6 +386,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot(bool)
     @pyqtSlot(int)
     @pyqtSlot(str)
+    @pyqtSlot()
     def __updateMenuItemsState(self):
         tab = self._tabs.currentPage()
         dataAvailable = self._subtitleData.count() != 0
