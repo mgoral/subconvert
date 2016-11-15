@@ -3,33 +3,14 @@ Subconvert - movie subtitles converter.
 
 [![Build Status](https://travis-ci.org/mgoral/subconvert.svg?branch=master)](https://travis-ci.org/mgoral/subconvert)
 
-Table of contents:
+Subconvert is movie subtitles converter and editor aiming to be fast,
+lightweight and easy to use. It supports a wide variety of subtitle formats, can
+process files in batches and is available both as terminal application and with
+a graphical frontend. Most things, like file encoding or movie framerate are
+detected automatically so you can just sit and quickly enjoy your lovely
+subtitles!
 
-1. Capabilities
-2. User manual
-  1. Installation
-  2. Removing
-  3. Usage
-  4. Dependencies
-3. License
-
-====================
-
-## Capabilities
-* fast and lightweight
-* easy to use: at minimum select subtitle file and you're done.
-* available as a window (GUI) and terminal (CLI) application
-* supports multiple subtitle formats
-* batch jobs with common sets of options (*Subtitle Property Files*)
-* automatically checks video files for FPS information
-* converts between frame and time formats
-* detects encodings automatically
-* translatable (via gettext)
-
-## User manual
-This section covers installation/removing and usage of Subconvert.
-
-### Installation
+## Installation
 *Arch users: you can install Subconvert from [AUR][aur].*
 
 Since a version 1.0.0, autotools have been introduced. Most probably, they are already installed on
@@ -76,7 +57,7 @@ $ mkdir -p ${HOME}/bin
 $ cd ${HOME}/bin && ln -s ${prefix}/bin/subconvert
 ```
 
-### Removing
+## Removing
 To remove Subconvert, proceed with Installation steps. After invoking `configure` script (with a
 correct Subconvert prefix), simply run:
 
@@ -84,7 +65,7 @@ correct Subconvert prefix), simply run:
 $ make uninstall
 ```
 
-### Usage
+## Usage
 *Note: Most recent usage description is always available by `subconvert --help`. There are also
 [wiki pages][wiki] that describe some aspects of Subconvert usage more precisely.*
 
@@ -102,7 +83,7 @@ Above invocation will convert file1.srt and file2.txt to the default subtitles f
 SubRip). It will create file2.srt and will try to overwrite file1.srt (don't worry, unless you used
 `-f` switch, Subconvert will first ask you what to do).
 
-#### Output filename syntax
+### Output filename syntax
 It's not uncommon to add some kind of prefix/suffix to converted subtitles. Like this:
 
 ```
@@ -136,7 +117,7 @@ $ ls
 $ conv_file1.srt_suffix  file1.srt  file2.txt
 ```
 
-#### Subtitle Property Files
+### Subtitle Property Files
 You can create a common set of subtitle properties and apply all of them at once. Say, your
 subtitles are usually iso-8859-4 encoded and you usually convert them to TMP. You can set those
 settings with Subtitle Properties Editor (available via GUI: `Tools -> Subtitle Properties Editor`)
@@ -148,7 +129,7 @@ $ ls ~/subs
 $ file1.tmp  file2.tmp
 ```
 
-### Dependencies
+## Dependencies
 * Python 3.2+
 * python3-pyqt5
 * python3-chardet
