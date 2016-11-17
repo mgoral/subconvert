@@ -2,6 +2,7 @@ Subconvert - movie subtitles converter.
 ====================
 
 [![Build Status](https://travis-ci.org/mgoral/subconvert.svg?branch=master)](https://travis-ci.org/mgoral/subconvert)
+[![Documentation Status](https://readthedocs.org/projects/subconvert/badge/?version=latest)](http://subconvert.readthedocs.io/en/latest/?badge=latest)
 
 Subconvert is movie subtitles converter and editor aiming to be fast,
 lightweight and easy to use. It supports a wide variety of subtitle formats, can
