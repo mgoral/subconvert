@@ -1,27 +1,32 @@
-# TRANSLATING
+= TRANSLATING
+:plurals: http://www.gnu.org/savannah-checkouts/gnu/gettext/manual/html_node/Plural-forms.html
+:usual-lang-codes: http://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html#Usual-Language-Codes
+:rare-lang-codes: http://www.gnu.org/software/gettext/manual/html_node/Rare-Language-Codes.html#Rare-Language-Codes
 
-## Preparing environment
+== Preparing environment
 
 To generate `.pot` file which contains all translatable strings, call:
 
-    $ cd po
-    $ make update-po
+----
+$ cd po
+$ make update-po
+----
 
-## Creating a new translation
+== Creating a new translation
 
 If you'd like to add a new translation, you have to create `.po` file for your
 language before you can edit it. The simplest (and the best) method is to use
 `msginit`. Suppose that you'd like to translate Subconvert to German: 
 
-    $ cd po
-    $ msginit --locale de
+----
+$ cd po
+$ msginit --locale de
+----
 
 This will create `po/de.po` file which you can edit (see below). Try to avoid
 creating `.po` files by hand (e.g. by renaming `subconvert.pot`). `msginit`
 approach has several advantages like generating correct
-[`Plural-Forms`][plurals] entries for most of languages.
-
-  [plurals]: http://www.gnu.org/savannah-checkouts/gnu/gettext/manual/html_node/Plural-forms.html
+link:{plurals}[Plural-Forms] entries for most of languages.
 
 You will also have to add your language to `po/LINGUAS` file. In `LINGUAS` all
 languages occupy a single line and are sorted *alphabetically*, so please don't
@@ -29,13 +34,11 @@ mess that order when adding new languages (it's Subconvert's requirement, not
 GNU one).
 
 For a list of ISO 639-1 and ISO 639-2 language codes to use in above commands,
-see [this][usual-lang-codes] and [this][rare-lang-codes]. Keep in mind country
-code though: `en_US` is not the same as `en_UK`.
+see link:{usual-lang-codes}[this] and link:{rare-lang-codes}[this]. Keep in mind
+country code though: `en_US` is not the same as `en_UK`.
 
-  [usual-lang-codes]: http://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html#Usual-Language-Codes
-  [rare-lang-codes]: http://www.gnu.org/software/gettext/manual/html_node/Rare-Language-Codes.html#Rare-Language-Codes
 
-## Updating existing translations
+== Updating existing translations
 
 `make update-po` (run inside "po" directory) should result in `subconvert.pot`
 created and merged into all `.po` files in `po` directory. Ignore all languages
@@ -43,4 +46,4 @@ but the one you'd like to translate to. When you're done editing it with your
 editor of choice (like Vim, Emacs or Poedit), run `make update-po` again, commit
 changes and create a pull request.
 
-<!-- vim: set tw=80 colorcolumn=81 : -->
+// vim: set tw=80 colorcolumn=81 ft=asciidoc :

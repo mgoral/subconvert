@@ -1,4 +1,4 @@
-# AVAILABLE FORMATS
+= AVAILABLE FORMATS
 
 Subconvert will automatically detect a subtitle format in a given subtitle file.
 When you want to specify the output format, you have to use `-t` or `--format`
@@ -6,11 +6,11 @@ switch, followed by a proper format name (case insensitive). For example:
 `subconvert -t mpl2 SubRipSubtitles.srt` will produce MPL2 output subtitles. If
 you don't provide any format, Subconvert will use SubRip as default.
 
-## Subrip
+== Subrip
 
-### Looks like:
+=== Looks like:
 
-```
+----
 0
 00:00:00,000 --> 00:00:00,850
 This is first subtitle.
@@ -19,42 +19,43 @@ This is first subtitle.
 00:00:01,000 --> 00:00:03,549
 This is a simple Sub Rip file
 which has more than one line.
-```
+----
 
-Subtitle blocks are separated by an empty line (\n, \r\n or \r, depending on a
-platform). There is also a second type of SubRip notation available (which is
-much less frequently met):
+Subtitle blocks are separated by an empty line (`\n`, `\r\n` or `\r`, depending
+on a platform). There is also a second type of SubRip notation available (which
+is much less frequently met):
 
-```
+----
 0 00:00:00,000 --> 00:00:00,850
 This is first subtitle.
 
 1 00:00:01,000 --> 00:00:03,549
 This is a simple Sub Rip file
 which has more than one line.
-```
+----
 
-### Notes:
+=== Notes:
 
 * Subconvert format name: subrip
 * Default file extension: srt
 * Format type: time (miliseconds precision)
 * Text formatting: probably not supported officially by a subtitle standard but
   most of applications implement formatting that imitates HTML tags
-  (\<i>Italics\</i>, \<b>Bold\</b>, \<u>Underscore\</u>). SubConvert supports
+  (`<i>Italics</i>`, `<b>Bold</b>`, `<u>Underscore</u>`). SubConvert supports
   this kind of text formatting too.
 
-## Microdvd
+== Microdvd
 
-### Looks like:
+=== Looks like:
 
-```
+----
 {0}{21}This is first subtitle.
 {25}{89}This is a simple subtitle|which has more than one line.
 {100}{125}{y:i}{y:b}{y:u}This is formatted text|and it's second line|{y:i}{y:b}{y:u}and the third one
-```
+----
 
-### Notes:
+=== Notes:
+
 * SubConvert format name: microdvd
 * Default file extension: sub
 * Format type: frame
@@ -62,28 +63,29 @@ which has more than one line.
   beginning of the new line. Subconvert supports three of them: italics
   `{y:i}`, bold `{y:b}` and underline `{y:u}`. They can be combined.
 
-## MPL2
+== MPL2
 
-### Looks like:
+=== Looks like:
 
-```
+----
 [0][8]This is first subtitle.
 [10][35]This is a simple subtitle|which has more than one line.
 [40][50]/This is formatted text|and it's second line|/and the third one
-```
+----
 
-### Notes:
+=== Notes:
+
 * SubConvert format name: mpl2
 * Default file extension: txt
 * Format type: time (time is given in deciseconds [tenths of a second])
 * Text formatting: partially. Only italics text is supported which is indicated
   by a slash character (`/`) in the beginning of the new line
 
-## Subviewer
+== Subviewer
 
-### Looks like:
+=== Looks like:
 
-```
+----
 [INFORMATION]
 [TITLE]A typical subtitle
 [AUTHOR]
@@ -102,9 +104,9 @@ This is first subtitle.
 00:00:01.00,00:00:03.55
 This is a simple subtitle
 which has more than one line.
-```
+----
 
-### Notes:
+=== Notes:
 
 * SubConvert format name: subviewer
 * Default file extension: sub
@@ -112,20 +114,20 @@ which has more than one line.
 * Text formatting: there is an information in header about subtitle formatting
   that applies to the whole file.
 
-## TMP
+== TMP
 
-### Looks like:
+=== Looks like:
 
-```
+----
 00:00:00:This is first subtitle.
 00:00:01:This is a simple subtitle|which has more than one line.
-```
+----
 
-### Notes:
+=== Notes:
 
 * SubConvert format name: tmp
 * Default file extension: txt
 * Format type: time (second precision)
 * Text formatting: no
 
-<!-- vim: set tw=80 colorcolumn=81 : -->
+// vim: set tw=80 colorcolumn=81 ft=asciidoc :

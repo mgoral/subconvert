@@ -1,10 +1,11 @@
-# GRAPHICAL USER INTERFACE
+= GRAPHICAL USER INTERFACE
+:filelist: https://raw.github.com/mgoral/images/master/subconvert/filelist.png
 
-## Window layout
+== Window layout
 
 Main Subconvert window consists of several of tabs and panels. 
 
-![File list][filelist]
+image::{filelist}[File list]
 
 First tab is always a **file list**. You cannot close it or move it. It contains
 a list of *loaded* subtitle files with several handy informations about them
@@ -23,10 +24,9 @@ video file and its state. You can toggle its visibility under
 On the left there's a **subtitle panel**. It displays informations about
 subtitles opened in a current tab.
 
-## File management
+== File management
 
-(TBD)
+CAUTION: TBD
 
-  [filelist]: https://raw.github.com/mgoral/images/master/subconvert/filelist.png
 
-<!-- vim: set tw=80 colorcolumn=81 : -->
+// vim: set tw=80 colorcolumn=81 ft=asciidoc :

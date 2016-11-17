@@ -90,4 +90,4 @@ Available file encodings are (in alphabetical order):
 * windows-1257
 * windows-1258
 
-<!-- vim: set tw=80 colorcolumn=81 : -->
+// vim: set tw=80 colorcolumn=81 ft=asciidoc :
