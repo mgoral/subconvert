@@ -65,7 +65,7 @@ any previous Subconvert installation from a configured `${prefix}` and then
 install a new one. In fact, you can use it all the time, even if you haven't
 installed Subconvert previously.
 
-$ make reinstall
+    $ make reinstall
 
 ## Removing Subconvert
 

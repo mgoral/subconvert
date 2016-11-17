@@ -17,8 +17,8 @@ New tabs are not opened by default. To *open* a file in a new tab double click
 it on a file list. To open a file in new tab in background middle-click it.
 
 Above the file list there's a **video player** panel. It shows currently opened
-video file and its state. You can toggle its visibility under `View/Movie
-player` menu.
+video file and its state. You can toggle its visibility under
+`View/Movie player` menu.
 
 On the left there's a **subtitle panel**. It displays informations about
 subtitles opened in a current tab.
