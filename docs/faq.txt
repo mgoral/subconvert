@@ -1,6 +1,8 @@
-= FAQ
+[[faq]]
+== FAQ
 
-== There are no icons in menus or context menus. How to fix it?
+[[faq-missing-icons]]
+=== There are no icons in menus or context menus. How to fix it?
 
 Check the value of `$XDG_CURRENT_DESKTOP`. It should be set for most
 environments for Qt to correctly search for icon paths. Correct, registered
@@ -24,7 +26,8 @@ $ cd ~/.icons
 $ ln -s YOUR_THEME hicolor
 ----
 
-== What is the output file extended syntax?
+[[faq-output-syntax]]
+=== What is the output file extended syntax?
 
 Output file extended syntax is an easy way to use input file basename or
 extension in output file paths. Just type `%f` to insert input file basename

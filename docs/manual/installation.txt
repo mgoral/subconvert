@@ -1,4 +1,5 @@
-= INSTALLATION
+[[installation]]
+== Installation
 :1: http://nedbatchelder.com/code/coverage/
 :2: https://pypi.python.org/pypi/coverage
 :3: https://nose.readthedocs.org/en/latest/plugins/cover.html
@@ -7,7 +8,7 @@ NOTE: Since version 1.0.0 Subconvert installation procedure changes. Previous
 `install.sh` script has been replaced with `autotools`. Currently Subconvert
 uses standard `autotools` build and installation procedure.
 
-== Preparing a build system
+=== Preparing a build system
 
 NOTE: you can skip this step if you downloaded a release package (i.e.
       `configure` script already exists).*
@@ -21,7 +22,7 @@ will display *Quick Install Reference*.
 $ ./autogen.sh
 ----
 
-== Configuring installation
+=== Configuring installation
 
 When build system is ready, it is time to configure your installatio. Typically
 it's done by calling a `configure` script:
@@ -56,7 +57,7 @@ Example:
 $ ./configure --prefix=${HOME}/.loocal
 ----
 
-== Building and installing
+=== Building and installing
 
 Building and installing Subconvert is pretty straightforward now (at least if
 you have all dependencies met).
@@ -84,7 +85,7 @@ installed Subconvert previously.
 $ make reinstall
 ----
 
-== Removing Subconvert
+=== Removing Subconvert
 
 To remove Subconvert automatically you must configure it the same way as you did
 above. Remember to specify correct `${prefix}` path or else build system won't
@@ -98,9 +99,9 @@ When you're done with `configure` script, removing Subconvert is simple:
 $ make uninstall
 ----
 
-== Dependencies
+=== Dependencies
 
-=== Runtime dependencies
+==== Runtime dependencies
 
 * `Python 3.2+`
 * `python3-pyqt5`
@@ -108,7 +109,7 @@ $ make uninstall
 * `MPlayer`
 * `gettext`
 
-=== Build dependencies
+==== Build dependencies
 
 These dependencies are only valid if you do not have pre-generated `configure`
 script in your Subconvert download.
@@ -117,7 +118,7 @@ script in your Subconvert download.
 * `intltool`
 * `pyrcc5` (comes with `pyqt5-dev-tools`)
 
-=== Running tests
+==== Running tests
 
 * `python3-nose`
 * `python3-coverage` (see: link:{1}[homepage] and link:{2}[PyPi] and

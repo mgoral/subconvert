@@ -1,9 +1,10 @@
-= TRANSLATING
+[[translating]]
+== Translating
 :plurals: http://www.gnu.org/savannah-checkouts/gnu/gettext/manual/html_node/Plural-forms.html
 :usual-lang-codes: http://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html#Usual-Language-Codes
 :rare-lang-codes: http://www.gnu.org/software/gettext/manual/html_node/Rare-Language-Codes.html#Rare-Language-Codes
 
-== Preparing environment
+=== Preparing environment
 
 To generate `.pot` file which contains all translatable strings, call:
 
@@ -12,7 +13,7 @@ $ cd po
 $ make update-po
 ----
 
-== Creating a new translation
+=== Creating a new translation
 
 If you'd like to add a new translation, you have to create `.po` file for your
 language before you can edit it. The simplest (and the best) method is to use
@@ -38,7 +39,7 @@ see link:{usual-lang-codes}[this] and link:{rare-lang-codes}[this]. Keep in mind
 country code though: `en_US` is not the same as `en_UK`.
 
 
-== Updating existing translations
+=== Updating existing translations
 
 `make update-po` (run inside "po" directory) should result in `subconvert.pot`
 created and merged into all `.po` files in `po` directory. Ignore all languages

@@ -1,4 +1,5 @@
-= AVAILABLE FORMATS
+[[formats]]
+== Available Formats
 
 Subconvert will automatically detect a subtitle format in a given subtitle file.
 When you want to specify the output format, you have to use `-t` or `--format`
@@ -6,9 +7,9 @@ switch, followed by a proper format name (case insensitive). For example:
 `subconvert -t mpl2 SubRipSubtitles.srt` will produce MPL2 output subtitles. If
 you don't provide any format, Subconvert will use SubRip as default.
 
-== Subrip
+=== Subrip
 
-=== Looks like:
+==== Looks like:
 
 ----
 0
@@ -34,7 +35,7 @@ This is a simple Sub Rip file
 which has more than one line.
 ----
 
-=== Notes:
+==== Notes:
 
 * Subconvert format name: subrip
 * Default file extension: srt
@@ -44,9 +45,9 @@ which has more than one line.
   (`<i>Italics</i>`, `<b>Bold</b>`, `<u>Underscore</u>`). SubConvert supports
   this kind of text formatting too.
 
-== Microdvd
+=== Microdvd
 
-=== Looks like:
+==== Looks like:
 
 ----
 {0}{21}This is first subtitle.
@@ -54,7 +55,7 @@ which has more than one line.
 {100}{125}{y:i}{y:b}{y:u}This is formatted text|and it's second line|{y:i}{y:b}{y:u}and the third one
 ----
 
-=== Notes:
+==== Notes:
 
 * SubConvert format name: microdvd
 * Default file extension: sub
@@ -63,9 +64,9 @@ which has more than one line.
   beginning of the new line. Subconvert supports three of them: italics
   `{y:i}`, bold `{y:b}` and underline `{y:u}`. They can be combined.
 
-== MPL2
+=== MPL2
 
-=== Looks like:
+==== Looks like:
 
 ----
 [0][8]This is first subtitle.
@@ -73,7 +74,7 @@ which has more than one line.
 [40][50]/This is formatted text|and it's second line|/and the third one
 ----
 
-=== Notes:
+==== Notes:
 
 * SubConvert format name: mpl2
 * Default file extension: txt
@@ -81,9 +82,9 @@ which has more than one line.
 * Text formatting: partially. Only italics text is supported which is indicated
   by a slash character (`/`) in the beginning of the new line
 
-== Subviewer
+=== Subviewer
 
-=== Looks like:
+==== Looks like:
 
 ----
 [INFORMATION]
@@ -106,7 +107,7 @@ This is a simple subtitle
 which has more than one line.
 ----
 
-=== Notes:
+==== Notes:
 
 * SubConvert format name: subviewer
 * Default file extension: sub
@@ -114,16 +115,16 @@ which has more than one line.
 * Text formatting: there is an information in header about subtitle formatting
   that applies to the whole file.
 
-== TMP
+=== TMP
 
-=== Looks like:
+==== Looks like:
 
 ----
 00:00:00:This is first subtitle.
 00:00:01:This is a simple subtitle|which has more than one line.
 ----
 
-=== Notes:
+==== Notes:
 
 * SubConvert format name: tmp
 * Default file extension: txt

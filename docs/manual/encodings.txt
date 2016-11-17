@@ -1,4 +1,5 @@
-# ENCODINGS
+[[encodings]]
+== Available Encodings
 
 Available file encodings are (in alphabetical order):
 
