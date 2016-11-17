@@ -1,0 +1,23 @@
+site_name: Subconvert Documentation
+site_url: https://github.com/mgoral/subconvert
+site_description: Subtitles converter and editor.
+site_author: Michał Góral
+
+repo_url: https://github.com/mgoral/subconvert
+
+pages:
+- Home: index.md
+- Manual:
+    - Installation: manual/installation.md
+    - Usage: manual/usage.md
+    - Program options: manual/program-options.md
+    - Graphical Interface: manual/gui.md
+    - Available formats: manual/available-formats.md
+    - Encodings: manual/encodings.md
+- Contributing:
+    - Translating: dev-related/translating.md
+- FAQ: faq.md
+
+markdown_extensions:
+    - toc:
+        permalink: 
