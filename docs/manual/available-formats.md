@@ -10,25 +10,29 @@ you don't provide any format, Subconvert will use SubRip as default.
 
 ### Looks like:
 
-    0
-    00:00:00,000 --> 00:00:00,850
-    This is first subtitle.
+```
+0
+00:00:00,000 --> 00:00:00,850
+This is first subtitle.
 
-    1
-    00:00:01,000 --> 00:00:03,549
-    This is a simple Sub Rip file
-    which has more than one line.
+1
+00:00:01,000 --> 00:00:03,549
+This is a simple Sub Rip file
+which has more than one line.
+```
 
 Subtitle blocks are separated by an empty line (\n, \r\n or \r, depending on a
 platform). There is also a second type of SubRip notation available (which is
 much less frequently met):
 
-    0 00:00:00,000 --> 00:00:00,850
-    This is first subtitle.
+```
+0 00:00:00,000 --> 00:00:00,850
+This is first subtitle.
 
-    1 00:00:01,000 --> 00:00:03,549
-    This is a simple Sub Rip file
-    which has more than one line.
+1 00:00:01,000 --> 00:00:03,549
+This is a simple Sub Rip file
+which has more than one line.
+```
 
 ### Notes:
 
@@ -44,9 +48,11 @@ much less frequently met):
 
 ### Looks like:
 
-    {0}{21}This is first subtitle.
-    {25}{89}This is a simple subtitle|which has more than one line.
-    {100}{125}{y:i}{y:b}{y:u}This is formatted text|and it's second line|{y:i}{y:b}{y:u}and the third one
+```
+{0}{21}This is first subtitle.
+{25}{89}This is a simple subtitle|which has more than one line.
+{100}{125}{y:i}{y:b}{y:u}This is formatted text|and it's second line|{y:i}{y:b}{y:u}and the third one
+```
 
 ### Notes:
 * SubConvert format name: microdvd
@@ -60,9 +66,11 @@ much less frequently met):
 
 ### Looks like:
 
-    [0][8]This is first subtitle.
-    [10][35]This is a simple subtitle|which has more than one line.
-    [40][50]/This is formatted text|and it's second line|/and the third one
+```
+[0][8]This is first subtitle.
+[10][35]This is a simple subtitle|which has more than one line.
+[40][50]/This is formatted text|and it's second line|/and the third one
+```
 
 ### Notes:
 * SubConvert format name: mpl2
@@ -75,24 +83,26 @@ much less frequently met):
 
 ### Looks like:
 
-    [INFORMATION]
-    [TITLE]A typical subtitle
-    [AUTHOR]
-    [SOURCE]
-    [PRG]SubConvert
-    [FILEPATH]napis.sub
-    [DELAY]0
-    [CD TRACK]0
-    [COMMENT]Converted to subviewer format with SubConvert
-    [END INFORMATION]
-    [SUBTITLE]
-    [COLF]&HFFFFFF,[STYLE]no,[SIZE]24,[FONT]Tahoma
-    00:00:00.00,00:00:00.85
-    This is first subtitle.
+```
+[INFORMATION]
+[TITLE]A typical subtitle
+[AUTHOR]
+[SOURCE]
+[PRG]SubConvert
+[FILEPATH]napis.sub
+[DELAY]0
+[CD TRACK]0
+[COMMENT]Converted to subviewer format with SubConvert
+[END INFORMATION]
+[SUBTITLE]
+[COLF]&HFFFFFF,[STYLE]no,[SIZE]24,[FONT]Tahoma
+00:00:00.00,00:00:00.85
+This is first subtitle.
 
-    00:00:01.00,00:00:03.55
-    This is a simple subtitle
-    which has more than one line.
+00:00:01.00,00:00:03.55
+This is a simple subtitle
+which has more than one line.
+```
 
 ### Notes:
 
@@ -106,8 +116,10 @@ much less frequently met):
 
 ### Looks like:
 
-    00:00:00:This is first subtitle.
-    00:00:01:This is a simple subtitle|which has more than one line.
+```
+00:00:00:This is first subtitle.
+00:00:01:This is a simple subtitle|which has more than one line.
+```
 
 ### Notes:
 
