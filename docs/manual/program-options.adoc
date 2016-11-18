@@ -119,7 +119,6 @@ $ subconvert -c -p my_properties.spf subtitles.txt
 === Specify number of frames
 
 ----
--A, --auto-fps
 --fps NO
 -v VIDEO, --video VIDEO
 ----
@@ -128,10 +127,8 @@ Without FPS value converting between time-based and frame-based subtitles (e.g.
 Subrip -> Micro DVD) is impossible. That's why Subconvert employs several
 methods of obtaining this crucial value from a movie associated with subtitles.
 
-By default Subconvert won't try to find number of movie frames but will use some
-default number instead. If you wish to manually pass this value to Subconvert,
-you'll have to use `--fps` switch. Let's say that you'd like to use '23.976' as
-your FPS value:
+If you wish to manually pass video framerate to Subconvert, you'll can use
+`--fps` switch. Let's say that you'd like to use '23.976' as your FPS value:
 
 ----
 $ alias subconvert="subconvert -t microdvd" # assume for all examples
@@ -140,35 +137,20 @@ $ alias subconvert="subconvert -t microdvd" # assume for all examples
 
 $ subconvert -c --fps 23.976 subtitles.srt
 ----
-
-This method is tedious and error prone (you'd have to use another program to get
-FPS). That's why you can specify a movie file for each of your subtitles. What
-is more, you can use similar syntax to the "output file syntax" (see above):
-`%f` will be replaced with a subtitle file name and `%e` with extension
-(although using %e is not very useful):
+By default Subconvert will try to find and use framerate of the movie with a
+similar file name to subtitles'. If video file name doesn't match subtitles'
+one, you can specify a movie file for each of your subtitles. What is more, you
+can use similar syntax to the <<faq-output-syntax,output file syntax>>: `%f`
+will be replaced with a subtitle file name and `%e` with extension (although
+using %e is not very useful):
 
 ----
 $ subconvert -c -v "%f.avi" sub1.srt sub2.srt  # will search for
-                                                # sub1.avi and sub2.avi
+                                               # sub1.avi and sub2.avi
 
 # subconvert -c -v common_video.avi sub1.srt sub2.srt  # for both subtitles
-                                                        # FPS of common_video.avi
-                                                        # will be used
-----
-
-But probably the most common case is when subtitles and a video share a file
-name (and are placed in the same directory). In this case you can simply use
-`-A` option and Subconvert will try to automatically find a video matching your
-subtitles:
-
-----
-$ ls
-sub1.avi  sub1.srt  sub2.srt  sub2.mp4  sub3.srt  sub3.mpg
-
-$ subconvert -c *.srt -A  # will match and get FPS this way:
-                            # sub1.srt -> sub1.avi
-                            # sub2.srt -> sub2.mp4
-                            # sub3.srt -> sub3.mpg
+                                                       # FPS of common_video.avi
+                                                       # will be used
 ----
 
 === Other options:
