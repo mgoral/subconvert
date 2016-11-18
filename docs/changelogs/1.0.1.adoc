@@ -1,0 +1,18 @@
+= Subconvert 1.0.1 changelog
+
+NOTE: Subconvert wasn't using link:http://semver.org[Semantic Versioning] 
+      at this point.
+
+== Changes since 1.0.0:
+
+=== Bug fixes
+
+* added spinbox on subtitle time edit
+
+* fixed installing Subconvert icons
+
+* fixed missing icons
+
+* FPS value from pfile will be used when there's no FPS specified
+
+// vim: set tw=80 colorcolumn=81 :
