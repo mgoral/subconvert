@@ -85,6 +85,18 @@ installed Subconvert previously.
 $ make reinstall
 ----
 
+==== Building documentation
+
+Subconvert's documentation is stored in `docs` directory. To build it:
+
+----
+$ cd docs
+$ make
+----
+
+This should create `docs/build` directory in which documentation in several
+formats will be generated. Choose the one you like the most.
+
 === Removing Subconvert
 
 To remove Subconvert automatically you must configure it the same way as you did
@@ -117,6 +129,10 @@ script in your Subconvert download.
 * `autotools` (`autoconf` + `automake`)
 * `intltool`
 * `pyrcc5` (comes with `pyqt5-dev-tools`)
+
+==== Documentation
+
+* `asciidoctor` (`asciidoc` works too)
 
 ==== Running tests
 
