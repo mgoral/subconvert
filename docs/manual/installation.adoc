@@ -90,8 +90,7 @@ $ make reinstall
 Subconvert's documentation is stored in `docs` directory. To build it:
 
 ----
-$ cd docs
-$ make
+$ make docs
 ----
 
 This should create `docs/build` directory in which documentation in several

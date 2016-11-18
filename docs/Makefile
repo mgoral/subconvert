@@ -1,5 +1,4 @@
 ASCIIDOC = asciidoctor
-GEN=../tools/gen-in
 
 OUT_DIR=build
 BOOK_DIR=$(OUT_DIR)/book
@@ -25,8 +24,3 @@ man: $(MAN_SRC)
 .PHONY: clean
 clean:
 	rm -rf $(OUT_DIR)
-	rm -f subconvert.1.adoc
-
-%.adoc: %.adoc.in
-	@echo "Generating: $< -> $@"
-	@$(GEN) "$<" > "$@"

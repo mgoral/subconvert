@@ -18,7 +18,13 @@ EXTRA_DIST = \
 	resources.qrc \
 	$(subconvert_SCRIPTS) \
 	$(desktop_DATA) \
-	tools/subconvert_version.sh
+	tools/subconvert_version.sh \
+	docs/Makefile \
+	docs/*.adoc \
+	docs/*.adoc.in \
+	docs/manual/*.adoc \
+	docs/dev-related/*.adoc \
+	docs/changelogs/*.adoc
 
 SUBCONVERT_DIR = ./subconvert
 COVERAGE_DIR = "coverage"
@@ -52,7 +58,10 @@ dist-hook:
 	echo $(VERSION) > $(distdir)/.tarball-version
 
 reinstall:
-	make uninstall
-	make install
+	$(MAKE) uninstall
+	$(MAKE) install
 
-.PHONY: gen test coverage reinstall
+docs:
+	$(MAKE) -C docs
+
+.PHONY: gen test coverage reinstall docs
