@@ -10,25 +10,25 @@ detect files format, encoding and even movie FPS (if there is any movie given).
 
 = User Manual
 
-include::manual/installation.txt[]
+include::manual/installation.adoc[]
 
-include::manual/usage.txt[]
+include::manual/usage.adoc[]
 
-include::manual/program-options.txt[]
+include::manual/program-options.adoc[]
 
-include::manual/gui.txt[]
+include::manual/gui.adoc[]
 
 = Developer Manual
 
-include::dev-related/translating.txt[]
+include::dev-related/translating.adoc[]
 
 [appendix]
-include::faq.txt[]
+include::faq.adoc[]
 
 [appendix]
-include::manual/available-formats.txt[]
+include::manual/available-formats.adoc[]
 
 [appendix]
-include::manual/encodings.txt[]
+include::manual/encodings.adoc[]
 
 // vim: set tw=80 colorcolumn=81 ft=asciidoc ft=asciidoc :

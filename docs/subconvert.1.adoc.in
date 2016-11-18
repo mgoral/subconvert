@@ -10,13 +10,13 @@ subconvert - video subtitle converter and editor.
 
 *subconvert* [-c] [options] [FILE...]
 
-include::manual/usage.txt[]
+include::manual/usage.adoc[]
 
-include::manual/program-options.txt[]
+include::manual/program-options.adoc[]
 
-include::manual/available-formats.txt[]
+include::manual/available-formats.adoc[]
 
-include::manual/encodings.txt[]
+include::manual/encodings.adoc[]
 
 == ISSUES
 

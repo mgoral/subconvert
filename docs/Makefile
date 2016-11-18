@@ -5,8 +5,8 @@ OUT_DIR=build
 BOOK_DIR=$(OUT_DIR)/book
 MAN_DIR=$(OUT_DIR)/man/man1
 
-BOOK_SRC = index.txt
-MAN_SRC = subconvert.1.txt
+BOOK_SRC = index.adoc
+MAN_SRC = subconvert.1.adoc
 
 .PHONY: all
 all: book man
@@ -25,8 +25,8 @@ man: $(MAN_SRC)
 .PHONY: clean
 clean:
 	rm -rf $(OUT_DIR)
-	rm -f subconvert.1.txt
+	rm -f subconvert.1.adoc
 
-%.txt: %.txt.in
+%.adoc: %.adoc.in
 	@echo "Generating: $< -> $@"
 	@$(GEN) "$<" > "$@"
