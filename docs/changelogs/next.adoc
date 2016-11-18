@@ -14,4 +14,8 @@
 * Fixed not changing framerate of particular subtitles when detecting it from
   linked videos.
 
+=== Other changes
+
+* Moved documentation from online wiki to `docs` directory.
+
 // vim: set tw=80 colorcolumn=81 :
