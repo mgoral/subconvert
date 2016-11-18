@@ -1,0 +1,122 @@
+[[formats]]
+== Available Formats
+
+Subconvert will automatically detect a subtitle format in a given subtitle file.
+When you want to specify the output format, you have to use `-t` or `--format`
+switch, followed by a proper format name (case insensitive). For example:
+`subconvert -t mpl2 SubRipSubtitles.srt` will produce MPL2 output subtitles. If
+you don't provide any format, Subconvert will use SubRip as default.
+
+=== Subrip
+
+----
+0
+00:00:00,000 --> 00:00:00,850
+This is first subtitle.
+
+1
+00:00:01,000 --> 00:00:03,549
+This is a simple Sub Rip file
+which has more than one line.
+----
+
+Subtitle blocks are separated by an empty line (`\n`, `\r\n` or `\r`, depending
+on a platform). There is also a second type of SubRip notation available (which
+is much less frequently met):
+
+----
+0 00:00:00,000 --> 00:00:00,850
+This is first subtitle.
+
+1 00:00:01,000 --> 00:00:03,549
+This is a simple Sub Rip file
+which has more than one line.
+----
+
+=== Microdvd
+
+----
+{0}{21}This is first subtitle.
+{25}{89}This is a simple subtitle|which has more than one line.
+{100}{125}{y:i}{y:b}{y:u}This is formatted text|and it's second line|{y:i}{y:b}{y:u}and the third one
+----
+
+=== MPL2
+
+----
+[0][8]This is first subtitle.
+[10][35]This is a simple subtitle|which has more than one line.
+[40][50]/This is formatted text|and it's second line|/and the third one
+----
+
+
+=== Subviewer
+
+----
+[INFORMATION]
+[TITLE]A typical subtitle
+[AUTHOR]
+[SOURCE]
+[PRG]SubConvert
+[FILEPATH]napis.sub
+[DELAY]0
+[CD TRACK]0
+[COMMENT]Converted to subviewer format with SubConvert
+[END INFORMATION]
+[SUBTITLE]
+[COLF]&HFFFFFF,[STYLE]no,[SIZE]24,[FONT]Tahoma
+00:00:00.00,00:00:00.85
+This is first subtitle.
+
+00:00:01.00,00:00:03.55
+This is a simple subtitle
+which has more than one line.
+----
+
+=== TMP
+
+----
+00:00:00:This is first subtitle.
+00:00:01:This is a simple subtitle|which has more than one line.
+----
+
+=== Features Summary
+
+[cols="1,1,1,1,4", options="header"]
+|===
+| Format | option name | file extension | format type | text formatting
+
+| Subrip
+| *subrip*
+| srt
+| time (ms precision)
+| yes, limited HTML: `<i>Italics</i>`, `<b>Bold</b>`, `<u>Underscore</u>`
+
+| Microdvd
+| *microdvd*
+| sub
+| frame
+| yes, markers for whole line: `{y:i}`, `{y:b}` and `{y:u}` for italics, bold
+  and underscore. They can be combined.
+
+| MPL2
+| *mpl2*
+| txt
+| time (decisecond precision)
+| partial. Only italics text is supported by placing a slash (`/`) at line
+  beginning
+
+| Subviewer
+| *subviewer*
+| sub
+| time (centisecond precision)
+| information in header which applies to the whole file
+
+| TMP
+| *tmp*
+| txt
+| time (second precision)
+| no
+|===
+
+// vim: set tw=80 colorcolumn=81 ft=asciidoc :

@@ -49,6 +49,7 @@ AM_CHECK_PYMOD(PyQt5,,,[AC_MSG_ERROR(Could not find python module: PyQt5)])
 AC_OUTPUT([
     subconvert/utils/Locale.py
     subconvert/utils/version.py
+    docs/subconvert.1.adoc
 ])
 
 echo ""

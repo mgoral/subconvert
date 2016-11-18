@@ -1,0 +1,54 @@
+[[faq]]
+== FAQ
+
+[[faq-missing-icons]]
+=== There are no icons in menus or context menus. How to fix it?
+
+Check the value of `$XDG_CURRENT_DESKTOP`. It should be set for most
+environments for Qt to correctly search for icon paths. Correct, registered
+environments are specified here:
+http://standards.freedesktop.org/menu-spec/latest/apb.html (with GNOME, KDE or
+XFCE probably being the most popular).
+
+----
+$ export XDG_CURRENT_DESKTOP=GNOME
+----
+
+NOTE: Below answer is left as historical reference.
+
+It looks like it's Qt issue (fixed for Qt5, but there are some other issues with
+that version). Qt doesn't search for icon themes specified in `~/.gtkrc-2.0` and
+it falls back to `hicolor` icon theme which usually doesn't contain needed
+icons. Easy hack/fix for this is to create a symlink for your icons theme:
+
+----
+$ cd ~/.icons
+$ ln -s YOUR_THEME hicolor
+----
+
+[[faq-output-syntax]]
+=== What is the output file extended syntax?
+
+Output file extended syntax is an easy way to use input file basename or
+extension in output file paths. Just type `%f` to insert input file basename
+anywhere and `%e` to insert its extension. Just remember that `%f` inserts only
+*file* basename, not its whole path.
+
+If there are two or more input files, above substitution will be performed for
+each of them, i.e.  multiple output subtitles will be saved to disk.
+
+Suppose that we have a following file: `/home/alice/subtitles/video_sub.txt`. In
+that case `%f` will be "video_sub" and `%e` will be "txt".
+
+If Alice had rights to write in bob's home directory, the following example
+would create a file in his directory:
+
+----
+$ subconvert -c /home/alice/subtitles/video_sub.txt
+             -o "/home/bob/gifts_from_alice/prefix_%f.%e_bck"
+
+/home/alice/subtitles/video_sub.txt
+    -> /home/bob/gifts_from_alice/prefix_video_sub.srt_bck
+----
+
+// vim: set tw=80 colorcolumn=81 ft=asciidoc :

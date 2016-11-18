@@ -1,0 +1,16 @@
+= Subconvert 2.1.0 changelog
+
+== Changes since 2.0.0:
+
+=== New features
+
+* Added "open in new tab" to file list context menu.
+
+* automatically fetch FPS from movies whenever suitable (__deprecates `-A`
+  switch__)
+
+=== Other changes
+
+* Changed default FPS values to 23.976
+
+// vim: set tw=80 colorcolumn=81 :

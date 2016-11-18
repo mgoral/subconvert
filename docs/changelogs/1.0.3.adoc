@@ -1,13 +1,14 @@
-# Subconvert 1.0.3 changelog
+= Subconvert 1.0.3 changelog
 
-*This release contains fixes from 1.0.2, which wasn't released (it was only
-present on `dev` branch)*
+NOTE: This release contains fixes from 1.0.2, which wasn't released (it was only
+      present on `dev` branch).
 
-*NOTE: Subconvert wasn't using Semantic Versioning at this point*
+NOTE: Subconvert wasn't using link:http://semver.org[Semantic Versioning] 
+      at this point.
 
-## Changes since 1.0.1:
+== Changes since 1.0.1:
 
-## New features:
+== New features:
 
 *  Enabled menu bar subtitles editing (+undo/redo)
 
@@ -17,7 +18,7 @@ present on `dev` branch)*
 
 *  Jumping to the start of highlighted sub
 
-## Bug Fixes:
+== Bug Fixes:
 
 *  Fixed not showing errors on "save all"
 
@@ -33,10 +34,10 @@ present on `dev` branch)*
 
 *  Added missing window icon
 
-## Behaviour modifications:
+== Behaviour modifications:
 
 *  Change SubtitleProperties format: pickle -> JSON
 
 *  Changed forward/rewind shortucts to ctrl+right, ctrl+left
 
-<!-- vim: set tw=80 colorcolumn=81 : -->
+// vim: set tw=80 colorcolumn=81 :

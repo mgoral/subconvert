@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Accepts only a filepath to the "*.in" file and outputs results to stdout
+if [[ $# -ne 1 ]]; then
+    echo "usage: gen-in FILE" >&2
+    exit 1
+fi
+
+IN_FILE="$1"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+APP_NAME=Subconvert
+
+# This can be easier with git 2.6.0+, but it's still quite young version as a date of writing this
+LAST_MODIFIED=$(date -d$(git log -n1 --date=short --format="%ad" "$IN_FILE") +"%d %B %Y")
+
+sed -e "s|@PACKAGE_NAME[@]|$APP_NAME|g" \
+    -e "s|@VERSION[@]|$($SCRIPT_DIR/subconvert_version.sh)|g" \
+    -e "s|@FILE_LAST_MODIFY[@]|$LAST_MODIFIED|g" \
+    $IN_FILE

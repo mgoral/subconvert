@@ -141,6 +141,9 @@ Additionaly, to build and install Subconvert you'll need:
 * intltool
 * pyrcc5 (comes with pyqt5-dev-tools)
 
+To build documentation:
+* asciidoctor
+
 ## License
 Subconvert is free software, available under terms of GNU General Public License 3. For details see
 `License.txt` which should be delivered with Subconvert.

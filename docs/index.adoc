@@ -1,0 +1,34 @@
+= Subconvert
+Michał Góral <https://mgoral.org>
+:toc: left
+:toclevels: 2
+:doctype: book
+
+Subconvert is Python application which is capable to do convertions between
+various popular subtitle formats. It is also smart enough to automatically
+detect files format, encoding and even movie FPS (if there is any movie given).
+
+= User Manual
+
+include::manual/installation.adoc[]
+
+include::manual/usage.adoc[]
+
+include::manual/program-options.adoc[]
+
+include::manual/gui.adoc[]
+
+= Developer Manual
+
+include::dev-related/translating.adoc[]
+
+[appendix]
+include::faq.adoc[]
+
+[appendix]
+include::manual/available-formats.adoc[]
+
+[appendix]
+include::manual/encodings.adoc[]
+
+// vim: set tw=80 colorcolumn=81 ft=asciidoc ft=asciidoc :

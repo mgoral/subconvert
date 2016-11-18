@@ -1,0 +1,12 @@
+= Subconvert 2.0.0 changelog
+
+== Changes since 1.1.0:
+
+=== New features
+* **[BACKWARD INCOMPATIBLE]** Port Subconvert to PyQt5.
+
+* Added search bar to the subtitle view.
+
+* Added remembering state of some subconvert controls
+
+// vim: set tw=80 colorcolumn=81 :

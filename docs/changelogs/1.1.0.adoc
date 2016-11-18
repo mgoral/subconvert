@@ -1,8 +1,8 @@
-# Subconvert 1.1.0 changelog
+= Subconvert 1.1.0 changelog
 
-## Changes since 1.0.3:
+== Changes since 1.0.3:
 
-### New features
+=== New features
 
 * Added widget showing undo stack in sidebar.
 
@@ -12,7 +12,7 @@
 
 * Added FPS info to file list.
 
-### Bug fixes
+=== Bug fixes
 
 * Fixed a problem where changing FPS made it impossible to edit subtitles.
 
@@ -24,7 +24,7 @@
 
 * Disable video slider when video is not loaded
 
-### Other improvements
+=== Other improvements
 
 * Updated Polish translation.
 
@@ -38,4 +38,4 @@
 
 * Improved version control
 
-<!-- vim: set tw=80 colorcolumn=81 : -->
+// vim: set tw=80 colorcolumn=81 :
