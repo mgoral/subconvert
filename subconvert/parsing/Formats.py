@@ -23,6 +23,8 @@ import re
 
 from subconvert.parsing.FrameTime import FrameTime
 from subconvert.parsing.Core import Subtitle
+from subconvert.utils.SubException import SubAssert
+from subconvert.utils.Locale import _
 
 class TimeFormat:
     UNKNOWN = 0
@@ -179,6 +181,7 @@ class SubFormat:
     def convertTime(self, frametime, which):
         """Convert FrameTime object to properly formatted string that describes subtitle start or
         end time."""
+        SubAssert(frametime.frame >= 0, _("Negative time present."))
         return frametime.frame
 
     @property
@@ -239,6 +242,7 @@ class MicroDVD(SubFormat):
         return string
 
     def convertTime(self, frametime, which):
+        SubAssert(frametime.frame >= 0, _("Negative time present."))
         return frametime.frame
 
 class SubRip(SubFormat):
@@ -277,9 +281,10 @@ class SubRip(SubFormat):
             (int(time.group('h')), int(time.group('m')), int(time.group('s')), int(time.group('ms'))))
 
     def convertTime(self, frametime, which):
-        return '%02d:%02d:%02d,%03d' % (int(frametime.time['hours']),\
-            int(frametime.time['minutes']), int(frametime.time['seconds']),\
-            int(frametime.time['miliseconds']))
+        SubAssert(frametime.fullSeconds >= 0, _("Negative time present."))
+        t = frametime.time
+        return '%02d:%02d:%02d,%03d' % (t['hours'], t['minutes'], t['seconds'],
+                                        t['miliseconds'])
 
 class SubViewer(SubFormat):
     NAME = 'SubViewer 1.0'
@@ -311,9 +316,10 @@ class SubViewer(SubFormat):
             (int(time.group('h')), int(time.group('m')), int(time.group('s')), int(time.group('ms'))*10))
 
     def convertTime(self, frametime, which):
-        ms = int(round(frametime.time['miliseconds'] / float(10)))
-        return '%02d:%02d:%02d.%02d' % (int(frametime.time['hours']),\
-            int(frametime.time['minutes']), int(frametime.time['seconds']), ms)
+        SubAssert(frametime.fullSeconds >= 0, _("Negative time present."))
+        t = frametime.time
+        ms = int(round(t['miliseconds'] / float(10)))
+        return '%02d:%02d:%02d.%02d' % (t['hours'], t['minutes'], t['seconds'], ms)
 
     def addHeaderInfo(self, content, header):
         if( '[colf]' in content.lower() and '[information]' in content.lower()):
@@ -403,8 +409,9 @@ class TMP(SubFormat):
 
     def convertTime(self, frametime, which):
         if which == 'time_from':
-            return '%02d:%02d:%02d' % (int(frametime.time['hours']),\
-            int(frametime.time['minutes']), int(frametime.time['seconds']))
+            SubAssert(frametime.fullSeconds >= 0, _("Negative time present."))
+            t = frametime.time
+            return '%02d:%02d:%02d' % (t['hours'], t['minutes'], t['seconds'])
 
 class MPL2(SubFormat):
     NAME = 'MPL2'
@@ -436,6 +443,7 @@ class MPL2(SubFormat):
         return FrameTime(fps, seconds=seconds)
 
     def convertTime(self, frametime, which):
+        SubAssert(frametime.fullSeconds >= 0, _("Negative time present."))
         time = str(frametime.fullSeconds).split('.')
         time = ''.join([time[0].lstrip('0'), time[1][0]])
         return time

@@ -5,20 +5,28 @@ gui_PYTHON = \
 	DataModel.py \
 	Detail.py \
 	FileDialogs.py \
+	FrameTimeSpinBox.py \
 	GuiApp.py \
 	MainWindow.py \
-	Panel.py \
+	OffsetDialog.py \
 	PropertyFileEditor.py \
+	SubModel.py \
 	SubtitleCommands.py \
 	SubtitleTabs.py \
 	SubtitleWindow.py \
+	ToolBox.py \
 	VideoWidget.py
 
-#CLEANFILES += $(gui_PYTHON)
+guitools_PYTHON = \
+	tools/Details.py \
+	tools/History.py \
+	tools/Synchronizer.py
 
 guidir = $(datadir)/subconvert/subconvert/gui
+guitoolsdir = $(datadir)/subconvert/subconvert/gui/tools
 
 CLEANFILES = *.pyc *.pyo
+CLEANFILES += tools/*.pyc tools/*.pyo
 
 clean-local:
 	rm -rf __pycache__

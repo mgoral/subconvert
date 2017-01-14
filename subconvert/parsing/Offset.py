@@ -52,11 +52,13 @@ class SyncPoint:
         return "%d: [%s][%s]" % (self.subNo, self.start, self.end)
 
 class TimeSync():
+    """In-place subtitles synchronizer."""
+
     def __init__(self, subtitles):
         self._subs = subtitles
 
     def sync(self, syncPointList):
-        """Synchronise subtitles using a given listo of SyncPoints."""
+        """Synchronise subtitles using a given list of SyncPoints."""
 
         if len(syncPointList) == 0:
             return
@@ -65,6 +67,7 @@ class TimeSync():
 
         syncPointList.sort()
 
+        SubAssert(syncPointList[0].subNo >= 0)
         SubAssert(syncPointList[0].subNo < subsCopy.size())
         SubAssert(syncPointList[-1].subNo < subsCopy.size())
 

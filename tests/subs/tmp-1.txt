@@ -1,0 +1,2 @@
+00:00:00:This is first subtitle.
+00:00:01:This is a simple subtitle|which has more than one line.

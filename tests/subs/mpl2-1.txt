@@ -1,0 +1,3 @@
+[0][8]This is first subtitle.
+[10][35]This is a simple subtitle|which has more than one line.
+[40][50]/This is formatted text|and it's second line

@@ -1,0 +1,21 @@
+{
+    "format": "Sub Rip",
+    "opt": "subrip",
+    "subs":
+    [
+
+        {
+            "__Subtitle__": true,
+            "start": {"__FrameTime__": true, "seconds": 0},
+            "end": {"__FrameTime__": true, "seconds": 0.850},
+            "text": "This is first subtitle."
+        },
+
+        {
+            "__Subtitle__": true,
+            "start": {"__FrameTime__": true, "seconds": 1},
+            "end": {"__FrameTime__": true, "seconds": 3.549},
+            "text": "This is a simple subtitle{gsp_nl}which has more than one line."
+        }
+    ]
+}

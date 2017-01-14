@@ -1,0 +1,30 @@
+{
+    "format": "MPL2",
+    "opt": "mpl2",
+    "subs":
+    [
+
+        {
+            "__Subtitle__": true,
+            "start": {"__FrameTime__": true, "seconds": 0},
+            "end": {"__FrameTime__": true, "seconds": 0.8},
+            "text": "This is first subtitle."
+        },
+
+        {
+            "__Subtitle__": true,
+            "start": {"__FrameTime__": true, "seconds": 1},
+            "end": {"__FrameTime__": true, "seconds": 3.5},
+            "text": "This is a simple subtitle{gsp_nl}which has more than one line."
+        },
+
+
+        {
+            "__Subtitle__": true,
+            "start": {"__FrameTime__": true, "seconds": 4},
+            "end": {"__FrameTime__": true, "seconds": 5},
+            "text": "{gsp_i_}This is formatted text{gsp_nl}and it's second line"
+        }
+    ]
+}
+

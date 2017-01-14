@@ -2,7 +2,8 @@
 
 cli_PYTHON = \
 	__init__.py \
-	MainApp.py
+	MainApp.py \
+	syncparse.py
 
 #CLEANFILES += $(cli_PYTHON)
 

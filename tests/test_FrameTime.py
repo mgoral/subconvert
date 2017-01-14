@@ -19,198 +19,167 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import unittest
-import datetime
-import random
+import itertools
+import pytest
 
 from subconvert.parsing.FrameTime import FrameTime
 import subconvert.utils.version as version
 
 from subconvert.apprunner import _
 
-# TODO: tests for: sub, mul and div
-class TestFrameTime(unittest.TestCase):
-    """FrameTime Unit Tests
-    Note: "fto" in some testcases means "FrameTime Object"
-    Note2: In most cases full_seconds are pre-calculated."""
+def gen_operands():
+    lhs = [100, -100]
+    rhs = [100, -100, 200, -200]
+    return itertools.product(lhs, rhs)
 
-    def compare(self, ft_object, fps, frame, full_seconds, hours, minutes, seconds, miliseconds):
-        self.assertEqual(ft_object._fps, fps)
-        self.assertEqual(ft_object.frame, round(frame))
-        self.assertEqual(ft_object.fullSeconds, full_seconds)
-        self.assertEqual(ft_object.time['hours'], hours)
-        self.assertEqual(ft_object.time['minutes'], minutes)
-        self.assertEqual(ft_object.time['seconds'], seconds)
-        self.assertEqual(ft_object.time['miliseconds'], miliseconds)
+def test_init_incorrect_fps():
+    with pytest.raises(ValueError):
+        FrameTime(0, frames=5)
 
-    def test_initWith_0_Fps(self):
-        with self.assertRaises(ValueError):
-            FrameTime(0, frames=5)
+    with pytest.raises(ValueError):
+        FrameTime(0, frames=-5)
 
-    def test_initWithNegativeFps(self):
-        with self.assertRaises(ValueError):
-            FrameTime(-5, frames=5)
 
-    def test_initDefaultFrameTime(self):
-        fto = FrameTime(5)
-        self.compare(fto, 5, 0, 0, 0, 0, 0, 0)
+def test_default_frametimw():
+    ft = FrameTime(5)
+    assert ft.fps == 5
+    assert ft.frame == 0
+    assert ft.fullSeconds == 0
+    assert ft.time['hours'] == 0
+    assert ft.time['minutes'] == 0
+    assert ft.time['seconds'] == 0
+    assert ft.time['miliseconds'] == 0
 
-    def test_initWithOneSurplusParameter(self):
-        with self.assertRaises(AttributeError):
-            FrameTime(5, frames=5, seconds=10)
 
-    def test_initWithTwoSurplusParameters(self):
-        with self.assertRaises(AttributeError):
-            FrameTime(5, frames=5, time="1:01:01.000", seconds=10)
+def test_init_surplus_parameters():
+    with pytest.raises(AttributeError):
+        FrameTime(5, frames=5, seconds=10)
 
-    def test_initByTimeString(self):
-        fto = FrameTime(25, time="1:01:01.101")
-        full_seconds = 3661.101
-        frames = full_seconds * 25
-        self.compare(fto, 25, frames, full_seconds, 1, 1, 1, 101)
+    with pytest.raises(AttributeError):
+        FrameTime(5, frames=5, time="1:01:01.000", seconds=10)
 
-    def test_initFullSeconds(self):
-        fto = FrameTime(25, seconds=3661.100)
-        full_seconds = 3661.100
-        frames = full_seconds * 25
-        self.compare(fto, 25, frames, full_seconds, 1, 1, 1, 100)
 
-    def test_initFrames(self):
-        fto = FrameTime(25, frames=100)
-        full_seconds = 4
-        frames = full_seconds * 25
-        self.compare(fto, 25, frames, full_seconds, 0, 0, 4, 0)
+def test_time_dict():
+    # 1h 1m 1s 101ms
+    ft = FrameTime(25, seconds=3661.101)
 
-    def test_setSecondsWith1ms(self):
-        fto = FrameTime(25, seconds=0)
-        full_seconds = 3661.001
-        fto.__setSeconds__(full_seconds)
-        frames = full_seconds * 25
-        self.compare(fto, 25, frames, full_seconds, 1, 1, 1, 1)
+    expected = dict(hours=1, minutes=1, seconds=1, miliseconds=101)
+    assert ft.time == expected
 
-    def test_setSecondsWith10ms(self):
-        fto = FrameTime(25, seconds=0)
-        full_seconds = 3661.010
-        fto.__setSeconds__(full_seconds)
-        frames = full_seconds * 25
-        self.compare(fto, 25, frames, full_seconds, 1, 1, 1, 10)
 
-    def test_setSecondsWith100ms(self):
-        fto = FrameTime(25, seconds=0)
-        full_seconds = 3661.1
-        fto.__setSeconds__(full_seconds)
-        frames = full_seconds * 25
-        self.compare(fto, 25, frames, full_seconds, 1, 1, 1, 100)
+@pytest.mark.parametrize('param_pair', [(3661.101, '1:01:01.101'),
+                                        (3661.101, '+1:01:01.101'),
+                                        (-3661.101, '-1:01:01.101')])
+def test_init_time_string(param_pair):
+    full_secs, timestr = param_pair
+    ft = FrameTime(25, time=timestr)
+    assert ft.fps == 25
+    assert ft.fullSeconds == full_secs
+    assert ft.frame == round(full_secs * ft.fps)
 
-    def test_setSecondsWithNegativeSecondsRaisesAnError(self):
-        fto = FrameTime(25, seconds=0)
-        with self.assertRaises(ValueError):
-            fto.__setSeconds__(-1)
+@pytest.mark.parametrize('param', [3661.100, 3661.01, 3661.001,
+                                   -3661.100, -3661.01, -3661.001])
+def test_init_full_seconds(param):
+    ft = FrameTime(25, seconds=param)
+    assert ft.fps == 25
+    assert ft.fullSeconds == param
+    assert ft.frame == round(ft.fullSeconds * ft.fps)
 
-    def test_setFrame(self):
-        fto = FrameTime(25, frames=0)
-        frames = 40120
-        fto.__setFrame__(frames)
-        full_seconds = frames / 25
-        self.compare(fto, 25, frames, full_seconds, 0, 26, 44, 800)
+@pytest.mark.parametrize('param', [100, 40120, -100, -40120])
+def test_init_frames(param):
+    ft = FrameTime(25, frames=param)
+    assert ft.fps == 25
+    assert ft.frame == param
+    assert ft.fullSeconds == param / ft.fps
 
-    def test_setFrameWithNegativeSecondsRaisesAnError(self):
-        fto = FrameTime(25, frames=0)
-        with self.assertRaises(ValueError):
-            fto.__setFrame__(-1)
 
-    def test_setTime(self):
-        fto = FrameTime(25, time="0:00:00.000")
-        time = "1:01:01.234"
-        fto.__setTime__(time)
-        full_seconds = 3661.234
-        frames = full_seconds * 25
-        self.compare(fto, 25, frames, full_seconds, 1, 1, 1, 234)
+def test_incorrectly_formatted_time():
+    with pytest.raises(ValueError):
+        FrameTime(25, time="1:12;44-999")
 
-    def test_setIncorrectlyFormattedTimeRaisesAnError(self):
-        fto = FrameTime(25, time="0:00:00.000")
-        with self.assertRaises(ValueError):
-            fto.__setTime__("1:12;44-999")
+@pytest.mark.parametrize('kw', [{'frames': 50}, {'frames': -50},
+                                {'seconds': 50.123}, {'seconds': -50.123},
+                                {'time': '1:01:01.123'},
+                                {'time': '+1:01:01.123'},
+                                {'time': '-1:01:01.123'}])
+def test_eq(kw):
+    assert FrameTime(25, **kw) == FrameTime(25, **kw)
+    assert FrameTime(25, **kw) >= FrameTime(25, **kw)
+    assert FrameTime(25, **kw) <= FrameTime(25, **kw)
 
-    def test_getFrame(self):
-        # full_seconds = 3661.100
-        fto = FrameTime(25, time="1:01:01.100")
-        self.assertEqual(91528, fto.frame)
 
-    def test_getFullSeconds(self):
-        fto = FrameTime(25, frames=50)
-        self.assertEqual(2, fto.fullSeconds)
+@pytest.mark.parametrize('kws', [({'frames': 50}, {'frames': 49}),
+                                 ({'frames': -50}, {'frames': -51}),
+                                 ({'seconds': 50}, {'seconds': 49.999}),
+                                 ({'seconds': -50}, {'seconds': -50.001}),
+                                 ({'time': '0:00:00.001'}, {'time': '0:00:00.000'}),
+                                 ({'time': '0:00:00.000'}, {'time': '-0:00:00.001'})])
+def test_compare(kws):
+    lhs, rhs = kws
+    assert FrameTime(25, **lhs) > FrameTime(25, **rhs)
+    assert FrameTime(25, **lhs) >= FrameTime(25, **rhs)
+    assert not FrameTime(25, **lhs) < FrameTime(25, **rhs)
+    assert not FrameTime(25, **lhs) <= FrameTime(25, **rhs)
 
-    def test_getTime(self):
-        full_seconds = 3661.100
-        fto = FrameTime(25, seconds=full_seconds)
-        frames = round(full_seconds * 25)
-        returned_dict = fto.time
-        true_time_dict = {
-            'hours': 1, \
-            'minutes': 1, \
-            'seconds': 1, \
-            'miliseconds': 100
-        }
+    assert FrameTime(25, **rhs) < FrameTime(25, **lhs)
+    assert FrameTime(25, **rhs) <= FrameTime(25, **lhs)
+    assert not FrameTime(25, **rhs) > FrameTime(25, **lhs)
+    assert not FrameTime(25, **rhs) >= FrameTime(25, **lhs)
 
-        # First check if all test-defined fields are in returned dictionary
-        for key in true_time_dict:
-            if not key in returned_dict.keys():
-                raise AssertionError("Key %s not in returned dictionary" % key)
+    assert FrameTime(25, **rhs) != FrameTime(25, **lhs)
+    assert not FrameTime(25, **rhs) == FrameTime(25, **lhs)
 
-        for key in returned_dict:
-            if not key in true_time_dict.keys():
-                raise AssertionError("Surplus key in returned dictionary")
-            self.assertEqual(returned_dict[key], true_time_dict[key])
 
-    def test_compareEqual(self):
-        fto1 = FrameTime(25, frames=50)
-        fto2 = FrameTime(25, frames=50)
-        self.assertTrue(fto1 == fto2)
+@pytest.mark.parametrize('secs', gen_operands())
+def test_add(secs):
+    lhs, rhs = secs
+    check = FrameTime(25, seconds=lhs) + FrameTime(25, seconds=rhs)
 
-    def test_compareHigherThan(self):
-        fto1 = FrameTime(25, frames=51)
-        fto2 = FrameTime(25, frames=50)
-        self.assertTrue(fto1 > fto2)
-        self.assertFalse(fto2 > fto1)
+    expected = lhs + rhs
+    assert check.fps == 25
+    assert check.fullSeconds == expected
+    assert check.frame == expected * check.fps
 
-    def test_compareLowerThan(self):
-        fto1 = FrameTime(25, frames=49)
-        fto2 = FrameTime(25, frames=50)
-        self.assertTrue(fto1 < fto2)
-        self.assertFalse(fto2 < fto1)
 
-    def test_add(self):
-        fto1 = FrameTime(25, time="1:01:01.100")
-        fto2 = FrameTime(25, time="2:02:02.200")
-        fto3 = fto1 + fto2
-        full_seconds = 10983.3
-        frames = full_seconds * 25
-        self.compare(fto3, 25, frames, full_seconds, 3, 3, 3, 300)
+@pytest.mark.parametrize('secs', gen_operands())
+def test_sub(secs):
+    lhs, rhs = secs
+    check = FrameTime(25, seconds=lhs) - FrameTime(25, seconds=rhs)
 
-    def test_str(self):
-        fto = FrameTime(25, time="2:02:02.200")
-        full_seconds = 7322.2
-        returned_str = str(fto)
-        expected_str = "t: 2:2:2.200; f: %s" % int(round(full_seconds * 25))
-        self.assertEqual(returned_str, expected_str)
+    expected = lhs - rhs
+    assert check.fps == 25
+    assert check.fullSeconds == expected
+    assert check.frame == expected * check.fps
 
-    def test_changeFpsOkCase(self):
-        fto = FrameTime(25, time="0:00:01")
-        self.assertEqual(25, fto.frame)
-        fto.fps = 31
-        self.assertEqual(31, fto.frame)
 
-    def test_changeFpsToZeroRaises(self):
-        fto = FrameTime(25, time="0:00:01")
-        with self.assertRaises(ValueError):
-            fto.fps = 0
+@pytest.mark.parametrize('mul', [0, 1, 2, -1])
+def test_mul(mul):
+    secs = 10
+    expected = secs * mul
+    assert FrameTime(25, seconds=secs) * mul == FrameTime(25, seconds=expected)
 
-    def test_changeFpsToNegativeValueRaises(self):
-        fto = FrameTime(24, time="1:00:01")
-        with self.assertRaises(ValueError):
-            fto.fps = -1
+    secs = -10
+    expected = secs * mul
+    assert FrameTime(25, seconds=secs) * mul == FrameTime(25, seconds=expected)
 
-if __name__ == "__main__":
-    unittest.main()
+
+def test_str():
+    assert "t: 2:02:02.200; f: 183055" == str(FrameTime(25, time="2:02:02.200"))
+    assert "t: -2:02:02.200; f: -183055" == str(FrameTime(25, time="-2:02:02.200"))
+    assert "t: -0:00:01.000; f: -25" == str(FrameTime(25, seconds=-1))
+
+
+def test_change_fps():
+    ft = FrameTime(25, time='0:00:01')
+    assert ft.frame == 25
+    ft.fps = 31
+    assert ft.frame == 31
+
+
+@pytest.mark.parametrize('bad_fps', [0, -1])
+def test_change_fps_nook(bad_fps):
+    ft = FrameTime(25, time="0:00:01")
+    with pytest.raises(ValueError):
+        ft.fps = bad_fps
+    assert ft.fps == 25
 

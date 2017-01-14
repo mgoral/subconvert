@@ -26,12 +26,15 @@ from string import Template
 
 from subconvert.parsing.Core import SubConverter, SubParsingError
 from subconvert.parsing.Formats import *
+from subconvert.parsing.Offset import TimeSync
 from subconvert.utils.Locale import _
 from subconvert.utils.SubtitleData import SubtitleData
 from subconvert.utils.SubFile import File
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.utils.Encodings import ALL_ENCODINGS
 from subconvert.utils.PropertyFile import SubtitleProperties
+
+import subconvert.cli.syncparse as syncparse
 
 from subconvert.utils.SubException import SubException
 
@@ -205,6 +208,10 @@ class SubApplication:
 
         try:
             data.subtitles = self.parseFile(subFile, data.inputEncoding, data.fps)
+            if self._args.sync:
+                syncpoints = syncparse.parse(self._args.sync, data.subtitles)
+                ts = TimeSync(data.subtitles)
+                ts.sync(syncpoints)
         except SubException as msg:
             log.error(str(msg))
             return None

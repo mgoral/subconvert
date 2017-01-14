@@ -1,0 +1,18 @@
+[INFORMATION]
+[TITLE]A typical subtitle
+[AUTHOR]
+[SOURCE]
+[PRG]SubConvert
+[FILEPATH]subviewer-1.txt
+[DELAY]0
+[CD TRACK]0
+[COMMENT]Converted to subviewer format with SubConvert
+[END INFORMATION]
+[SUBTITLE]
+[COLF]&HFFFFFF,[STYLE]no,[SIZE]24,[FONT]Tahoma
+00:00:00.00,00:00:00.85
+This is first subtitle.
+
+00:00:01.00,00:00:03.55
+This is a simple subtitle
+which has more than one line.

@@ -39,10 +39,11 @@ from subconvert.utils.PropertyFile import SubtitleProperties, PropertiesFileAppl
 from subconvert.utils.SubFile import File
 from subconvert.utils.SubtitleSearch import SearchIterator, matchText
 from subconvert.gui.FileDialogs import FileDialog
-from subconvert.gui.Detail import ActionFactory, SubtitleList, ComboBoxWithHistory, FPS_VALUES
-from subconvert.gui.Detail import CustomDataRoles, SubListItemDelegate, DisableSignalling
-from subconvert.gui.Detail import SearchEdit
+from subconvert.gui.Detail import ActionFactory, SubtitleList, FPS_VALUES
+from subconvert.gui.Detail import DisableSignalling, SearchEdit
+from subconvert.gui.OffsetDialog import OffsetDialog
 from subconvert.gui.SubtitleCommands import *
+from subconvert.gui.SubModel import SubListItemDelegate, CustomDataRoles, createRow
 
 log = logging.getLogger('Subconvert.%s' % __name__)
 
@@ -183,6 +184,10 @@ class FileList(SubTab):
                 connection = lambda _, enc=encoding: self.changeSelectedFilesInputEncoding(enc)
             )
             inputEncodingsMenu.addAction(inAction)
+
+        offset = af.create(None, _("&Offset"), None, None, self._offsetDialog)
+        offset.setEnabled(anyItemSelected)
+        self._contextMenu.addAction(offset)
 
         self._contextMenu.addSeparator()
 
@@ -414,6 +419,29 @@ class FileList(SubTab):
                 command = ChangeData(filePath, data, _("Video path: %s") % path)
                 self._subtitleData.execute(command)
 
+    def _offsetDialog(self):
+        dialog = OffsetDialog(self, FrameTime(25, seconds=0))
+        if dialog.exec():
+            self.offsetSelectedFiles(dialog.frametime.fullSeconds)
+
+    def offsetSelectedFiles(self, seconds):
+        if seconds == 0:
+            return
+
+        items = self.__fileList.selectedItems()
+        for item in items:
+            filePath = item.text(0)
+            data = self._subtitleData.data(filePath)
+            fps = data.subtitles.fps
+            if fps is None:
+                log.error(_("No FPS for '%s' (empty subtitles)." % filePath))
+                continue
+            ft = FrameTime(fps, seconds=seconds)
+            data.subtitles.offset(ft)
+            command = ChangeData(filePath, data,
+                                _("Offset by: %s") % ft.toStr())
+            self._subtitleData.execute(command)
+
     def detectSelectedFilesFps(self):
         items = self.__fileList.selectedItems()
         for item in items:
@@ -550,19 +578,6 @@ class SubtitleEditor(SubTab):
             connection = self.removeSelectedSubtitles)
         self._contextMenu.addAction(removeSub)
 
-    def _createRow(self, sub):
-        timeStart = QStandardItem(sub.start.toStr())
-        timeEnd = QStandardItem(sub.end.toStr())
-        text = QStandardItem(sub.text)
-
-        timeStart.setData(sub.start, CustomDataRoles.FrameTimeRole)
-        timeEnd.setData(sub.end, CustomDataRoles.FrameTimeRole)
-
-        timeStart.setData(False, CustomDataRoles.ErrorFlagRole)
-        timeEnd.setData(False, CustomDataRoles.ErrorFlagRole)
-
-        return [timeStart, timeEnd, text]
-
     def _changeRowBackground(self, rowNo, bg):
         with DisableSignalling(self._model.itemChanged, self._subtitleEdited):
             for columnNo in range(self._model.columnCount()):
@@ -607,17 +622,26 @@ class SubtitleEditor(SubTab):
             command = ChangeSubtitle(self.filePath, oldSubtitle, newSubtitle, subNo)
             self._subtitleData.execute(command)
 
-    def _subtitlesAdded(self, subNos):
+    def _subtitlesAdded(self, path, subNos):
+        if path != self.filePath:
+            return
+
         subtitles = self.subtitles
         for subNo in subNos:
-            row = self._createRow(subtitles[subNo])
+            row = createRow(subtitles[subNo])
             self._model.insertRow(subNo, row)
 
-    def _subtitlesRemoved(self, subNos):
+    def _subtitlesRemoved(self, path, subNos):
+        if path != self.filePath:
+            return
+
         for subNo in subNos:
             self._model.removeRow(subNo)
 
-    def _subtitlesChanged(self, subNos):
+    def _subtitlesChanged(self, path, subNos):
+        if path != self.filePath:
+            return
+
         for subNo in subNos:
             self.refreshSubtitle(subNo)
 
@@ -647,7 +671,7 @@ class SubtitleEditor(SubTab):
             self._subtitleData.execute(command)
 
         # create subtitle graphical representation in editor sub list
-        row = self._createRow(sub)
+        row = createRow(sub)
         self._model.insertRow(subNo, row)
         index = self._model.index(subNo, 2)
         self._subList.clearSelection()
@@ -743,6 +767,18 @@ class SubtitleEditor(SubTab):
             command = ChangeData(self.filePath, data, _("Video path: %s") % path)
             self._subtitleData.execute(command)
 
+    def offset(self, seconds):
+        data = self.data
+        fps = data.subtitles.fps
+        if fps is None:
+            log.error(_("No FPS for '%s' (empty subtitles)." % self.filePath))
+            return
+        ft = FrameTime(data.subtitles.fps, seconds=seconds)
+        data.subtitles.offset(ft)
+        command = ChangeData(self.filePath, data,
+                             _("Offset by: %s") % ft.toStr())
+        self._subtitleData.execute(command)
+
     def detectFps(self):
         data = self.data
         if data.videoPath is not None:
@@ -761,12 +797,12 @@ class SubtitleEditor(SubTab):
     def refreshSubtitle(self, subNo):
         sub = self.subtitles[subNo]
         self._model.removeRow(subNo)
-        self._model.insertRow(subNo, self._createRow(sub))
+        self._model.insertRow(subNo, createRow(sub))
 
     def refreshSubtitles(self):
         self._model.removeRows(0, self._model.rowCount())
         for sub in self.subtitles:
-            self._model.appendRow(self._createRow(sub))
+            self._model.appendRow(createRow(sub))
 
     def updateTab(self):
         self.refreshSubtitles()

@@ -98,8 +98,9 @@ class VideoWidget(QWidget):
 
     @property
     def position(self):
-        ft = FrameTime(fps = self.movieProperties.fps, frames = self._movieFrame)
-        return ft
+        if not self.movieProperties.isAllDataSet():
+            return None
+        return FrameTime(fps = self.movieProperties.fps, frames = self._movieFrame)
 
     def _changePosition(self, position):
         if not isinstance(position, float):

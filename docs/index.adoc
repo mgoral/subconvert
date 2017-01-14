@@ -3,6 +3,7 @@ Michał Góral <https://mgoral.org>
 :toc: left
 :toclevels: 2
 :doctype: book
+:icons: font
 
 Subconvert is Python application which is capable to do convertions between
 various popular subtitle formats. It is also smart enough to automatically

@@ -10,10 +10,9 @@ virtualenv:
 
 before_install:
     - sudo apt-get update -qq
-    - sudo ln -s "`which nosetests`" "`which nosetests`3" # yea...
 
 install:
-    - sudo apt-get install -y gettext mplayer libgettextpo-dev python3-pyqt5 pyqt5-dev-tools intltool autopoint
+    - sudo apt-get install -y gettext mplayer libgettextpo-dev python3-pyqt5 pyqt5-dev-tools intltool autopoint python3-pytest
     - pip install chardet
  
 before_script:

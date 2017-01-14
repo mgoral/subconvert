@@ -1,8 +1,5 @@
 [[installation]]
 == Installation
-:1: http://nedbatchelder.com/code/coverage/
-:2: https://pypi.python.org/pypi/coverage
-:3: https://nose.readthedocs.org/en/latest/plugins/cover.html
 
 NOTE: Since version 1.0.0 Subconvert installation procedure changes. Previous
 `install.sh` script has been replaced with `autotools`. Currently Subconvert
@@ -135,8 +132,6 @@ script in your Subconvert download.
 
 ==== Running tests
 
-* `python3-nose`
-* `python3-coverage` (see: link:{1}[homepage] and link:{2}[PyPi] and
-  link:{3}[nose plugin page])
+* `python3-pytest`
 
 // vim: set tw=80 colorcolumn=81 ft=asciidoc :

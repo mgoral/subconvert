@@ -40,9 +40,9 @@ class DataController(QObject):
     _fileAdded = pyqtSignal(str, name = "fileAdded")
     _fileRemoved = pyqtSignal(str, name = "fileRemoved")
     _fileChanged = pyqtSignal(str, name = "fileChanged")
-    _subtitlesChanged = pyqtSignal(list, name = "subtitlesChanged")
-    _subtitlesAdded = pyqtSignal(list, name = "subtitlesAdded")
-    _subtitlesRemoved = pyqtSignal(list, name = "subtitlesRemoved")
+    _subtitlesChanged = pyqtSignal(str, list, name = "subtitlesChanged")
+    _subtitlesAdded = pyqtSignal(str, list, name = "subtitlesAdded")
+    _subtitlesRemoved = pyqtSignal(str, list, name = "subtitlesRemoved")
 
     def __init__(self, parser, parent = None):
         super(DataController, self).__init__(parent)

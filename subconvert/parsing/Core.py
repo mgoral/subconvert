@@ -222,6 +222,11 @@ class SubManager:
             self._invalidTime = False
         return self
 
+    # TODO: test
+    def offset(self, ft):
+        for sub in self._subs:
+            sub.change(start=sub.start + ft, end=sub.end + ft)
+
     def header(self):
         return self._header
 
@@ -247,6 +252,9 @@ class SubManager:
     def __iter__(self):
         for sub in self._subs:
             yield sub.clone()
+
+    def __len__(self):
+        return len(self._subs)
 
 class SubParser:
     def __init__(self):

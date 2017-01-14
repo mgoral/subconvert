@@ -30,8 +30,11 @@ from subconvert.utils.Locale import _
 from subconvert.utils.SubFile import File
 from subconvert.utils.SubSettings import SubSettings
 from subconvert.gui.SubtitleTabs import FileList, SubtitleEditor
-from subconvert.gui.Panel import SidePanel
 from subconvert.gui.SubtitleCommands import *
+from subconvert.gui.ToolBox import ToolBox
+from subconvert.gui.tools.Synchronizer import Synchronizer
+from subconvert.gui.tools.Details import Details
+from subconvert.gui.tools.History import History
 
 import subconvert.resources
 
@@ -40,12 +43,12 @@ log = logging.getLogger('Subconvert.%s' % __name__)
 class SubTabWidget(QWidget):
     _tabChanged = pyqtSignal(int, name = "tabChanged")
 
-    def __init__(self, subtitleData, parent = None):
+    def __init__(self, subtitleData, videoWidget, parent = None):
         super(SubTabWidget, self).__init__(parent)
         self._subtitleData = subtitleData
-        self.__initTabWidget()
+        self.__initTabWidget(videoWidget)
 
-    def __initTabWidget(self):
+    def __initTabWidget(self, videoWidget):
         settings = SubSettings()
 
         mainLayout = QVBoxLayout(self)
@@ -59,12 +62,13 @@ class SubTabWidget(QWidget):
         self.splitter = QSplitter(self)
         self.splitter.setObjectName("sidebar_splitter")
 
-        self.leftWidget = QWidget()
-        self.leftWidget.setObjectName("sidebar")
-        leftLayout = QVBoxLayout()
-        leftLayout.setContentsMargins(0, 0, 0, 0)
-        self.leftWidget.setLayout(leftLayout)
-        self.leftWidget.setMinimumWidth(100)
+        self._toolbox = ToolBox(self._subtitleData, self)
+        self._toolbox.setObjectName("sidebar")
+        self._toolbox.setMinimumWidth(100)
+
+        self._toolbox.addTool(Details(self._subtitleData, self))
+        self._toolbox.addTool(Synchronizer(videoWidget, self._subtitleData, self))
+        self._toolbox.addTool(History(self))
 
         self.rightWidget = QWidget()
         rightLayout = QGridLayout()
@@ -73,16 +77,13 @@ class SubTabWidget(QWidget):
 
         self._mainTab = FileList(_("Subtitles"), self._subtitleData, self)
 
-        self._sidepanel = SidePanel(self._subtitleData, self)
-        leftLayout.addWidget(self._sidepanel)
-
         self.pages = QStackedWidget(self)
         rightLayout.addWidget(self.pages, 0, 0)
 
         self.tabBar.addTab(self._mainTab.name)
         self.pages.addWidget(self._mainTab)
 
-        self.splitter.addWidget(self.leftWidget)
+        self.splitter.addWidget(self._toolbox)
         self.splitter.addWidget(self.rightWidget)
         self.__drawSplitterHandle(1)
 
@@ -96,7 +97,7 @@ class SubTabWidget(QWidget):
         self.tabBar.setExpanding(False)
 
         # Don't resize left panel if it's not needed
-        leftWidgetIndex = self.splitter.indexOf(self.leftWidget)
+        leftWidgetIndex = self.splitter.indexOf(self._toolbox)
         rightWidgetIndex = self.splitter.indexOf(self.rightWidget)
 
         self.splitter.setStretchFactor(leftWidgetIndex, 0)
@@ -110,6 +111,8 @@ class SubTabWidget(QWidget):
         self.tabBar.tabMoved.connect(self.moveTab)
         self._mainTab.requestOpen.connect(self.openTab)
         self._mainTab.requestRemove.connect(self.removeFile)
+
+        self.tabChanged.connect(lambda i: self._toolbox.setContentFor(self.tab(i)))
 
         self.setLayout(mainLayout)
 
@@ -156,10 +159,10 @@ class SubTabWidget(QWidget):
 
     def saveWidgetState(self, settings):
         settings.setState(self.splitter, self.splitter.saveState())
-        settings.setHidden(self.leftWidget, self.leftWidget.isHidden())
+        settings.setHidden(self._toolbox, self._toolbox.isHidden())
 
     def restoreWidgetState(self, settings):
-        self.showPanel(not settings.getHidden(self.leftWidget))
+        self.showPanel(not settings.getHidden(self._toolbox))
 
         splitterState = settings.getState(self.splitter)
         if not splitterState.isEmpty():
@@ -244,25 +247,19 @@ class SubTabWidget(QWidget):
             # Try to update current tab.
             showWidget.updateTab()
 
-            # Update side panel
-            if showWidget.isStatic:
-                self._sidepanel.setInfoForFile(None)
-            else:
-                self._sidepanel.setInfoForFile(showWidget.filePath)
-
             self._tabChanged.emit(index)
 
     def showPanel(self, val):
         if val is True:
-            self.leftWidget.show()
+            self._toolbox.show()
         else:
-            self.leftWidget.hide()
+            self._toolbox.hide()
 
     def togglePanel(self):
-        if self.leftWidget.isHidden():
-            self.leftWidget.show()
+        if self._toolbox.isHidden():
+            self._toolbox.show()
         else:
-            self.leftWidget.hide()
+            self._toolbox.hide()
 
     def tab(self, index):
         return self.pages.widget(index)

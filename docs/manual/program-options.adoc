@@ -153,6 +153,63 @@ $ subconvert -c -v "%f.avi" sub1.srt sub2.srt  # will search for
                                                        # will be used
 ----
 
+
+=== Synchronize subtitles
+
+----
+--sync SPEC
+----
+
+If subtitles are out of sync, you can synchronize them either by telling
+Subconvert the offset by which it should change all subtitles or by giving one
+or more synchronization points to which it should adjust subtitles.
+
+==== Offset
+
+To set offset simply say by how much subtitles should be changed.
+
+----
+--sync "+15s"
+--sync "-2s"
+--sync "+1h 2m 10s 3ms"
+----
+
+NOTE: Quotes around `SPEC` in above examples prevent problems with parsing time
+specification by shells.
+
+Time specification is composed of number of hours, minutes, seconds and
+milliseconds, each of them is optional unless there's at least one of them. It
+can be also negative or positive. When positive, specified time will be added to
+each of subtitles and when negative -- subtracted.
+
+==== Synchronization
+
+`SPEC` for synchronization is very similar to the above one. It is composed of
+comma-separated list of subtitle numbers and their times (which can be either
+relative -- it's indicated by a plus or minus sign -- or absolute). Subtitle
+numbering starts from 1 and can be negative. Negative subtitles are counted from
+the end (so -1 is last subtitle, -2 is second to last and so on). At least one
+subtitle number is required.
+
+Other subtitles will be synchronized to the ones given in `SPEC`. Their times
+will be computed to smoothly match the observed difference between subs and
+video.
+
+For example, below `SPEC` means that the first subtitle is 2 seconds too early
+(so we want to add 2 seconds to it) and the last subtitle is 3 seconds too late
+(so we want to subtract 3 seconds from it).
+
+----
+--sync "1:+2s, -1:-3s"
+----
+
+Below example adds few milliseconds to the first and second subtitles and sets
+the last one to the fixed time of 1 hour 15 minutes and 4 seconds:
+
+----
+--sync "1: +2ms, 2: +3ms, -1: 1h15m4s"
+----
+
 === Other options:
 
 ----

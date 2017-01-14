@@ -4,7 +4,8 @@ parsing_PYTHON = \
 	__init__.py \
 	Core.py \
 	Formats.py \
-	FrameTime.py
+	FrameTime.py \
+	Offset.py
 
 #CLEANFILES += $(parsing_PYTHON)
 

@@ -1,0 +1,36 @@
+{
+    "format": "SubViewer 1.0",
+    "opt": "subviewer",
+    "header":
+    {
+        "title": "A typical subtitle",
+        "author": "",
+        "source": "",
+        "program": "SubConvert",
+        "filepath": "subviewer-1.txt",
+        "delay": "0",
+        "cd_track": "0",
+        "comment": "Converted to subviewer format with SubConvert",
+        "color": "&HFFFFFF",
+        "font_style": "no",
+        "font_size": "24",
+        "font": "Tahoma"
+    },
+    "subs":
+    [
+
+        {
+            "__Subtitle__": true,
+            "start": {"__FrameTime__": true, "seconds": 0},
+            "end": {"__FrameTime__": true, "seconds": 0.85},
+            "text": "This is first subtitle."
+        },
+
+        {
+            "__Subtitle__": true,
+            "start": {"__FrameTime__": true, "seconds": 1},
+            "end": {"__FrameTime__": true, "seconds": 3.55},
+            "text": "This is a simple subtitle{gsp_nl}which has more than one line."
+        }
+    ]
+}

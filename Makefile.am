@@ -35,10 +35,7 @@ gen:
 	$(SED) -i 's/__version__ = .\+/__version__ = "$(VERSION)"/' subconvert/utils/version.py
 
 test: gen
-	@nosetests3 -v
-
-coverage: gen
-	@nosetests3 -v --with-coverage --cover-html --cover-html-dir=./coverage --cover-branches --cover-package=subconvert
+	@py.test-3 tests
 
 all: gen
 

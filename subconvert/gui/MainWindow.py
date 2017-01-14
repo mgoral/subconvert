@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 
 """
-Copyright (C) 2011, 2012, 2013 Michal Goral.
+Copyright (C) 2011-2017 Michal Goral.
 
 This file is part of Subconvert
 
@@ -29,12 +29,14 @@ from PyQt5.QtWidgets import QMessageBox, QSpacerItem
 from PyQt5.QtGui import QPixmap, QDesktopServices, QIcon
 from PyQt5.QtCore import pyqtSlot, QDir, Qt, QUrl
 
+from subconvert.parsing.FrameTime import FrameTime
 from subconvert.parsing.Core import SubConverter
 from subconvert.parsing.Formats import *
 from subconvert.gui import SubtitleWindow
 from subconvert.gui.DataModel import DataController
 from subconvert.gui.PropertyFileEditor import PropertyFileEditor
 from subconvert.gui.FileDialogs import FileDialog
+from subconvert.gui.OffsetDialog import OffsetDialog
 from subconvert.gui.Detail import ActionFactory, CannotOpenFilesMsg, MessageBoxWithList, FPS_VALUES
 from subconvert.gui.SubtitleCommands import *
 from subconvert.gui.VideoWidget import VideoWidget
@@ -108,7 +110,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.mainWidget)
 
         self._videoWidget = VideoWidget(self)
-        self._tabs = SubtitleWindow.SubTabWidget(self._subtitleData)
+        self._tabs = SubtitleWindow.SubTabWidget(self._subtitleData,
+                                                 self._videoWidget)
 
         mainLayout.addWidget(self._videoWidget, 1)
         mainLayout.addWidget(self._tabs, 3)
@@ -201,6 +204,9 @@ class MainWindow(QMainWindow):
             "list-add", _("&Add subtitle"), None, "alt+insert",
             connection = lambda: self._tabs.currentPage().addNewSubtitle())
 
+        self._actions["offset"] = af.create(
+            None, _("&Offset"), None, None, self.offset)
+
         self._actions["removeSub"] = af.create(
             "list-remove", _("&Remove subtitles"), None, "delete",
             connection = lambda: self._tabs.currentPage().removeSelectedSubtitles())
@@ -283,10 +289,12 @@ class MainWindow(QMainWindow):
         for encoding in ALL_ENCODINGS:
             self._inputEncodingMenu.addAction(self._actions["in_%s" % encoding])
             self._outputEncodingMenu.addAction(self._actions["out_%s" % encoding])
+        subtitlesMenu.addAction(self._actions["offset"])
         subtitlesMenu.addSeparator()
         subtitlesMenu.addAction(self._actions["linkVideo"])
         subtitlesMenu.addAction(self._actions["unlinkVideo"])
         subtitlesMenu.addAction(self._actions["fpsFromMovie"])
+        subtitlesMenu.addSeparator()
 
         videoMenu = menubar.addMenu(_("&Video"))
         videoMenu.addAction(self._actions["openVideo"])
@@ -383,9 +391,6 @@ class MainWindow(QMainWindow):
         else:
             currentTab.changeVideoPath(videoPath)
 
-    @pyqtSlot(bool)
-    @pyqtSlot(int)
-    @pyqtSlot(str)
     @pyqtSlot()
     def __updateMenuItemsState(self):
         tab = self._tabs.currentPage()
@@ -413,6 +418,7 @@ class MainWindow(QMainWindow):
         self._subFormatMenu.setEnabled(canEdit)
         self._inputEncodingMenu.setEnabled(canEdit)
         self._outputEncodingMenu.setEnabled(canEdit)
+        self._actions["offset"].setEnabled(canEdit)
 
         self._actions["linkVideo"].setEnabled(canEdit)
         self._actions["unlinkVideo"].setEnabled(canEdit)
@@ -489,7 +495,7 @@ class MainWindow(QMainWindow):
         currentTab = self._tabs.currentPage()
         try:
             self._writeFile(currentTab.filePath, newFilePath)
-        except SubFileError as msg:
+        except SubException as msg:
             dialog = QMessageBox(self)
             dialog.setIcon(QMessageBox.Critical)
             dialog.setWindowTitle(_("Couldn't save file"))
@@ -550,7 +556,7 @@ class MainWindow(QMainWindow):
             try:
                 if not self._subtitleData.isCleanState(filePath):
                     self._writeFile(filePath)
-            except SubFileError as msg:
+            except SubException as msg:
                 dialog.addToList(str(msg))
 
         if dialog.listCount() > 0:
@@ -600,6 +606,17 @@ class MainWindow(QMainWindow):
             currentTab.changeSelectedFilesFormat(fmt)
         else:
             currentTab.changeSubFormat(fmt)
+
+    def offset(self):
+        currentTab = self._tabs.currentPage()
+
+        # fps isn't used, but we need one to init starting FrameTime
+        dialog = OffsetDialog(self, FrameTime(25, seconds=0))
+        if dialog.exec():
+            if currentTab.isStatic:
+                currentTab.offsetSelectedFiles(dialog.frametime.fullSeconds)
+            else:
+                currentTab.offset(dialog.frametime.fullSeconds)
 
     def changeFps(self, fps):
         currentTab = self._tabs.currentPage()

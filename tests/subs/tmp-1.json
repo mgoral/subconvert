@@ -1,0 +1,22 @@
+{
+    "format": "TMP",
+    "opt": "tmp",
+    "subs":
+    [
+
+        {
+            "__Subtitle__": true,
+            "start": {"__FrameTime__": true, "seconds": 0},
+            "end": {"__FrameTime__": true, "seconds": 0.85},
+            "text": "This is first subtitle."
+        },
+
+        {
+            "__Subtitle__": true,
+            "start": {"__FrameTime__": true, "seconds": 1},
+            "end": null,
+            "text": "This is a simple subtitle{gsp_nl}which has more than one line."
+        }
+    ]
+}
+

@@ -79,6 +79,9 @@ def prepareOptions(subFormats):
         type = lambda filePath : loadSpf(subFormats, filePath),
         default = SubtitleProperties(subFormats),
         help = _("loads settings from spf (subtitle property file)"))
+    subtitleGroup.add_argument("--sync", metavar = _("SPEC"), dest = "sync",
+        type = str,
+        help = _("synchronize subtitles according to SPEC"))
 
     movieGroup = parser.add_argument_group(_("video options"))
     movieGroup.add_argument("--fps", type = float,
