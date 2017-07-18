@@ -1,0 +1,14 @@
+include README.md
+include LICENSE.txt
+
+include setup.py
+include requirements.txt
+
+graft reqs
+graft src
+
+exclude tests/*
+exclude .git/*
+exclude .gitignore
+
+recursive-exclude * *.pyc *.pyo

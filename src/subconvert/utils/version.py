@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 """
@@ -20,12 +19,18 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-import signal
-import subconvert.apprunner as apprunner
+from pkg_resources import get_distribution, DistributionNotFound
 
-def interruptHandler(signum, frame):
-    sys.exit(1) # will spawn atexit
+__appname__ = "Subconvert"
+__author__ = "Michał Góral"
+__license__ = "GNU GPL 3"
+__website__ = "https://github.com/mgoral/subconvert"
+__transs__ = [
+    "Michał Góral (English)",
+    "Michał Góral (Polish)",
+]
 
-signal.signal(signal.SIGINT, interruptHandler)
-apprunner.main()
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+    __version__ = '0.x.x-not-installed'

@@ -23,7 +23,6 @@ import itertools
 import pytest
 
 from subconvert.parsing.FrameTime import FrameTime
-import subconvert.utils.version as version
 
 from subconvert.apprunner import _
 
