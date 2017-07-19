@@ -8,8 +8,6 @@ matrix:
           language: python
           env: TESTENV=py34 POSARGS="-n 8" APT_INSTALL="mplayer python3-pyqt5 pyqt5-dev-tools"
           python: 3.4
-          virtualenv:
-            - system_site_packages: true
 
         - os: linux
           language: python
