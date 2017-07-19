@@ -1,6 +1,35 @@
+import os
 import sys
+import subprocess
 
-from setuptools import setup, find_packages
+import distutils.command.build as distutils_build
+from setuptools import setup, find_packages, Command
+
+class NoOptsCmd(Command):
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+
+class BuildQrc(NoOptsCmd):
+    """Builds qrc files with pyrcc"""
+    user_options = []
+
+    def run(self):
+        basepath = os.path.dirname(__file__)
+        subc_dir = os.path.join(basepath, 'src', 'subconvert')
+        in_ = os.path.join(subc_dir, 'resources.qrc')
+        out = os.path.join(subc_dir, 'resources.py')
+        subprocess.check_call(['pyrcc5', '-o', out, in_])
+
+
+class SubcBuild(distutils_build.build):
+    """Overrides a default install_data"""
+    user_options = []
+
+    def run(self):
+        self.run_command('build_qrc')
+        super().run()
 
 
 with open('README.md', encoding='utf-8') as f_:
@@ -41,9 +70,14 @@ def main():
 
           packages=find_packages('src'),
           package_dir={'': 'src'},
+          include_package_data=True,
           entry_points={
               'console_scripts': ['subconvert=subconvert.apprunner:main'],
           },
+          cmdclass={
+              'build': SubcBuild,
+              'build_qrc': BuildQrc,
+          }
     )
 
 if __name__ == '__main__':
