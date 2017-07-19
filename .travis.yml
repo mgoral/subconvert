@@ -23,11 +23,11 @@ before_install:
     - sudo apt-get update -qq
 
 install:
-    - travis_install $TESTENV
+    - ci/travis_install $TESTENV
 
 cache:
   directories:
     - $HOME/.cache/pip
 
 script:
-    - travis_run
+    - ci/travis_run
