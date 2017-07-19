@@ -31,6 +31,6 @@ __transs__ = [
 ]
 
 try:
-    __version__ = get_distribution(__name__).version
+    __version__ = get_distribution(__appname__.lower()).version
 except DistributionNotFound:
     __version__ = '0.x.x-not-installed'
