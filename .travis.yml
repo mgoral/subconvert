@@ -6,11 +6,6 @@ matrix:
     include:
         - os: linux
           language: python
-          env: TESTENV=py33 POSARGS="-n 8"
-          python: 3.3
-
-        - os: linux
-          language: python
           env: TESTENV=py34 POSARGS="-n 8"
           python: 3.4
 

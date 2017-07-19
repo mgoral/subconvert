@@ -49,7 +49,7 @@ def main():
           platforms=['linux'],
           setup_requires=['setuptools_scm', 'babel'],
           install_requires=['chardet>=3.0',
-                            ' PyQt5==5.8.2 '
+                            ' PyQt5>=5.7'
                            ],
 
           # https://pypi.python.org/pypi?%3Aaction=list_classifiers
