@@ -6,7 +6,7 @@ matrix:
     include:
         - os: linux
           language: python
-          env: TESTENV=py34
+          env: TESTENV=py34 PATH=/usr/bin:$PATH
           python: 3.4
 
         - os: linux
