@@ -38,6 +38,18 @@ with open('README.md', encoding='utf-8') as f_:
 
 
 def main():
+    install_reqs = ['chardet>=3.0']
+    if sys.version_info >= (3, 5):
+        install_reqs.append('PyQt5>=5.7')
+    else:
+        try:
+            import PyQt5
+        except ImportError:
+            print('PyQt5 is not found in your system and it\'s not '
+                  'availeble from PIP for your Python version.',
+                  file=sys.stderr)
+            raise
+
     setup(name='subconvert',
           description='Movie subtitles converter',
           long_description=long_description,
@@ -48,10 +60,7 @@ def main():
           url='https://github.com/mgoral/subconvert',
           platforms=['linux'],
           setup_requires=['setuptools_scm', 'babel'],
-          install_requires=['chardet>=3.0',
-                            ' PyQt5>=5.7'
-                           ],
-
+          install_requires=install_reqs,
           # https://pypi.python.org/pypi?%3Aaction=list_classifiers
           classifiers=['Development Status :: 6 - Mature',
                        'Environment :: Console',
