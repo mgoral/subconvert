@@ -6,29 +6,31 @@ matrix:
     include:
         - os: linux
           language: python
-          env: TESTENV=py34 POSARGS="-n 8"
+          env: TESTENV=py34 POSARGS="-n 8" APT_INSTALL="mplayer python3-pyqt5 pyqt5-dev-tools"
           python: 3.4
+          virtualenv:
+            - system_site_packages: true
 
         - os: linux
           language: python
-          env: TESTENV=py35 POSARGS="-n 8"
+          env: TESTENV=py35 POSARGS="-n 8" APT_INSTALL="mplayer"
           python: 3.5
 
         - os: linux
           language: python
-          env: TESTENV=py36 POSARGS="-n 8"
+          env: TESTENV=py36 POSARGS="-n 8" APT_INSTALL="mplayer"
           python: 3.6
 
 before_install:
     - sudo apt-get update -qq
 
 install:
-    - sudo apt-get install -y mplayer
+    - sudo apt-get install -y $APT_INSTALL
     - pip install tox
 
 cache:
   directories:
     - $HOME/.cache/pip
- 
-script: 
+
+script:
     - tox -e $TESTENV -- $POSARGS
