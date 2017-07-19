@@ -1,24 +1,34 @@
 sudo: required
 dist: trusty
 
-language: python
-python:
-    - "3.4"
+matrix:
+    include:
+        - os: linux
+          env: TESTENV=py33 POSARGS="-n 8"
+          python: 3.3
 
-virtualenv:
-    system_site_packages: true
+        - os: linux
+          env: TESTENV=py34 POSARGS="-n 8"
+          python: 3.4
+
+        - os: linux
+          env: TESTENV=py35 POSARGS="-n 8"
+          python: 3.5
+
+        - os: linux
+          env: TESTENV=py36 POSARGS="-n 8"
+          python: 3.6
 
 before_install:
     - sudo apt-get update -qq
 
 install:
-    - sudo apt-get install -y gettext mplayer libgettextpo-dev python3-pyqt5 pyqt5-dev-tools intltool autopoint python3-pytest
-    - pip install chardet
- 
-before_script:
-    - ./autogen.sh && ./configure
+    - sudo apt-get install -y mplayer
+    - pip install tox
 
+cache:
+  directories:
+    - $HOME/.cache/pip
+ 
 script: 
-    - make
-    - make test
-    - make dist-all
+    - tox -e $TESTENV -- $POSARGS
