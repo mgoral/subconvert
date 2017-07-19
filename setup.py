@@ -29,6 +29,7 @@ class SubcBuild(distutils_build.build):
 
     def run(self):
         self.run_command('build_qrc')
+        self.run_command('compile_catalog')
         super().run()
 
 
@@ -46,7 +47,7 @@ def main():
           author_email='dev@mgoral.org',
           url='https://github.com/mgoral/subconvert',
           platforms=['linux'],
-          setup_requires=['setuptools_scm'],
+          setup_requires=['setuptools_scm', 'babel'],
           install_requires=['chardet>=3.0',
                             ' PyQt5==5.8.2 '
                            ],
@@ -71,9 +72,14 @@ def main():
           packages=find_packages('src'),
           package_dir={'': 'src'},
           include_package_data=True,
+
+          # package_data is bdist specific
+          package_data={'': 'po/*/LC_MESSAGES/*.mo'},
+
           entry_points={
               'console_scripts': ['subconvert=subconvert.apprunner:main'],
           },
+
           cmdclass={
               'build': SubcBuild,
               'build_qrc': BuildQrc,

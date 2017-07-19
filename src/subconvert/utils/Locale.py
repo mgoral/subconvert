@@ -21,13 +21,15 @@ along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import gettext
+import pkg_resources
 
-localedir = os.path.join ("@prefix@", "@DATADIRNAME@", "locale")
-gettext.bindtextdomain("@GETTEXT_PACKAGE@", localedir)
-gettext.textdomain("subconvert")
+domain = "subconvert"
+localedir = pkg_resources.resource_filename(domain, "locale")
+gettext.bindtextdomain(domain, localedir)
+gettext.textdomain(domain)
 
 t = gettext.translation(
-    domain="subconvert",
+    domain=domain,
     localedir=localedir,
     fallback=True)
 
