@@ -45,7 +45,7 @@ def main():
         try:
             import PyQt5
         except ImportError:
-            print('PyQt5 is not found in your system and it\'s not '
+            print('PyQt5 is not found on your system and it\'s not '
                   'availeble from PIP for your Python version.',
                   file=sys.stderr)
             raise

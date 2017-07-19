@@ -1,0 +1,28 @@
+#!/bin/sh
+
+die() {
+    printf "%s\n" "$1" >&2
+    exit 1
+}
+
+apt_install() {
+    sudo apt-get install -y --no-install-recommends "$@"
+}
+
+pip_install() {
+    pip install "$@"
+}
+
+case $TESTENV in
+    py34*)
+        apt_install mplayer python3-pyqt5 pyqt5-dev-tools
+        pip_install tox
+        ;;
+    py3*)
+        apt_install mplayer
+        pip_install tox
+        ;;
+    *)
+        die "Icorrect (unsupported) TESTENV: $TESTENV"
+        ;;
+esac
