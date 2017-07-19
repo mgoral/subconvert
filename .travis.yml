@@ -1,21 +1,26 @@
 sudo: required
 dist: trusty
+language: generic
 
 matrix:
     include:
         - os: linux
+          language: python
           env: TESTENV=py33 POSARGS="-n 8"
           python: 3.3
 
         - os: linux
+          language: python
           env: TESTENV=py34 POSARGS="-n 8"
           python: 3.4
 
         - os: linux
+          language: python
           env: TESTENV=py35 POSARGS="-n 8"
           python: 3.5
 
         - os: linux
+          language: python
           env: TESTENV=py36 POSARGS="-n 8"
           python: 3.6
 
