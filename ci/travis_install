@@ -22,6 +22,8 @@ case $TESTENV in
         apt_install mplayer
         pip_install tox
         ;;
+    sdist|bdist)
+        ;;
     *)
         die "Icorrect (unsupported) TESTENV: $TESTENV"
         ;;

@@ -1,9 +1,13 @@
 import os
 import sys
 import subprocess
+import glob
 
 import distutils.command.build as distutils_build
+from distutils import log as dist_log
 from setuptools import setup, find_packages, Command
+
+basepath = os.path.dirname(__file__)
 
 class NoOptsCmd(Command):
     def initialize_options(self):
@@ -16,7 +20,6 @@ class BuildQrc(NoOptsCmd):
     user_options = []
 
     def run(self):
-        basepath = os.path.dirname(__file__)
         subc_dir = os.path.join(basepath, 'src', 'subconvert')
         in_ = os.path.join(subc_dir, 'resources.qrc')
         out = os.path.join(subc_dir, 'resources.py')
@@ -31,9 +34,27 @@ class SubcBuild(distutils_build.build):
         self.run_command('build_qrc')
         self.run_command('compile_catalog')
         super().run()
+        self.clean()
+
+    def clean(self):
+        dist_log.info('running build cleanup')
+        # establish a path to build/lib, where build artifacts (before creating
+        # wheels or bdist) are copied. We'll use distutils_build.build.build_lib
+        # property for that.
+        build_dir = os.path.join(basepath, self.build_lib)
+
+        # file names relative to build/lib/subconvert directory
+        to_clean = [
+            'subconvert/resources.qrc'
+        ]
+
+        for expr in to_clean:
+            for file_ in glob.glob(os.path.join(build_dir, expr)):
+                dist_log.info('removing %s' % file_)
+                os.unlink(file_)
 
 
-with open('README.md', encoding='utf-8') as f_:
+with open(os.path.join(basepath, 'README.md'), encoding='utf-8') as f_:
     long_description = f_.read()
 
 
@@ -80,10 +101,21 @@ def main():
 
           packages=find_packages('src'),
           package_dir={'': 'src'},
-          include_package_data=True,
 
           # package_data is bdist specific
-          package_data={'': 'po/*/LC_MESSAGES/*.mo'},
+          package_data={'': ['locale/*/LC_MESSAGES/*.mo']},
+
+          data_files=[
+              ('share/applications', ['subconvert.desktop']),
+
+              ('share/icons/hicolor/scalable/apps', ['icons/scalable/subconvert.svg']),
+              ('share/icons/hicolor/16x16/apps', ['icons/16x16/subconvert.png']),
+              ('share/icons/hicolor/22x22/apps', ['icons/22x22/subconvert.png']),
+              ('share/icons/hicolor/32x32/apps', ['icons/32x32/subconvert.png']),
+              ('share/icons/hicolor/48x48/apps', ['icons/48x48/subconvert.png']),
+              ('share/icons/hicolor/128x128/apps', ['icons/128x128/subconvert.png']),
+              ('share/icons/hicolor/256x256/apps', ['icons/256x256/subconvert.png']),
+          ],
 
           entry_points={
               'console_scripts': ['subconvert=subconvert.apprunner:main'],

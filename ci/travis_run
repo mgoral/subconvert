@@ -1,5 +1,9 @@
 #!/bin/sh
 
+set -e
+
+DIR="$( dirname "$(readlink -f "$0")")"
+
 die() {
     printf "%s\n" "$1" >&2
     exit 1
@@ -8,6 +12,9 @@ die() {
 case $TESTENV in
     py3*)
         tox -e $TESTENV -- -n 4
+        ;;
+    sdist|bdist*)
+        $DIR/dist_test "$TESTENV"
         ;;
     *)
         die "Icorrect (unsupported) TESTENV: $TESTENV"

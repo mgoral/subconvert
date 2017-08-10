@@ -4,12 +4,15 @@ include LICENSE.txt
 include setup.py
 include setup.cfg
 include requirements.txt
+include subconvert.desktop
 
 graft reqs
 graft src
 
-exclude tests/*
-exclude .git/*
+recursive-exclude ci *
+recursive-exclude tests *
+recursive-exclude .git *
+
 exclude .gitignore
 
-recursive-exclude * *.pyc *.pyo
+recursive-exclude * *.pyc *.pyo *.mo resources.py
