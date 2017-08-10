@@ -13,7 +13,7 @@ case $TESTENV in
     py3*)
         tox -e $TESTENV -- -n 4
         ;;
-    sdist|bdist*)
+    sdist|bdist|bdist_wheel)
         $DIR/dist_test "$TESTENV"
         ;;
     *)

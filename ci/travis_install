@@ -22,7 +22,8 @@ case $TESTENV in
         apt_install mplayer
         pip_install tox
         ;;
-    sdist|bdist)
+    sdist|bdist|bdist_wheel)
+        apt_install pyqt5-dev-tools
         ;;
     *)
         die "Icorrect (unsupported) TESTENV: $TESTENV"
