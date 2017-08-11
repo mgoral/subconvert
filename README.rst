@@ -75,7 +75,7 @@ Otherwise you'll have to manually remove all subconvert files, i.e.:
 
 * ``$prefix/bin/subconvert``
 * ``$prefix/share/applications/subconvert.desktop``
-* ``$prefixshare/icons/hicolor/*/apps/aubconvert.{svg,png}``
+* ``$prefix/share/icons/hicolor/*/apps/aubconvert.{svg,png}``
 
 Usage
 -----
