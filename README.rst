@@ -73,6 +73,7 @@ uninstall:
 
 Otherwise you'll have to manually remove all subconvert files, i.e.:
 
+* ``$prefix/lib/python*/site-packages/subconvert``
 * ``$prefix/bin/subconvert``
 * ``$prefix/share/applications/subconvert.desktop``
 * ``$prefix/share/icons/hicolor/*/apps/aubconvert.{svg,png}``
