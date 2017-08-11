@@ -52,6 +52,10 @@ cache:
 script:
     - ci/travis_run
 
+before_deploy:
+    - sudo apt-get update -qq
+    - sudo apt-get install pyqt5-dev-tools
+
 deploy:
     provider: pypi
     user: "$PYPI_USER"
