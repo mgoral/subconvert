@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 """
@@ -20,12 +19,19 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-import signal
-import subconvert.apprunner as apprunner
+import os
+import gettext
+import pkg_resources
 
-def interruptHandler(signum, frame):
-    sys.exit(1) # will spawn atexit
+domain = "subconvert"
+localedir = pkg_resources.resource_filename(domain, "locale")
+gettext.bindtextdomain(domain, localedir)
+gettext.textdomain(domain)
 
-signal.signal(signal.SIGINT, interruptHandler)
-apprunner.main()
+t = gettext.translation(
+    domain=domain,
+    localedir=localedir,
+    fallback=True)
+
+_ = t.gettext
+P_ = t.ngettext

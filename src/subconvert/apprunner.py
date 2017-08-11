@@ -24,6 +24,7 @@ import sys
 import logging
 import argparse
 import atexit
+import signal
 
 from subconvert.utils.Locale import _
 from subconvert.utils.version import __appname__, __version__
@@ -109,6 +110,9 @@ def initSubParser():
         parser.registerFormat(Format)
     return parser
 
+def interruptHandler(signum, frame):
+    sys.exit(1) # will spawn atexit
+
 def startApp(args, parser):
     app = None
     if args.console:
@@ -120,6 +124,8 @@ def startApp(args, parser):
     sys.exit(app.run())
 
 def main():
+    signal.signal(signal.SIGINT, interruptHandler)
+
     parser = initSubParser()
     optParser = prepareOptions(parser.formats)
     args = optParser.parse_args()

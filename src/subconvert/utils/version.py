@@ -19,12 +19,18 @@ You should have received a copy of the GNU General Public License
 along with Subconvert. If not, see <http://www.gnu.org/licenses/>.
 """
 
-__appname__ = "@PACKAGE_NAME@"
+from pkg_resources import get_distribution, DistributionNotFound
+
+__appname__ = "Subconvert"
 __author__ = "Michał Góral"
-__version__ = "@PACKAGE_VERSION@"
 __license__ = "GNU GPL 3"
 __website__ = "https://github.com/mgoral/subconvert"
 __transs__ = [
     "Michał Góral (English)",
     "Michał Góral (Polish)",
 ]
+
+try:
+    __version__ = get_distribution(__appname__.lower()).version
+except DistributionNotFound:
+    __version__ = '0.x.x-not-installed'

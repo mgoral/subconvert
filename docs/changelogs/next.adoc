@@ -4,6 +4,12 @@
 
 === New features
 
+* **[BACKWARD INCOMPATIBLE]** Move Subconvert build and installation to
+  setuptools and tox.
++
+Autotools build system is now removed. Thanks to this, after few years,
+Subconvert is brought back to PYPI (but under a new link).
+
 * Added subtitle synchronization and offsetting.
 +
 Subtitles can be now synchronized to selected time points in a movie, or can be

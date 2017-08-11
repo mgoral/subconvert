@@ -1,24 +1,65 @@
 sudo: required
 dist: trusty
+language: generic
 
-language: python
-python:
-    - "3.4"
+matrix:
+    include:
+        - os: linux
+          language: python
+          env: TESTENV=py35
+          python: 3.5
 
-virtualenv:
-    system_site_packages: true
+        - os: linux
+          language: python
+          env: TESTENV=py36
+          python: 3.6
+
+        - os: linux
+          language: python
+          env: TESTENV=coverage
+          python: 3.6
+
+        ##################################
+        # distribution tests
+        - os: linux
+          language: python
+          env: TESTENV=sdist
+          python: 3.6
+
+        - os: linux
+          language: python
+          env: TESTENV=bdist
+          python: 3.6
+
+        - os: linux
+          language: python
+          env: TESTENV=bdist_wheel
+          python: 3.6
+
+    allow_failures:
+        - env: TESTENV=coverage
 
 before_install:
     - sudo apt-get update -qq
 
 install:
-    - sudo apt-get install -y gettext mplayer libgettextpo-dev python3-pyqt5 pyqt5-dev-tools intltool autopoint python3-pytest
-    - pip install chardet
- 
-before_script:
-    - ./autogen.sh && ./configure
+    - ci/travis_install $TESTENV
 
-script: 
-    - make
-    - make test
-    - make dist-all
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+script:
+    - ci/travis_run
+
+before_deploy:
+    - sudo apt-get update -qq
+    - sudo apt-get install pyqt5-dev-tools
+
+deploy:
+    provider: pypi
+    user: "$PYPI_USER"
+    password: "$PYPI_PASSWORD"
+    distributions: "sdist bdist_wheel"
+    on:
+        tags: true

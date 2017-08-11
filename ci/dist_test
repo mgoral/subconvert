@@ -1,0 +1,258 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import subprocess
+import argparse
+import shutil
+import contextlib
+import fnmatch
+import glob
+import tarfile
+import zipfile
+import tempfile
+
+
+class colors:
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+
+
+def _c(s, color):
+    if os.isatty(sys.stdout.fileno()):
+        if isinstance(color, list):
+            s = '%s%s%s' % (''.join(color), s, colors.ENDC)
+        else:
+            s = '%s%s%s' % (color, s, colors.ENDC)
+    return s
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
+def rmdir(path):
+    try:
+        shutil.rmtree(path)
+    except FileNotFoundError:
+        pass
+
+
+def archive(path):
+    if tarfile.is_tarfile(path):
+        with tarfile.open(path) as archive:
+            return [ti.name for ti in archive.getmembers()]
+    elif zipfile.is_zipfile(path):
+        with zipfile.ZipFile(path) as archive:
+            return archive.namelist()
+    else:
+        eprint(_c('Incorrect archive: %s' % path, colors.RED))
+        sys.exit(1)
+
+
+
+def assert_in_archive(archive, pattern, count=1):
+    filtered = fnmatch.filter(archive, pattern)
+    if not filtered:
+        eprint(_c('Pattern not found: %s' % pattern, colors.RED))
+        sys.exit(1)
+    if count and len(filtered) != count:
+        eprint(_c('Incorrect number of pattern %s repeats found: %d vs %d' %
+                  (pattern, count, len(filtered)),
+                  colors.RED))
+        sys.exit(1)
+
+def assert_not_in_archive(archive, pattern):
+    filtered = fnmatch.filter(archive, pattern)
+    if filtered:
+        eprint(_c('Pattern found unexpectedly: %s' % pattern, colors.RED))
+        sys.exit(1)
+
+
+@contextlib.contextmanager
+def change_cwd(cwd):
+    """A simple context manager which changes the CWD to the specified one and
+    when it ends, changes it back to the current one."""
+    current = os.getcwd()
+    os.chdir(cwd)
+    yield
+    os.chdir(current)
+
+
+def check_call(cmd, die_str=None, **kwargs):
+    try:
+        subprocess.check_call(cmd, shell=True, **kwargs)
+    except subprocess.CalledProcessError:
+        if die_str:
+            eprint(_c(die_str, colors.RED))
+            sys.exit(1)
+
+def locales():
+    return [os.path.basename(dname)
+            for dname in glob.glob('src/subconvert/locale/*')]
+
+def dirs():
+    dirs = [root for root, _, _ in os.walk('src') if '__pycache__' not in root]
+    return fnmatch.filter(dirs, 'src/subconvert/*')
+
+
+def test_sdist_archive(path):
+    print(_c(":: Checking sdist archive", colors.GREEN))
+
+    ar = archive(path)
+
+    assert_in_archive(ar, '*/MANIFEST.in')
+    assert_in_archive(ar, '*/tox.ini')
+    assert_in_archive(ar, '*/setup.py')
+    assert_in_archive(ar, '*/setup.cfg')
+    assert_in_archive(ar, '*/requirements.txt')
+    assert_in_archive(ar, '*/subconvert.desktop')
+    assert_in_archive(ar, '*/README.rst')
+    assert_in_archive(ar, '*/src/subconvert/resources.qrc')
+
+    assert_in_archive(ar, '*/tools/*', count=None)
+    assert_in_archive(ar, '*/docs/*', count=None)
+    assert_in_archive(ar, '*/reqs/*', count=None)
+
+    assert_not_in_archive(ar, '*/ci/*')
+    assert_not_in_archive(ar, '*/tests/*')
+    assert_not_in_archive(ar, '*/resources.py')
+
+    for ln in locales():
+        po = '*/src/subconvert/locale/%s/LC_MESSAGES/subconvert.po' % ln
+        mo = '*/src/subconvert/locale/%s/LC_MESSAGES/subconvert.mo' % ln
+        assert_in_archive(ar, po)
+        assert_not_in_archive(ar, mo)
+
+def test_sdist_build(path):
+    print(_c(":: Checking sdist build", colors.GREEN))
+    basename = os.path.basename(path)
+    dname = basename.partition('.tar.gz')[0]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        shutil.copy(path, tmpdir)
+        with change_cwd(tmpdir):
+            check_call('tar -xf "%s"' % basename,
+                       'Cannot unpack archive: %s' % basename)
+            with change_cwd(dname):
+                check_call('python3 setup.py -q bdist bdist_wheel',
+                           'Cannot build binary distributions from sdist')
+
+
+def test_install(path):
+    print(_c(":: Checking install", colors.GREEN))
+    basename = os.path.basename(path)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        shutil.copy(path, tmpdir)
+        with change_cwd(tmpdir):
+            check_call('pip3 install "%s"' % basename,
+                       'Cannot install Subconvert')
+            check_call('which subconvert', 'Subconvert not installed properly')
+            check_call('subconvert --version', 'Subconvert cannot be run')
+
+def test_bdist_common_archive(path):
+    print(_c(":: Checking bdist archive (common)", colors.GREEN))
+
+    ar = archive(path)
+
+    assert_in_archive(ar, '*subconvert/__init__.py')
+    assert_in_archive(ar, '*/resources.py')
+
+    assert_in_archive(ar, '*/share/applications/subconvert.desktop')
+    assert_in_archive(ar, '*/share/icons/hicolor/scalable/apps/subconvert.svg')
+    assert_in_archive(ar, '*/share/icons/hicolor/*/apps/subconvert.png', 6)
+
+    assert_not_in_archive(ar, '*/MANIFEST.in')
+    assert_not_in_archive(ar, '*/tox.ini')
+    assert_not_in_archive(ar, '*/setup.py')
+    assert_not_in_archive(ar, '*/setup.cfg')
+    assert_not_in_archive(ar, '*/requirements.txt')
+    assert_not_in_archive(ar, '*/resources.qrc')
+
+    assert_not_in_archive(ar, '*/src/*')
+    assert_not_in_archive(ar, '*/ci/*')
+    assert_not_in_archive(ar, '*/tests/*')
+
+    for ln in locales():
+        po = '*subconvert/locale/%s/LC_MESSAGES/subconvert.po' % ln
+        mo = '*subconvert/locale/%s/LC_MESSAGES/subconvert.mo' % ln
+        assert_in_archive(ar, mo)
+        assert_not_in_archive(ar, po)
+
+    excluded_dirs = [ '*/img', ]
+    for directory in dirs():
+        if any(fnmatch.fnmatchcase(directory, ex) for ex in excluded_dirs):
+            continue
+        if directory.startswith('src/'):
+            directory = directory[4:]
+
+        assert_in_archive(ar, '*%s/*' % directory, count=None)
+
+
+def test_bdist_specific_archive(path):
+    print(_c(":: Checking bdist archive (bdist-specific)", colors.GREEN))
+    ar = archive(path)
+    assert_in_archive(ar, '*/bin/subconvert')
+
+
+def get_tests(dist):
+    if dist == 'sdist':
+        return [test_sdist_archive, test_sdist_build, test_install]
+    elif dist == 'bdist':
+        return [test_bdist_common_archive, test_bdist_specific_archive]
+    elif dist == 'bdist_wheel':
+        return [test_bdist_common_archive, test_install]
+    else:
+        eprint('Unsupported dist: %s' % dist)
+        sys.exit(1)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('dist', help='distribution passed to setup.py')
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    venv_dir = 'dist_test_venv'
+    dist_dir = 'dist_test'
+    build_dir = 'build'
+    tests = get_tests(args.dist)
+
+    print(_c(":: Initial cleanup", colors.GREEN))
+    rmdir(venv_dir)
+    rmdir(dist_dir)
+    rmdir(build_dir)
+
+    print(_c(":: Creating virtualenv", colors.GREEN))
+    check_call('virtualenv -q -p python3 "%s"' % venv_dir,
+               "Can't create venv: %s" % venv_dir)
+
+    activate = os.path.join(venv_dir, 'bin', 'activate_this.py')
+    # execfile (virtualenv's activate recommendation) replacement
+    with open(activate) as f:
+        exec(f.read(), {'__file__': activate})
+
+    print(_c(":: Building %s" % args.dist, colors.GREEN))
+
+    check_call('python3 setup.py -q %s --dist-dir %s' % (args.dist, dist_dir),
+               'Error during setup.py %s' % args.dist)
+    distfiles = glob.glob("%s/*" % dist_dir)
+    if len(distfiles) != 1:
+        eprint('Unexpected number of distributions inside dist directory:')
+        eprint(str(distfiles))
+        sys.exit(1)
+    archive_path = distfiles[0]
+
+    for test_fn in tests:
+        test_fn(archive_path)
+
+    return 0
+
+sys.exit(main())
