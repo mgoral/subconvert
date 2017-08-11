@@ -18,7 +18,7 @@ case $TESTENV in
         apt_install mplayer python3-pyqt5 pyqt5-dev-tools
         pip_install tox
         ;;
-    py3*)
+    py3*|coverage)
         apt_install mplayer
         pip_install tox
         ;;

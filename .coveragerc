@@ -1,0 +1,15 @@
+# vim: ft=dosini fileencoding=utf-8:
+
+[run]
+branch = True
+
+[report]
+exclude_lines = 
+    pragma: no cover
+
+    def __repr__
+    if self\.debug
+
+fail_under = 70
+show_missing = True
+
