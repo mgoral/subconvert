@@ -54,7 +54,7 @@ class SubcBuild(distutils_build.build):
                 os.unlink(file_)
 
 
-with open(os.path.join(basepath, 'README.md'), encoding='utf-8') as f_:
+with open(os.path.join(basepath, 'README.rst'), encoding='utf-8') as f_:
     long_description = f_.read()
 
 

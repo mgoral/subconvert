@@ -110,7 +110,7 @@ def test_sdist_archive(path):
     assert_in_archive(ar, '*/setup.cfg')
     assert_in_archive(ar, '*/requirements.txt')
     assert_in_archive(ar, '*/subconvert.desktop')
-    assert_in_archive(ar, '*/README.md')
+    assert_in_archive(ar, '*/README.rst')
     assert_in_archive(ar, '*/src/subconvert/resources.qrc')
 
     assert_in_archive(ar, '*/tools/*', count=None)
