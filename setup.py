@@ -59,9 +59,9 @@ with open(os.path.join(basepath, 'README.rst'), encoding='utf-8') as f_:
 
 
 def main():
-    install_reqs = ['chardet>=3.0']
+    install_reqs = ['chardet==3.0.4']
     if sys.version_info >= (3, 5):
-        install_reqs.append('PyQt5>=5.7')
+        install_reqs.append('PyQt5==5.9')
     else:
         try:
             import PyQt5
